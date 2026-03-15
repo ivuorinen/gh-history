@@ -1,0 +1,27 @@
+# Binary
+gh-history
+
+# Generated reports
+*.html
+
+# Environment
+.env
+.env.*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Goreleaser
+dist/
+
+# Claude
+.claude/settings.local.json
+
