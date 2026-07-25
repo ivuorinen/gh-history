@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	ghAPI "github.com/cli/go-gh/v2/pkg/api"
 	"github.com/ivuorinen/gh-history/internal/daterange"
 	"github.com/ivuorinen/gh-history/internal/models"
 )
@@ -61,8 +60,8 @@ func TestCheckUserExistsGraphQL(t *testing.T) {
 			}
 			// What GitHub actually returns for an unknown login: a structured
 			// GraphQL error of type NOT_FOUND.
-			return &ghAPI.GraphQLError{
-				Errors: []ghAPI.GraphQLErrorItem{{
+			return &GraphQLError{
+				Errors: []GraphQLErrorItem{{
 					Type:    "NOT_FOUND",
 					Message: fmt.Sprintf("Could not resolve to a User with the login of '%s'", login),
 				}},
@@ -412,8 +411,8 @@ func TestFetchContributions_WiresQueriedDetail(t *testing.T) {
 func TestCheckUserExists_NotFoundUsesStructuredError(t *testing.T) {
 	mock := &mockGQLClient{
 		doFunc: func(query string, variables map[string]any, response any) error {
-			return &ghAPI.GraphQLError{
-				Errors: []ghAPI.GraphQLErrorItem{{
+			return &GraphQLError{
+				Errors: []GraphQLErrorItem{{
 					Type:    "NOT_FOUND",
 					Message: "Could not resolve to a User with the login of 'nobody'",
 				}},
@@ -433,8 +432,8 @@ func TestCheckUserExists_NotFoundIndependentOfWording(t *testing.T) {
 	// Detection must survive GitHub rewording its message.
 	mock := &mockGQLClient{
 		doFunc: func(query string, variables map[string]any, response any) error {
-			return &ghAPI.GraphQLError{
-				Errors: []ghAPI.GraphQLErrorItem{{
+			return &GraphQLError{
+				Errors: []GraphQLErrorItem{{
 					Type:    "NOT_FOUND",
 					Message: "totally different wording",
 				}},
@@ -453,8 +452,8 @@ func TestCheckUserExists_NotFoundIndependentOfWording(t *testing.T) {
 func TestCheckUserExists_OtherGraphQLErrorIsReturned(t *testing.T) {
 	mock := &mockGQLClient{
 		doFunc: func(query string, variables map[string]any, response any) error {
-			return &ghAPI.GraphQLError{
-				Errors: []ghAPI.GraphQLErrorItem{{Type: "RATE_LIMITED", Message: "slow down"}},
+			return &GraphQLError{
+				Errors: []GraphQLErrorItem{{Type: "RATE_LIMITED", Message: "slow down"}},
 			}
 		},
 	}

@@ -23,11 +23,13 @@ Review recent code changes for quality, consistency, and adherence to project co
 - `gofmt` formatted
 - `go vet` clean
 - Uses `internal/` package layout — nothing exported outside the module
-- Uses `go-gh/v2` for `pkg/api` and `pkg/auth` ONLY. Does not reintroduce `pkg/markdown`,
-  `pkg/jsonpretty`, `pkg/text`, `pkg/tableprinter`, `pkg/term` or `pkg/browser` — all were
-  removed deliberately, taking the binary from 15.3 MB to 8.7 MB. In-tree replacements:
+- Has NO `cli/go-gh` dependency — `golang.org/x/term` is the only requirement. Does not
+  reintroduce go-gh or any other dependency for work a few lines of stdlib cover.
+  In-tree replacements: `api.graphQLClient`, `main.resolveHost`/`resolveToken`,
   `output.table`, `output.terminalOut`, `output.padRight`, `output.pluralize`,
   `main.browserCommand`.
+- Does not drop the `Time-Zone` header in `api.graphQLClient.Do`: GitHub buckets
+  contributions by it, so removing it silently changes every reported count.
 - No unnecessary dependencies or abstractions
 
 ### Testing

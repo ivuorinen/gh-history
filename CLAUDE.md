@@ -46,15 +46,17 @@ Source lives in `internal/` with seven packages:
 - Standard `go vet` and `gofmt` formatting
 - All functions return errors explicitly — no panics in library code
 - `internal/` package layout — nothing exported outside the module
-- `go-gh/v2` is used for **two things only**: `pkg/api` (GraphQL client) and `pkg/auth`
-  (token resolution). Everything else was removed deliberately and must not be reintroduced:
-  - `pkg/markdown`, `pkg/jsonpretty`, `pkg/text` — cost 6.1 MB and pulled in
-    `golang.org/x/net`, purely for terminal colour and two string helpers.
-  - `pkg/tableprinter`, `pkg/term`, `pkg/browser` — replaced by `output.table`,
-    `output.terminalOut` and `main.browserCommand`; they pulled in the lipgloss stack,
-    go-runewidth, reflow and terminfo.
-- Terminal width and TTY detection use `golang.org/x/term`, which is linked via `pkg/api`
-  regardless. Markdown and JSON print verbatim.
+- **No `cli/go-gh` dependency.** The only requirement is `golang.org/x/term` (plus its
+  `golang.org/x/sys`). Do not reintroduce go-gh; in-tree replacements are
+  `api.graphQLClient` (GraphQL over `net/http`), `main.resolveHost` / `resolveToken`
+  (auth), `output.table`, `output.terminalOut`, `output.padRight`, `output.pluralize`
+  and `main.browserCommand`. The binary went from 15.3 MB to 8.1 MB.
+- **The `Time-Zone` request header is load-bearing.** GitHub buckets
+  `contributionsCollection` by it, so omitting it changes every count in the report —
+  measured on a one-day query: 1 review without the header, 2 with the local zone.
+  `api.LocalTimeZone` recovers the IANA name from `TZ` or the `/etc/localtime` symlink,
+  because Go's `time.Local` only reports "Local". Keep it, and keep its tests.
+- Markdown and JSON print verbatim; only `text` adapts to the terminal.
 
 ## Build & Release
 

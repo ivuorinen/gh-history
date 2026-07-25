@@ -3,10 +3,10 @@ package api
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"time"
 
-	ghAPI "github.com/cli/go-gh/v2/pkg/api"
 	"github.com/ivuorinen/gh-history/internal/daterange"
 	"github.com/ivuorinen/gh-history/internal/ghutil"
 	"github.com/ivuorinen/gh-history/internal/models"
@@ -36,19 +36,19 @@ func (c *Client) logf(format string, args ...any) {
 	}
 }
 
-// NewClient creates a Client for the given host and token. Either may be empty,
-// in which case go-gh resolves it from the environment and the gh CLI config —
-// host via GH_HOST then hosts.yml, token via the standard token env vars.
+// NewClient creates a Client for the given host and token. An empty host means
+// github.com. An empty token is allowed — unauthenticated requests fail at the
+// API, which reports the reason better than a local guess would.
 func NewClient(host, token string) (*Client, error) {
-	gqlClient, err := ghAPI.NewGraphQLClient(ghAPI.ClientOptions{
-		Host:      host,
-		AuthToken: token,
-		Timeout:   RequestTimeout,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("create GraphQL client: %w", err)
+	if host == "" {
+		host = hostGitHub
 	}
-	return &Client{gqlClient: gqlClient}, nil
+	return &Client{gqlClient: &graphQLClient{
+		endpoint: GraphQLEndpoint(host),
+		token:    token,
+		timeZone: LocalTimeZone(),
+		http:     &http.Client{Timeout: RequestTimeout},
+	}}, nil
 }
 
 // GetAuthenticatedUser returns the login of the currently authenticated user.
@@ -82,7 +82,7 @@ func (c *Client) CheckUserExists(username string) (bool, error) {
 // Matching the error type rather than its English prose keeps user lookups
 // working if GitHub rewords the message.
 func isNotFound(err error) bool {
-	var gqlErr *ghAPI.GraphQLError
+	var gqlErr *GraphQLError
 	if !errors.As(err, &gqlErr) {
 		return false
 	}

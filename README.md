@@ -123,9 +123,13 @@ then `github.com`.
 gh auth login
 ```
 
-Token resolution order: `GH_TOKEN` env var, `GITHUB_TOKEN` env var, `gh auth` config.
-For a GitHub Enterprise host, `GH_ENTERPRISE_TOKEN` and `GITHUB_ENTERPRISE_TOKEN`
-are preferred instead.
+Token resolution order: `GH_TOKEN` env var, `GITHUB_TOKEN` env var, then `gh auth
+token` (which covers the `gh` config file and any system keyring). For a GitHub
+Enterprise host, `GH_ENTERPRISE_TOKEN` and `GITHUB_ENTERPRISE_TOKEN` are used
+instead, so a github.com token is never sent to an internal instance.
+
+Contribution counts are bucketed into days by your local time zone, matching what
+github.com shows. Set `TZ` to report against a different one.
 
 ## Development
 

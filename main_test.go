@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -12,6 +13,117 @@ import (
 
 func d(year, month, day int) time.Time {
 	return time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
+}
+
+func TestResolveHost(t *testing.T) {
+	// An explicit flag beats the environment; the environment beats the default.
+	t.Run("flag wins over GH_HOST", func(t *testing.T) {
+		t.Setenv("GH_HOST", "env.example.com")
+		if got := resolveHost("flag.example.com"); got != "flag.example.com" {
+			t.Errorf("got %q", got)
+		}
+	})
+	t.Run("GH_HOST used when no flag", func(t *testing.T) {
+		t.Setenv("GH_HOST", "env.example.com")
+		if got := resolveHost(""); got != "env.example.com" {
+			t.Errorf("got %q", got)
+		}
+	})
+	t.Run("defaults to github.com", func(t *testing.T) {
+		t.Setenv("GH_HOST", "")
+		t.Setenv("GH_CONFIG_DIR", t.TempDir()) // no hosts.yml
+		if got := resolveHost(""); got != "github.com" {
+			t.Errorf("got %q", got)
+		}
+	})
+	t.Run("sole configured host is used", func(t *testing.T) {
+		dir := t.TempDir()
+		writeHosts(t, dir, "github.example.com:\n    users:\n        me:\n            oauth_token: x\n")
+		t.Setenv("GH_HOST", "")
+		t.Setenv("GH_CONFIG_DIR", dir)
+		if got := resolveHost(""); got != "github.example.com" {
+			t.Errorf("got %q", got)
+		}
+	})
+	t.Run("ambiguous config falls back to github.com", func(t *testing.T) {
+		dir := t.TempDir()
+		writeHosts(t, dir, "github.com:\n    a: 1\ngithub.example.com:\n    b: 2\n")
+		t.Setenv("GH_HOST", "")
+		t.Setenv("GH_CONFIG_DIR", dir)
+		if got := resolveHost(""); got != "github.com" {
+			t.Errorf("got %q", got)
+		}
+	})
+}
+
+func writeHosts(t *testing.T, dir, content string) {
+	t.Helper()
+	if err := os.WriteFile(filepath.Join(dir, "hosts.yml"), []byte(content), 0o600); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestConfiguredHosts(t *testing.T) {
+	dir := t.TempDir()
+	writeHosts(t, dir, "# a comment\ngithub.com:\n    users:\n        me:\n            oauth_token: x\ngithub.example.com:\n    git_protocol: ssh\n")
+	t.Setenv("GH_CONFIG_DIR", dir)
+
+	got := configuredHosts()
+	want := []string{"github.com", "github.example.com"}
+	if len(got) != len(want) {
+		t.Fatalf("got %v, want %v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("got %v, want %v", got, want)
+		}
+	}
+}
+
+func TestConfiguredHosts_MissingFile(t *testing.T) {
+	t.Setenv("GH_CONFIG_DIR", t.TempDir())
+	if got := configuredHosts(); len(got) != 0 {
+		t.Errorf("expected none, got %v", got)
+	}
+}
+
+// An Enterprise host must never be handed a github.com token, or vice versa.
+func TestTokenEnvVars(t *testing.T) {
+	if got := tokenEnvVars("github.com"); got[0] != "GH_TOKEN" || got[1] != "GITHUB_TOKEN" {
+		t.Errorf("github.com -> %v", got)
+	}
+	if got := tokenEnvVars("acme.ghe.com"); got[0] != "GH_TOKEN" {
+		t.Errorf("tenancy should use the github.com vars, got %v", got)
+	}
+	got := tokenEnvVars("github.example.com")
+	if got[0] != "GH_ENTERPRISE_TOKEN" || got[1] != "GITHUB_ENTERPRISE_TOKEN" {
+		t.Errorf("enterprise -> %v", got)
+	}
+}
+
+func TestResolveToken(t *testing.T) {
+	t.Run("GH_TOKEN wins for github.com", func(t *testing.T) {
+		t.Setenv("GH_TOKEN", "a")
+		t.Setenv("GITHUB_TOKEN", "b")
+		if got := resolveToken("github.com"); got != "a" {
+			t.Errorf("got %q, want a", got)
+		}
+	})
+	t.Run("falls through to GITHUB_TOKEN", func(t *testing.T) {
+		t.Setenv("GH_TOKEN", "")
+		t.Setenv("GITHUB_TOKEN", "b")
+		if got := resolveToken("github.com"); got != "b" {
+			t.Errorf("got %q, want b", got)
+		}
+	})
+	t.Run("enterprise ignores the github.com vars", func(t *testing.T) {
+		t.Setenv("GH_TOKEN", "dotcom")
+		t.Setenv("GITHUB_TOKEN", "dotcom")
+		t.Setenv("GH_ENTERPRISE_TOKEN", "ent")
+		if got := resolveToken("github.example.com"); got != "ent" {
+			t.Errorf("got %q, want ent", got)
+		}
+	})
 }
 
 func TestConfigValidate(t *testing.T) {
