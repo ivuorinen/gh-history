@@ -36,18 +36,12 @@ func (c *Client) logf(format string, args ...any) {
 	}
 }
 
-// NewClient creates a Client using go-gh's default authentication (reads gh CLI config and env vars).
-func NewClient() (*Client, error) {
-	gqlClient, err := ghAPI.NewGraphQLClient(ghAPI.ClientOptions{Timeout: RequestTimeout})
-	if err != nil {
-		return nil, fmt.Errorf("create GraphQL client: %w", err)
-	}
-	return &Client{gqlClient: gqlClient}, nil
-}
-
-// NewClientWithToken creates a Client with an explicit auth token.
-func NewClientWithToken(token string) (*Client, error) {
+// NewClient creates a Client for the given host and token. Either may be empty,
+// in which case go-gh resolves it from the environment and the gh CLI config —
+// host via GH_HOST then hosts.yml, token via the standard token env vars.
+func NewClient(host, token string) (*Client, error) {
 	gqlClient, err := ghAPI.NewGraphQLClient(ghAPI.ClientOptions{
+		Host:      host,
 		AuthToken: token,
 		Timeout:   RequestTimeout,
 	})

@@ -32,7 +32,40 @@ type config struct {
 	format      string
 	verbose     bool
 	showVersion bool
-	username    string
+	hostname    string
+	username    string   // from --username
+	positional  []string // non-flag arguments, the first of which is a username
+}
+
+// posUsername returns the username given positionally, if any.
+func (c *config) posUsername() string {
+	if len(c.positional) == 0 {
+		return ""
+	}
+	return c.positional[0]
+}
+
+// subject returns the username the report is for, preferring the flag. Callers
+// must run validate first, which rejects supplying both forms.
+func (c *config) subject() string {
+	if c.username != "" {
+		return c.username
+	}
+	return c.posUsername()
+}
+
+// validate rejects argument combinations that cannot be honoured
+// unambiguously. Reporting on the wrong account is worse than a clear error.
+func (c *config) validate() error {
+	if len(c.positional) > 1 {
+		return fmt.Errorf("only one username may be given, got %d: %s",
+			len(c.positional), strings.Join(c.positional, " "))
+	}
+	if c.username != "" && c.posUsername() != "" && c.username != c.posUsername() {
+		return fmt.Errorf("cannot combine --username %q with the positional username %q; give one",
+			c.username, c.posUsername())
+	}
+	return nil
 }
 
 func main() {
@@ -64,30 +97,39 @@ func parseFlags(args []string) *config {
 	fs.StringVar(&cfg.outputFile, "output", "", "Output file path")
 	fs.StringVar(&cfg.outputFile, "o", "", "Output file path")
 	fs.StringVar(&cfg.format, "format", "markdown", "Output format (text|json|markdown|html)")
+	fs.StringVar(&cfg.username, "username", "", "GitHub username to report on")
+	fs.StringVar(&cfg.username, "u", "", "GitHub username to report on")
+	fs.StringVar(&cfg.hostname, "hostname", "", "GitHub host (for GitHub Enterprise; defaults to GH_HOST or github.com)")
 	fs.BoolVar(&cfg.verbose, "verbose", false, "Verbose output")
 	fs.BoolVar(&cfg.verbose, "v", false, "Verbose output")
 	fs.BoolVar(&cfg.showVersion, "version", false, "Show version")
 
+	// Go's flag package stops parsing at the first non-flag argument, so a plain
+	// fs.Parse(args) would silently ignore every flag written after the
+	// username — "gh history octocat --format json" would quietly produce the
+	// default Markdown over the default date range. Consume positionals one at
+	// a time and keep parsing what follows.
 	fs.Parse(args)
+	for fs.NArg() > 0 {
+		cfg.positional = append(cfg.positional, fs.Arg(0))
+		fs.Parse(fs.Args()[1:])
+	}
 
 	cfg.format = strings.ToLower(cfg.format)
 
-	if fs.NArg() > 0 {
-		cfg.username = fs.Arg(0)
-	}
 	return cfg
 }
 
 const usageHint = "Usage: gh history <username> [options]\nOr authenticate with: gh auth login"
 
 func resolveUser(cfg *config) string {
-	if cfg.username != "" {
-		return cfg.username
+	if s := cfg.subject(); s != "" {
+		return s
 	}
 	// Report what actually failed. Collapsing a network error, an expired token
 	// and a missing token into one "username required" message sends users to
 	// re-authenticate credentials that may be working fine.
-	client, err := newAPIClient()
+	client, err := newAPIClient(cfg)
 	if err != nil {
 		fatal("no username given and the GitHub client could not be created: %v\n%s", err, usageHint)
 	}
@@ -248,6 +290,10 @@ func handleMain(args []string) {
 		return
 	}
 
+	if err := cfg.validate(); err != nil {
+		fatal("%v", err)
+	}
+
 	username := resolveUser(cfg)
 
 	dr, err := daterange.ParseDateRange(cfg.fromDate, cfg.toDate, cfg.year, cfg.lastMonth, cfg.last90)
@@ -255,7 +301,7 @@ func handleMain(args []string) {
 		fatal("%v", err)
 	}
 
-	client, err := newAPIClient()
+	client, err := newAPIClient(cfg)
 	if err != nil {
 		fatal("%v", err)
 	}
@@ -324,22 +370,20 @@ func browserCommand(path, launcher, goos string) (string, []string, error) {
 	}
 }
 
-// newAPIClient creates an API client using go-gh's auth.
-func newAPIClient() (*api.Client, error) {
-	if token := os.Getenv("GH_TOKEN"); token != "" {
-		return api.NewClientWithToken(token)
+// newAPIClient creates an API client for the configured host.
+//
+// Token lookup is delegated to auth.TokenForHost, which already applies the
+// documented order — GH_TOKEN, GITHUB_TOKEN, then the gh config — and, for a
+// GitHub Enterprise host, prefers GH_ENTERPRISE_TOKEN / GITHUB_ENTERPRISE_TOKEN.
+// Checking the env vars separately here would ignore that per-host distinction.
+func newAPIClient(cfg *config) (*api.Client, error) {
+	host := cfg.hostname
+	if host == "" {
+		host, _ = auth.DefaultHost()
 	}
-	if token := os.Getenv("GITHUB_TOKEN"); token != "" {
-		return api.NewClientWithToken(token)
-	}
-
-	host, _ := auth.DefaultHost()
 	token, _ := auth.TokenForHost(host)
-	if token != "" {
-		return api.NewClientWithToken(token)
-	}
-
-	return api.NewClient()
+	logVerbose(cfg.verbose, "Using host: %s", host)
+	return api.NewClient(host, token)
 }
 
 // splitIntoYearChunks splits a date range into chunks of at most 1 year each,

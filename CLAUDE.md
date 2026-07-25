@@ -25,6 +25,11 @@ go run . [username]     # Run locally
 
 Entry point: `main.go` (flag-based CLI via `flag.NewFlagSet`).
 
+`parseFlags` loops over `fs.Parse` rather than calling it once: Go's `flag` package
+stops at the first non-flag argument, so a single call silently drops every flag
+written after the positional username (`gh history octocat --format json`). Keep the
+loop, and keep `TestParseFlags`'s "flags AFTER the positional username" case.
+
 Source lives in `internal/` with seven packages:
 
 - **api/** — GitHub GraphQL client using `go-gh/v2`. Token resolution via `GH_TOKEN`, `GITHUB_TOKEN`, or `gh auth` config. Pagination via cursor-based GraphQL.

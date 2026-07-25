@@ -14,6 +14,41 @@ func d(year, month, day int) time.Time {
 	return time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
 }
 
+func TestConfigValidate(t *testing.T) {
+	tests := []struct {
+		name    string
+		cfg     config
+		wantErr bool
+	}{
+		{"neither given", config{}, false},
+		{"two positionals", config{positional: []string{"octocat", "torvalds"}}, true},
+		{"flag only", config{username: "octocat"}, false},
+		{"positional only", config{positional: []string{"octocat"}}, false},
+		{"both, agreeing", config{username: "octocat", positional: []string{"octocat"}}, false},
+		// Silently picking one would hide a typo in the other.
+		{"both, disagreeing", config{username: "octocat", positional: []string{"torvalds"}}, true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.cfg.validate()
+			if (err != nil) != tc.wantErr {
+				t.Errorf("validate() error = %v, wantErr %v", err, tc.wantErr)
+			}
+		})
+	}
+}
+
+func TestConfigSubjectPrefersFlag(t *testing.T) {
+	c := config{username: "octocat", positional: []string{"octocat"}}
+	if got := c.subject(); got != "octocat" {
+		t.Errorf("subject() = %q, want octocat", got)
+	}
+	c = config{positional: []string{"torvalds"}}
+	if got := c.subject(); got != "torvalds" {
+		t.Errorf("subject() = %q, want torvalds", got)
+	}
+}
+
 func TestBrowserCommand(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -101,8 +136,8 @@ func TestParseFlags(t *testing.T) {
 			name: "positional username",
 			args: []string{"octocat"},
 			check: func(t *testing.T, c *config) {
-				if c.username != "octocat" {
-					t.Errorf("username = %q", c.username)
+				if c.subject() != "octocat" {
+					t.Errorf("subject = %q", c.subject())
 				}
 			},
 		},
@@ -110,8 +145,44 @@ func TestParseFlags(t *testing.T) {
 			name: "no username leaves it empty for resolution",
 			args: []string{},
 			check: func(t *testing.T, c *config) {
-				if c.username != "" {
-					t.Errorf("username = %q, want empty", c.username)
+				if c.subject() != "" {
+					t.Errorf("subject = %q, want empty", c.subject())
+				}
+			},
+		},
+		{
+			name: "--username flag",
+			args: []string{"--username", "octocat"},
+			check: func(t *testing.T, c *config) {
+				if c.subject() != "octocat" {
+					t.Errorf("subject = %q", c.subject())
+				}
+			},
+		},
+		{
+			name: "-u short form",
+			args: []string{"-u", "octocat"},
+			check: func(t *testing.T, c *config) {
+				if c.subject() != "octocat" {
+					t.Errorf("subject = %q", c.subject())
+				}
+			},
+		},
+		{
+			name: "--hostname",
+			args: []string{"--hostname", "github.example.com"},
+			check: func(t *testing.T, c *config) {
+				if c.hostname != "github.example.com" {
+					t.Errorf("hostname = %q", c.hostname)
+				}
+			},
+		},
+		{
+			name: "hostname defaults to empty so go-gh resolves it",
+			args: []string{},
+			check: func(t *testing.T, c *config) {
+				if c.hostname != "" {
+					t.Errorf("hostname = %q, want empty", c.hostname)
 				}
 			},
 		},
@@ -152,11 +223,53 @@ func TestParseFlags(t *testing.T) {
 			},
 		},
 		{
+			// Go's flag package stops at the first non-flag argument, so this
+			// form silently ignored every flag after the username. It is the
+			// form the README documents throughout.
+			name: "flags AFTER the positional username are still parsed",
+			args: []string{"octocat", "--format", "json", "--from", "2024-01-01", "--verbose"},
+			check: func(t *testing.T, c *config) {
+				if c.subject() != "octocat" {
+					t.Errorf("subject = %q", c.subject())
+				}
+				if c.format != "json" {
+					t.Errorf("format = %q, want json — the flag after the username was dropped", c.format)
+				}
+				if c.fromDate != "2024-01-01" {
+					t.Errorf("fromDate = %q, want 2024-01-01", c.fromDate)
+				}
+				if !c.verbose {
+					t.Error("verbose flag after the username was dropped")
+				}
+			},
+		},
+		{
+			name: "flags interleaved around the username",
+			args: []string{"--verbose", "octocat", "--format", "text"},
+			check: func(t *testing.T, c *config) {
+				if c.subject() != "octocat" || !c.verbose || c.format != "text" {
+					t.Errorf("subject=%q verbose=%v format=%q", c.subject(), c.verbose, c.format)
+				}
+			},
+		},
+		{
+			name: "two positional usernames are both captured for validate to reject",
+			args: []string{"octocat", "torvalds"},
+			check: func(t *testing.T, c *config) {
+				if len(c.positional) != 2 {
+					t.Errorf("positional = %v, want both captured", c.positional)
+				}
+			},
+		},
+		{
 			name: "flags before the username still leave it positional",
 			args: []string{"--verbose", "octocat"},
 			check: func(t *testing.T, c *config) {
-				if c.username != "octocat" || !c.verbose {
-					t.Errorf("username = %q verbose = %v", c.username, c.verbose)
+				if c.posUsername() != "octocat" || !c.verbose {
+					t.Errorf("posUsername = %q verbose = %v", c.posUsername(), c.verbose)
+				}
+				if c.subject() != "octocat" {
+					t.Errorf("subject = %q", c.subject())
 				}
 			},
 		},

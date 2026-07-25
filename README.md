@@ -86,17 +86,34 @@ cannot write to stdout.
 
 ### Options
 
-| Flag             | Short | Description                                     |
-|------------------|-------|-------------------------------------------------|
-| `--from`         | `-f`  | Start date (YYYY-MM-DD)                         |
-| `--to`           | `-t`  | End date (YYYY-MM-DD)                           |
-| `--year`         | `-y`  | Full year shorthand                             |
-| `--last-month`   |       | Previous calendar month                         |
-| `--last-90-days` |       | Last 90 days                                    |
-| `--output`       | `-o`  | Output file path                                |
-| `--format`       |       | `text`, `json`, `markdown` (default), or `html` |
-| `--verbose`      | `-v`  | Progress and diagnostics (written to stderr)    |
-| `--version`      |       | Show version                                    |
+| Flag             | Short | Description                                       |
+|------------------|-------|---------------------------------------------------|
+| `--username`     | `-u`  | User to report on (same as the positional form)   |
+| `--hostname`     |       | GitHub host, for GitHub Enterprise                |
+| `--from`         | `-f`  | Start date (YYYY-MM-DD)                           |
+| `--to`           | `-t`  | End date (YYYY-MM-DD)                             |
+| `--year`         | `-y`  | Full year shorthand                               |
+| `--last-month`   |       | Previous calendar month                           |
+| `--last-90-days` |       | Last 90 days                                      |
+| `--output`       | `-o`  | Output file path                                  |
+| `--format`       |       | `text`, `json`, `markdown` (default), or `html`   |
+| `--verbose`      | `-v`  | Progress and diagnostics (written to stderr)      |
+| `--version`      |       | Show version                                      |
+
+Flags may appear before or after the username. Giving the username both
+positionally and with `--username` is an error unless they match, as is giving
+more than one username.
+
+### GitHub Enterprise
+
+```bash
+gh history --hostname github.example.com --username octocat
+```
+
+`--hostname` sets both the API host and the host the token is looked up for, so
+`GH_ENTERPRISE_TOKEN` / `GITHUB_ENTERPRISE_TOKEN` and the matching `hosts.yml`
+entry are used. Without it the host comes from `GH_HOST`, then your `gh` config,
+then `github.com`.
 
 ## Authentication
 
@@ -107,6 +124,8 @@ gh auth login
 ```
 
 Token resolution order: `GH_TOKEN` env var, `GITHUB_TOKEN` env var, `gh auth` config.
+For a GitHub Enterprise host, `GH_ENTERPRISE_TOKEN` and `GITHUB_ENTERPRISE_TOKEN`
+are preferred instead.
 
 ## Development
 
