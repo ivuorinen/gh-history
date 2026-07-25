@@ -4,10 +4,14 @@ A GitHub CLI extension that analyzes user activity and generates statistics and 
 
 ## Features
 
-- **Activity Tracking** — Commits, pull requests, issues, reviews, releases, and more
+- **Activity Tracking** — Commits, pull requests, issues, code reviews, comments, and repository creation
 - **Statistics** — Streaks, event distributions, top repositories, activity patterns
 - **Multiple Formats** — Text, JSON, Markdown, and interactive HTML reports with Plotly charts
 - **Flexible Date Ranges** — Query any timeframe with year, month, and custom date range options
+
+Commit counts and streaks come from GitHub's contribution calendar, so they
+include private repositories. The per-repository breakdown covers public
+activity only.
 
 ## Installation
 
@@ -39,22 +43,39 @@ gh history --last-90-days
 gh history --from 2024-01-01 --to 2024-12-31
 ```
 
+With no date flags, the last 90 days are used. Date range options are mutually
+exclusive, and a year that has not started yet is rejected.
+
 ### Output formats
 
 ```bash
 gh history octocat --format text
 gh history octocat --format json
 gh history octocat --format markdown        # default
-gh history octocat --format html             # generates and opens an interactive report
+gh history octocat --format html            # writes a file and opens it in your browser
 gh history octocat --format json -o stats.json
 ```
 
-### Additional options
+All formats report the same statistics; only the presentation differs.
 
-```bash
-gh history octocat --verbose         # show progress and debug info
-gh history --version                 # show version
-```
+`--format html` always writes to a file and opens it in your default browser. With
+no `--output` the file is `<username>-report.html` in the current directory; with
+`--output` a `.html` suffix is appended if missing. It is the only format that
+cannot write to stdout.
+
+### Options
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--from` | `-f` | Start date (YYYY-MM-DD) |
+| `--to` | `-t` | End date (YYYY-MM-DD) |
+| `--year` | `-y` | Full year shorthand |
+| `--last-month` | | Previous calendar month |
+| `--last-90-days` | | Last 90 days |
+| `--output` | `-o` | Output file path |
+| `--format` | | `text`, `json`, `markdown` (default), or `html` |
+| `--verbose` | `-v` | Progress and diagnostics (written to stderr) |
+| `--version` | | Show version |
 
 ## Authentication
 

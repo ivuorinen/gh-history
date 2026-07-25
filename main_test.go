@@ -11,6 +11,83 @@ func d(year, month, day int) time.Time {
 	return time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
 }
 
+func TestParseFlags(t *testing.T) {
+	tests := []struct {
+		name  string
+		args  []string
+		check func(t *testing.T, c *config)
+	}{
+		{
+			name: "positional username",
+			args: []string{"octocat"},
+			check: func(t *testing.T, c *config) {
+				if c.username != "octocat" {
+					t.Errorf("username = %q", c.username)
+				}
+			},
+		},
+		{
+			name: "no username leaves it empty for resolution",
+			args: []string{},
+			check: func(t *testing.T, c *config) {
+				if c.username != "" {
+					t.Errorf("username = %q, want empty", c.username)
+				}
+			},
+		},
+		{
+			name: "format is lowercased",
+			args: []string{"--format", "JSON"},
+			check: func(t *testing.T, c *config) {
+				if c.format != "json" {
+					t.Errorf("format = %q, want json", c.format)
+				}
+			},
+		},
+		{
+			name: "format defaults to markdown",
+			args: []string{},
+			check: func(t *testing.T, c *config) {
+				if c.format != "markdown" {
+					t.Errorf("format = %q, want markdown", c.format)
+				}
+			},
+		},
+		{
+			name: "short flags match long flags",
+			args: []string{"-f", "2024-01-01", "-t", "2024-06-30", "-o", "out.json", "-y", "2024", "-v"},
+			check: func(t *testing.T, c *config) {
+				if c.fromDate != "2024-01-01" || c.toDate != "2024-06-30" {
+					t.Errorf("dates = %q..%q", c.fromDate, c.toDate)
+				}
+				if c.outputFile != "out.json" {
+					t.Errorf("output = %q", c.outputFile)
+				}
+				if c.year != 2024 {
+					t.Errorf("year = %d", c.year)
+				}
+				if !c.verbose {
+					t.Error("verbose should be set")
+				}
+			},
+		},
+		{
+			name: "flags before the username still leave it positional",
+			args: []string{"--verbose", "octocat"},
+			check: func(t *testing.T, c *config) {
+				if c.username != "octocat" || !c.verbose {
+					t.Errorf("username = %q verbose = %v", c.username, c.verbose)
+				}
+			},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.check(t, parseFlags(tc.args))
+		})
+	}
+}
+
 func TestSplitIntoYearChunks_SingleDay(t *testing.T) {
 	dr := daterange.DateRange{Start: d(2024, 6, 15), End: d(2024, 6, 15)}
 	chunks := splitIntoYearChunks(dr)

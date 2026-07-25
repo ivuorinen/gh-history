@@ -51,6 +51,12 @@ signs:
 
 release:
   name_template: "{{.Tag}}"
+  # The archives are binary-only and cannot carry extra files, so the project
+  # licence travels with the release itself. Dependencies are all MIT/BSD/
+  # Apache-2.0/ISC and their notices belong here too — regenerate with:
+  #   go run github.com/google/go-licenses@latest save ./... --save_path=third_party
+  extra_files:
+    - glob: LICENSE
   footer: >-
 
     ---

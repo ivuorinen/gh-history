@@ -54,3 +54,22 @@ Settle on one scope for GitHub Action updates and encode it in the Renovate conf
 (`renovate.json` extends `local>ivuorinen/renovate-config`, so the
 `commitMessageTopic`/`semanticCommitScope` for the `github-actions` manager belongs
 there) so the choice is applied automatically rather than per-PR.
+
+## Why this stays open
+
+Deliberately not fixed in the audit's fix pass, for two reasons:
+
+1. **The evidence is immutable.** Commits `e97edba` and `b24c246` are published
+   history on `main`. Correcting their messages means rewriting and force-pushing
+   published history — far more disruptive than the Low-severity problem it fixes.
+2. **The forward fix lives outside this repository.** Both the marker and the
+   inconsistent `chore(actions)` / `chore(deps)` scoping are produced by Renovate,
+   and `renovate.json` here is a three-line file extending
+   `local>ivuorinen/renovate-config`. The durable fix is a `semanticCommitScope`
+   for the `github-actions` manager in that shared config. Adding a local
+   `packageRules` override was rejected: without visibility into what the shared
+   config already sets, an override could conflict with it, and the choice of
+   convention is the owner's to make across every repo that extends it.
+
+No code change would make this finding go away, so it remains open as a record
+rather than being resolved as `invalid` — the underlying observation is correct.

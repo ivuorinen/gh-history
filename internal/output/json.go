@@ -27,9 +27,30 @@ func FormatJSON(stats models.Statistics) ([]byte, error) {
 		},
 		"events_by_category": stats.EventsByCategory,
 		"events_by_type":     stats.EventsByType,
+		"events_by_repo":     stats.EventsByRepo,
 		"top_repos":          stats.TopRepos(15),
+		"events_by_date":     stats.EventsByDate,
 		"events_by_weekday":  stats.EventsByWeekday,
 		"events_by_hour":     stats.EventsByHour,
+	}
+
+	// The contribution calendar includes private-repository activity, so it is
+	// not derivable from events_by_date. Emit it rather than computing it and
+	// dropping it on the floor.
+	if stats.Calendar != nil {
+		days := make([]map[string]any, 0, len(stats.Calendar.Days))
+		for _, d := range stats.Calendar.Days {
+			days = append(days, map[string]any{
+				"date":  d.Date.Format(ghutil.DateFormat),
+				"count": d.ContributionCount,
+			})
+		}
+		data["calendar"] = map[string]any{
+			"total_contributions": stats.Calendar.TotalContributions,
+			"days":                days,
+		}
+	} else {
+		data["calendar"] = nil
 	}
 
 	if stats.Streaks != nil {
@@ -39,6 +60,7 @@ func FormatJSON(stats models.Statistics) ([]byte, error) {
 			"longest_start": nil,
 			"longest_end":   nil,
 			"current":       s.CurrentStreak,
+			"current_start": nil,
 			"active_days":   s.ActiveDays,
 			"total_days":    s.TotalDays,
 			"activity_rate": s.ActivityRate(),
@@ -48,6 +70,9 @@ func FormatJSON(stats models.Statistics) ([]byte, error) {
 		}
 		if s.LongestStreakEnd != nil {
 			streaks["longest_end"] = s.LongestStreakEnd.Format(ghutil.DateFormat)
+		}
+		if s.CurrentStreakStart != nil {
+			streaks["current_start"] = s.CurrentStreakStart.Format(ghutil.DateFormat)
 		}
 		data["streaks"] = streaks
 	} else {

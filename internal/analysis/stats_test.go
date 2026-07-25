@@ -17,14 +17,14 @@ func TestCalculate(t *testing.T) {
 	if stats.TotalEvents != 5 {
 		t.Errorf("expected 5 total events, got %d", stats.TotalEvents)
 	}
-	if stats.CommitCount != 2 {
-		t.Errorf("expected 2 commits, got %d", stats.CommitCount)
-	}
 	if stats.PROpened != 1 {
 		t.Errorf("expected 1 PR opened, got %d", stats.PROpened)
 	}
 	if stats.PRMerged != 1 {
 		t.Errorf("expected 1 PR merged, got %d", stats.PRMerged)
+	}
+	if stats.PRClosed != 0 {
+		t.Errorf("expected 0 PRs closed-without-merge, got %d", stats.PRClosed)
 	}
 	if stats.IssuesOpened != 1 {
 		t.Errorf("expected 1 issue opened, got %d", stats.IssuesOpened)
@@ -52,6 +52,46 @@ func TestCalculateEmpty(t *testing.T) {
 	if stats.Streaks == nil {
 		t.Fatal("expected streaks to be set even when empty")
 	}
+	if stats.Streaks.TotalDays != 31 {
+		t.Errorf("expected 31 total days, got %d", stats.Streaks.TotalDays)
+	}
+}
+
+// A user whose activity is entirely in private repositories has calendar days
+// and a commit total but no public events. Those inputs must still reach the
+// report rather than being skipped along with the empty event list.
+func TestCalculate_NoEventsStillUsesCalendarAndCommitTotal(t *testing.T) {
+	dr := testutil.SampleDateRange()
+	calc := &Calculator{
+		Username:  "user",
+		DateRange: dr,
+		CalendarDays: []models.ContributionDay{
+			{Date: time.Date(2024, 1, 10, 0, 0, 0, 0, time.UTC), ContributionCount: 5},
+			{Date: time.Date(2024, 1, 11, 0, 0, 0, 0, time.UTC), ContributionCount: 3},
+			{Date: time.Date(2024, 1, 12, 0, 0, 0, 0, time.UTC), ContributionCount: 7},
+		},
+		TotalCommitContributions: 42,
+	}
+	stats := calc.Calculate(nil)
+
+	if stats.Streaks == nil {
+		t.Fatal("expected streaks to be set")
+	}
+	if stats.Streaks.ActiveDays != 3 {
+		t.Errorf("expected 3 active days from calendar, got %d", stats.Streaks.ActiveDays)
+	}
+	if stats.Streaks.LongestStreak != 3 {
+		t.Errorf("expected longest streak 3 from calendar, got %d", stats.Streaks.LongestStreak)
+	}
+	if stats.CommitCount != 42 {
+		t.Errorf("expected CommitCount 42 from GraphQL total, got %d", stats.CommitCount)
+	}
+	if stats.Calendar == nil {
+		t.Fatal("expected Calendar to be set")
+	}
+	if stats.Calendar.TotalContributions != 15 {
+		t.Errorf("expected 15 total contributions, got %d", stats.Calendar.TotalContributions)
+	}
 }
 
 func TestCategorizeEvent(t *testing.T) {
@@ -59,10 +99,14 @@ func TestCategorizeEvent(t *testing.T) {
 		eventType string
 		expected  models.Category
 	}{
-		{"PushEvent", models.CategoryCommits},
 		{"PullRequestEvent", models.CategoryPullRequests},
+		{"PullRequestReviewEvent", models.CategoryReviews},
+		{"IssuesEvent", models.CategoryIssues},
 		{"IssueCommentEvent", models.CategoryComments},
+		{"CreateEvent", models.CategoryRepos},
 		{"UnknownEvent", models.CategoryOther},
+		// Not produced by the GraphQL client; must not silently map anywhere.
+		{"PushEvent", models.CategoryOther},
 	}
 	for _, tc := range tests {
 		got := CategorizeEvent(tc.eventType)
@@ -72,154 +116,91 @@ func TestCategorizeEvent(t *testing.T) {
 	}
 }
 
-func TestTrackActionCount_PRClosedWithoutPullRequestPayload(t *testing.T) {
-	// PR closed but no pull_request key in payload — should increment closed
-	event := models.Event{
-		ID: "1", Type: "PullRequestEvent", Actor: "user", Repo: "user/repo",
-		Payload:   map[string]any{"action": "closed"},
-		CreatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
-	}
-	var opened, closed int
-	trackActionCount(event, &opened, &closed, func(pr map[string]any) bool {
-		return false
-	})
-	if opened != 0 {
-		t.Errorf("expected 0 opened, got %d", opened)
-	}
-	if closed != 1 {
-		t.Errorf("expected 1 closed, got %d", closed)
-	}
-}
-
-func TestTrackActionCount_PRClosedNotMerged(t *testing.T) {
-	event := models.Event{
-		ID: "1", Type: "PullRequestEvent", Actor: "user", Repo: "user/repo",
-		Payload:   map[string]any{"action": "closed", "pull_request": map[string]any{"merged": false}},
-		CreatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
-	}
-	var opened, closed int
-	trackActionCount(event, &opened, &closed, func(pr map[string]any) bool {
-		if merged, ok := pr["merged"].(bool); ok && merged {
-			return true
-		}
-		return false
-	})
-	if closed != 1 {
-		t.Errorf("expected 1 closed (not merged), got %d", closed)
-	}
-}
-
-func TestTrackActionCount_UnknownAction(t *testing.T) {
-	event := models.Event{
-		ID: "1", Type: "IssuesEvent", Actor: "user", Repo: "user/repo",
-		Payload:   map[string]any{"action": "labeled"},
-		CreatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
-	}
-	var opened, closed int
-	trackActionCount(event, &opened, &closed, nil)
-	if opened != 0 || closed != 0 {
-		t.Errorf("expected 0/0 for unknown action, got %d/%d", opened, closed)
-	}
-}
-
-func TestTrackActionCount_NoActionField(t *testing.T) {
-	event := models.Event{
-		ID: "1", Type: "IssuesEvent", Actor: "user", Repo: "user/repo",
-		Payload:   map[string]any{},
-		CreatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
-	}
-	var opened, closed int
-	trackActionCount(event, &opened, &closed, nil)
-	if opened != 0 || closed != 0 {
-		t.Errorf("expected 0/0 for no action, got %d/%d", opened, closed)
-	}
-}
-
-func TestCountCommits(t *testing.T) {
+func TestTrackDetailedStats(t *testing.T) {
 	tests := []struct {
-		name    string
-		payload map[string]any
-		want    int
+		name  string
+		event models.Event
+		check func(t *testing.T, s models.Statistics)
 	}{
 		{
-			name:    "commits array with 2 items",
-			payload: map[string]any{"commits": []any{map[string]any{"sha": "a"}, map[string]any{"sha": "b"}}},
-			want:    2,
+			name:  "PR opened",
+			event: models.Event{Type: "PullRequestEvent", Action: models.ActionOpened},
+			check: func(t *testing.T, s models.Statistics) {
+				if s.PROpened != 1 || s.PRMerged != 0 || s.PRClosed != 0 {
+					t.Errorf("got opened=%d merged=%d closed=%d", s.PROpened, s.PRMerged, s.PRClosed)
+				}
+			},
 		},
 		{
-			name:    "size as float64 (from JSON unmarshal)",
-			payload: map[string]any{"size": float64(3)},
-			want:    3,
+			name:  "PR closed and merged counts as merged only",
+			event: models.Event{Type: "PullRequestEvent", Action: models.ActionClosed, Merged: true},
+			check: func(t *testing.T, s models.Statistics) {
+				if s.PRMerged != 1 || s.PRClosed != 0 {
+					t.Errorf("got merged=%d closed=%d", s.PRMerged, s.PRClosed)
+				}
+			},
 		},
 		{
-			name:    "size as int (from Go construction)",
-			payload: map[string]any{"size": 5},
-			want:    5,
+			name:  "PR closed without merge counts as closed",
+			event: models.Event{Type: "PullRequestEvent", Action: models.ActionClosed},
+			check: func(t *testing.T, s models.Statistics) {
+				if s.PRClosed != 1 || s.PRMerged != 0 {
+					t.Errorf("got closed=%d merged=%d", s.PRClosed, s.PRMerged)
+				}
+			},
 		},
 		{
-			name:    "empty payload falls back to 1",
-			payload: map[string]any{},
-			want:    1,
+			name:  "issue opened",
+			event: models.Event{Type: "IssuesEvent", Action: models.ActionOpened},
+			check: func(t *testing.T, s models.Statistics) {
+				if s.IssuesOpened != 1 || s.IssuesClosed != 0 {
+					t.Errorf("got opened=%d closed=%d", s.IssuesOpened, s.IssuesClosed)
+				}
+			},
 		},
 		{
-			name:    "nil commits falls back to size",
-			payload: map[string]any{"commits": nil, "size": float64(4)},
-			want:    4,
+			name:  "issue closed",
+			event: models.Event{Type: "IssuesEvent", Action: models.ActionClosed},
+			check: func(t *testing.T, s models.Statistics) {
+				if s.IssuesClosed != 1 {
+					t.Errorf("got closed=%d", s.IssuesClosed)
+				}
+			},
 		},
 		{
-			name:    "empty commits array falls back to size",
-			payload: map[string]any{"commits": []any{}, "size": float64(2)},
-			want:    2,
+			name:  "unknown action increments nothing",
+			event: models.Event{Type: "IssuesEvent", Action: "labeled"},
+			check: func(t *testing.T, s models.Statistics) {
+				if s.IssuesOpened != 0 || s.IssuesClosed != 0 {
+					t.Errorf("got opened=%d closed=%d", s.IssuesOpened, s.IssuesClosed)
+				}
+			},
 		},
 		{
-			name:    "zero size falls back to 1",
-			payload: map[string]any{"size": float64(0)},
-			want:    1,
+			name:  "empty action increments nothing",
+			event: models.Event{Type: "PullRequestEvent"},
+			check: func(t *testing.T, s models.Statistics) {
+				if s.PROpened != 0 || s.PRClosed != 0 || s.PRMerged != 0 {
+					t.Errorf("got opened=%d closed=%d merged=%d", s.PROpened, s.PRClosed, s.PRMerged)
+				}
+			},
 		},
 		{
-			name:    "commits takes priority over size",
-			payload: map[string]any{"commits": []any{map[string]any{"sha": "a"}}, "size": float64(5)},
-			want:    1,
+			name:  "review",
+			event: models.Event{Type: "PullRequestReviewEvent"},
+			check: func(t *testing.T, s models.Statistics) {
+				if s.ReviewsCount != 1 {
+					t.Errorf("got reviews=%d", s.ReviewsCount)
+				}
+			},
 		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			got := countCommits(tc.payload)
-			if got != tc.want {
-				t.Errorf("countCommits() = %d, want %d", got, tc.want)
-			}
+			var stats models.Statistics
+			trackDetailedStats(&stats, tc.event)
+			tc.check(t, stats)
 		})
-	}
-}
-
-func TestCountCommits_InCalculate(t *testing.T) {
-	// Verify CommitCount is always >= PushEvent count
-	dr := daterange.DateRange{
-		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
-		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
-	}
-	events := []models.Event{
-		{
-			ID: "1", Type: "PushEvent", Actor: "user", Repo: "user/repo",
-			Payload:   map[string]any{}, // empty payload
-			CreatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
-		},
-		{
-			ID: "2", Type: "PushEvent", Actor: "user", Repo: "user/repo",
-			Payload:   map[string]any{"size": float64(3)},
-			CreatedAt: time.Date(2024, 1, 16, 10, 0, 0, 0, time.UTC),
-		},
-	}
-	calc := &Calculator{Username: "user", DateRange: dr}
-	stats := calc.Calculate(events)
-
-	pushEvents := stats.EventsByCategory[models.CategoryCommits]
-	if stats.CommitCount < pushEvents {
-		t.Errorf("CommitCount (%d) should be >= PushEvent count (%d)", stats.CommitCount, pushEvents)
-	}
-	// 1 (fallback) + 3 (from size) = 4
-	if stats.CommitCount != 4 {
-		t.Errorf("expected CommitCount 4, got %d", stats.CommitCount)
 	}
 }
 
@@ -230,8 +211,7 @@ func TestWeekdayMapping(t *testing.T) {
 		End:   time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
 	}
 	events := []models.Event{{
-		ID: "1", Type: "PushEvent", Actor: "user", Repo: "user/repo",
-		Payload:   map[string]any{},
+		ID: "1", Type: "IssueCommentEvent", Actor: "user", Repo: "user/repo",
 		CreatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC), // Monday
 	}}
 	calc := &Calculator{Username: "user", DateRange: dr}
@@ -274,14 +254,13 @@ func TestCalculate_UsesCalendarForStreaks(t *testing.T) {
 	}
 }
 
-func TestCalculate_UsesHigherCommitCount(t *testing.T) {
+func TestCalculate_CommitCountFromGraphQLTotal(t *testing.T) {
 	dr := testutil.SampleDateRange()
 	calc := &Calculator{
 		Username:                 "user",
 		DateRange:                dr,
 		TotalCommitContributions: 500,
 	}
-	// SampleEvents has 2 commits from events
 	stats := calc.Calculate(testutil.SampleEvents())
 
 	if stats.CommitCount != 500 {
@@ -303,8 +282,8 @@ func TestCalculate_CalendarDaysFilteredToRange(t *testing.T) {
 		{Date: time.Date(2025, 1, 2, 0, 0, 0, 0, time.UTC), ContributionCount: 1},
 	}
 	events := []models.Event{
-		{ID: "1", Type: "PushEvent", Actor: "user", Repo: "user/repo",
-			Payload: map[string]any{}, CreatedAt: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC)},
+		{ID: "1", Type: "IssueCommentEvent", Actor: "user", Repo: "user/repo",
+			CreatedAt: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC)},
 	}
 	calc := &Calculator{
 		Username:     "user",

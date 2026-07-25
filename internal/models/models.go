@@ -12,23 +12,31 @@ import (
 type Category string
 
 const (
-	CategoryCommits      Category = "commits"
 	CategoryPullRequests Category = "pull_requests"
 	CategoryIssues       Category = "issues"
 	CategoryReviews      Category = "reviews"
 	CategoryComments     Category = "comments"
 	CategoryRepos        Category = "repos"
-	CategoryReleases     Category = "releases"
 	CategoryOther        Category = "other"
 )
 
-// Event represents a GitHub event.
+// Event action values. Empty means the event type carries no action.
+const (
+	ActionOpened = "opened"
+	ActionClosed = "closed"
+)
+
+// Event represents a GitHub contribution, synthesized from the GraphQL
+// contributionsCollection. Fields are typed rather than carried in an untyped
+// payload map: every producer is in-process, so there is no serialization
+// boundary that would require one.
 type Event struct {
 	ID        string
 	Type      string
-	Actor     string         // GitHub login who performed the event (not necessarily the report subject)
+	Actor     string // GitHub login who performed the event (not necessarily the report subject)
 	Repo      string
-	Payload   map[string]any
+	Action    string // ActionOpened, ActionClosed, or "" when not applicable
+	Merged    bool   // Only meaningful for a closed PullRequestEvent
 	CreatedAt time.Time
 }
 
@@ -55,7 +63,7 @@ func (s StreakInfo) ActivityRate() float64 {
 
 // Statistics holds calculated statistics from GitHub events.
 type Statistics struct {
-	Username         string              // Report subject
+	Username         string // Report subject
 	DateRange        daterange.DateRange
 	TotalEvents      int
 	EventsByCategory map[Category]int

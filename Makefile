@@ -29,10 +29,16 @@ test-cov:
 	go test -cover ./...
 
 # Vet + staticcheck (install staticcheck with: go install honnef.co/go/tools/cmd/staticcheck@latest)
+# The probe and the run are separate: `cmd && tool || echo` reports success when
+# the tool exists and FAILS, which silently swallows every finding.
 .PHONY: lint
 lint:
 	go vet ./...
-	@command -v staticcheck >/dev/null 2>&1 && staticcheck ./... || echo "staticcheck not installed, skipping"
+	@if command -v staticcheck >/dev/null 2>&1; then \
+		staticcheck ./...; \
+	else \
+		echo "staticcheck not installed, skipping"; \
+	fi
 
 # Cross-compile for common platforms
 .PHONY: build-all
@@ -78,7 +84,9 @@ dist:
 .PHONY: release
 release:
 	@command -v gh >/dev/null 2>&1 || { echo "Error: gh CLI not installed"; exit 1; }
-	@gh extension list | grep -q calver || gh extension install ivuorinen/gh-calver
+	@if ! gh extension list | grep -q calver; then \
+		gh extension install ivuorinen/gh-calver; \
+	fi
 	@if ! git diff --quiet || ! git diff --cached --quiet; then \
 		echo "Error: working tree is not clean"; exit 1; \
 	fi

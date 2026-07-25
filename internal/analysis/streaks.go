@@ -4,29 +4,30 @@ import (
 	"sort"
 	"time"
 
+	"github.com/ivuorinen/gh-history/internal/daterange"
 	"github.com/ivuorinen/gh-history/internal/ghutil"
 	"github.com/ivuorinen/gh-history/internal/models"
 )
 
 // CalculateStreaks computes streak information from events within a date range.
-func CalculateStreaks(events []models.Event, start, end time.Time) models.StreakInfo {
+func CalculateStreaks(events []models.Event, dr daterange.DateRange) models.StreakInfo {
 	dateSet := make(map[string]time.Time)
 	for _, e := range events {
 		d := e.Date()
 		dateSet[d.Format(time.DateOnly)] = d
 	}
-	return calculateStreaksFromDates(sortedDates(dateSet), start, end)
+	return calculateStreaksFromDates(sortedDates(dateSet), dr)
 }
 
 // CalculateStreaksFromCalendar computes streak information from contribution calendar days.
-func CalculateStreaksFromCalendar(days []models.ContributionDay, start, end time.Time) models.StreakInfo {
+func CalculateStreaksFromCalendar(days []models.ContributionDay, dr daterange.DateRange) models.StreakInfo {
 	dateSet := make(map[string]time.Time)
 	for _, d := range days {
 		if d.ContributionCount > 0 {
 			dateSet[d.Date.Format(time.DateOnly)] = d.Date
 		}
 	}
-	return calculateStreaksFromDates(sortedDates(dateSet), start, end)
+	return calculateStreaksFromDates(sortedDates(dateSet), dr)
 }
 
 // sortedDates extracts and sorts dates from a date set.
@@ -42,8 +43,9 @@ func sortedDates(dateSet map[string]time.Time) []time.Time {
 }
 
 // calculateStreaksFromDates computes streaks from a sorted slice of active dates.
-func calculateStreaksFromDates(activeDates []time.Time, start, end time.Time) models.StreakInfo {
-	totalDays := int(end.Sub(start).Hours()/24) + 1
+func calculateStreaksFromDates(activeDates []time.Time, dr daterange.DateRange) models.StreakInfo {
+	end := dr.End
+	totalDays := dr.Days()
 
 	if len(activeDates) == 0 {
 		return models.StreakInfo{TotalDays: totalDays}

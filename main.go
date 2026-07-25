@@ -80,19 +80,28 @@ func parseFlags(args []string) *config {
 	return cfg
 }
 
+const usageHint = "Usage: gh history <username> [options]\nOr authenticate with: gh auth login"
+
 func resolveUser(cfg *config) string {
 	if cfg.username != "" {
 		return cfg.username
 	}
+	// Report what actually failed. Collapsing a network error, an expired token
+	// and a missing token into one "username required" message sends users to
+	// re-authenticate credentials that may be working fine.
 	client, err := newAPIClient()
-	if err == nil {
-		if username, err := client.GetAuthenticatedUser(); err == nil && username != "" {
-			logVerbose(cfg.verbose, "Using authenticated user: %s", username)
-			return username
-		}
+	if err != nil {
+		fatal("no username given and the GitHub client could not be created: %v\n%s", err, usageHint)
 	}
-	fatal("username required. Usage: gh history <username> [options]\nOr authenticate with: gh auth login")
-	return ""
+	username, err := client.GetAuthenticatedUser()
+	if err != nil {
+		fatal("no username given and the authenticated user could not be resolved: %v\n%s", err, usageHint)
+	}
+	if username == "" {
+		fatal("username required. %s", usageHint)
+	}
+	logVerbose(cfg.verbose, "Using authenticated user: %s", username)
+	return username
 }
 
 // fetchResult holds events and supplemental data from all fetch sources.
@@ -122,11 +131,12 @@ func fetchEvents(cfg *config, client *api.Client, dr daterange.DateRange, userna
 		totalCommitContributions += result.TotalCommitContributions
 	}
 
+	// Keep whatever was retrieved and warn regardless of verbosity: a report
+	// that is silently missing comments looks complete but is not.
 	comments, err := client.FetchIssueComments(username, dr)
+	allEvents = append(allEvents, comments...)
 	if err != nil {
-		logVerbose(cfg.verbose, "Warning: GraphQL comments error: %v", err)
-	} else {
-		allEvents = append(allEvents, comments...)
+		fmt.Fprintf(os.Stderr, "Warning: issue comments incomplete: %v\n", err)
 	}
 
 	// Dedup by ID (year chunk boundaries may overlap)
@@ -172,7 +182,9 @@ func writeToFileOrStdout(data []byte, outputFile string, renderForTerminal func(
 func writeOutput(cfg *config, stats models.Statistics) {
 	switch cfg.format {
 	case "text":
-		output.FormatText(stats)
+		if err := output.FormatText(stats); err != nil {
+			fatal("%v", err)
+		}
 	case "json":
 		data, err := output.FormatJSON(stats)
 		if err != nil {

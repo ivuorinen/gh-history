@@ -1,12 +1,15 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
 	"time"
 
+	ghAPI "github.com/cli/go-gh/v2/pkg/api"
 	"github.com/ivuorinen/gh-history/internal/daterange"
+	"github.com/ivuorinen/gh-history/internal/models"
 )
 
 // mockGQLClient implements gqlDoer for testing.
@@ -56,7 +59,14 @@ func TestCheckUserExistsGraphQL(t *testing.T) {
 				resp.User = &user
 				return nil
 			}
-			return fmt.Errorf("Could not resolve to a User with the login of '%s'", login)
+			// What GitHub actually returns for an unknown login: a structured
+			// GraphQL error of type NOT_FOUND.
+			return &ghAPI.GraphQLError{
+				Errors: []ghAPI.GraphQLErrorItem{{
+					Type:    "NOT_FOUND",
+					Message: fmt.Sprintf("Could not resolve to a User with the login of '%s'", login),
+				}},
+			}
 		},
 	}
 
@@ -263,17 +273,262 @@ func TestFetchContributions(t *testing.T) {
 		t.Error("expected to find event gql-pr-opened-1-user/repo1")
 	}
 
-	// Check merged PR has merged=true
+	// Check merged PR is flagged as merged, and opened PRs carry the open action
 	for _, e := range events {
-		if e.ID == "gql-pr-closed-2-user/repo2" {
-			pr, ok := e.Payload["pull_request"].(map[string]any)
-			if !ok {
-				t.Fatal("expected pull_request in payload")
+		switch e.ID {
+		case "gql-pr-closed-2-user/repo2":
+			if e.Action != models.ActionClosed {
+				t.Errorf("expected closed action, got %q", e.Action)
 			}
-			if merged, _ := pr["merged"].(bool); !merged {
-				t.Error("expected merged=true for merged PR")
+			if !e.Merged {
+				t.Error("expected Merged=true for merged PR")
+			}
+		case "gql-pr-opened-1-user/repo1":
+			if e.Action != models.ActionOpened {
+				t.Errorf("expected opened action, got %q", e.Action)
+			}
+			if e.Merged {
+				t.Error("expected Merged=false for opened PR")
 			}
 		}
+	}
+}
+
+func TestCheckUserExists_NotFoundUsesStructuredError(t *testing.T) {
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			return &ghAPI.GraphQLError{
+				Errors: []ghAPI.GraphQLErrorItem{{
+					Type:    "NOT_FOUND",
+					Message: "Could not resolve to a User with the login of 'nobody'",
+				}},
+			}
+		},
+	}
+	exists, err := newTestClient(mock).CheckUserExists("nobody")
+	if err != nil {
+		t.Fatalf("NOT_FOUND should not be an error, got %v", err)
+	}
+	if exists {
+		t.Error("expected user not to exist")
+	}
+}
+
+func TestCheckUserExists_NotFoundIndependentOfWording(t *testing.T) {
+	// Detection must survive GitHub rewording its message.
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			return &ghAPI.GraphQLError{
+				Errors: []ghAPI.GraphQLErrorItem{{
+					Type:    "NOT_FOUND",
+					Message: "totally different wording",
+				}},
+			}
+		},
+	}
+	exists, err := newTestClient(mock).CheckUserExists("nobody")
+	if err != nil {
+		t.Fatalf("expected nil error, got %v", err)
+	}
+	if exists {
+		t.Error("expected user not to exist")
+	}
+}
+
+func TestCheckUserExists_OtherGraphQLErrorIsReturned(t *testing.T) {
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			return &ghAPI.GraphQLError{
+				Errors: []ghAPI.GraphQLErrorItem{{Type: "RATE_LIMITED", Message: "slow down"}},
+			}
+		},
+	}
+	if _, err := newTestClient(mock).CheckUserExists("someone"); err == nil {
+		t.Fatal("expected a non-NOT_FOUND GraphQL error to be returned")
+	}
+}
+
+func TestFetchContributions_PaginationErrorIsReturned(t *testing.T) {
+	cursor := "cursor123"
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			if strings.Contains(query, "pullRequestContributions(first: 100)") {
+				resp := response.(*contributionsResponse)
+				resp.User.ContributionsCollection.PullRequestContributions.PageInfo = pageInfo{
+					EndCursor: &cursor, HasNextPage: true,
+				}
+				return nil
+			}
+			return fmt.Errorf("rate limited")
+		},
+	}
+
+	dr := daterange.DateRange{
+		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+	}
+	_, err := newTestClient(mock).FetchContributions("user", dr)
+	if err == nil {
+		t.Fatal("a failed pagination page must not be reported as a complete result")
+	}
+	if !strings.Contains(err.Error(), "rate limited") {
+		t.Errorf("expected the underlying error to be wrapped, got: %v", err)
+	}
+}
+
+func TestFetchContributions_PageLimitReportsTruncation(t *testing.T) {
+	cursor := "cursor123"
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			// Every page claims another page follows, so the limit is reached.
+			if strings.Contains(query, "pullRequestContributions(first: 100)") {
+				resp := response.(*contributionsResponse)
+				resp.User.ContributionsCollection.PullRequestContributions.PageInfo = pageInfo{
+					EndCursor: &cursor, HasNextPage: true,
+				}
+				return nil
+			}
+			resp := response.(*paginatePRsResponse)
+			resp.User.ContributionsCollection.PullRequestContributions.PageInfo = pageInfo{
+				EndCursor: &cursor, HasNextPage: true,
+			}
+			return nil
+		},
+	}
+
+	dr := daterange.DateRange{
+		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+	}
+	_, err := newTestClient(mock).FetchContributions("user", dr)
+	if !errors.Is(err, ErrTruncated) {
+		t.Fatalf("expected ErrTruncated when the page limit is hit, got: %v", err)
+	}
+}
+
+func TestFetchIssueComments_FiltersToRange(t *testing.T) {
+	inRange := time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC)
+	beforeRange := time.Date(2023, 12, 20, 10, 0, 0, 0, time.UTC)
+	afterRange := time.Date(2024, 2, 5, 10, 0, 0, 0, time.UTC)
+
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			resp := response.(*issueCommentsResponse)
+			resp.User.IssueComments.Nodes = []struct {
+				CreatedAt  time.Time
+				UpdatedAt  time.Time
+				Repository struct{ NameWithOwner string }
+			}{
+				// Edited recently, created after the range → excluded.
+				{CreatedAt: afterRange, UpdatedAt: afterRange,
+					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo1"}},
+				// In range → included.
+				{CreatedAt: inRange, UpdatedAt: inRange,
+					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo2"}},
+				// Created before the range but edited inside it → excluded by createdAt.
+				{CreatedAt: beforeRange, UpdatedAt: inRange,
+					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo3"}},
+			}
+			resp.User.IssueComments.PageInfo = pageInfo{HasNextPage: false}
+			return nil
+		},
+	}
+
+	dr := daterange.DateRange{
+		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+	}
+	events, err := newTestClient(mock).FetchIssueComments("user", dr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(events) != 1 {
+		t.Fatalf("expected 1 in-range comment, got %d", len(events))
+	}
+	if events[0].Repo != "user/repo2" {
+		t.Errorf("expected user/repo2, got %s", events[0].Repo)
+	}
+	if events[0].Type != "IssueCommentEvent" {
+		t.Errorf("expected IssueCommentEvent, got %s", events[0].Type)
+	}
+}
+
+func TestFetchIssueComments_StopsOnceUpdatedAtPredatesRange(t *testing.T) {
+	// updatedAt descending: the first node older than the range start proves no
+	// later node can be in range (createdAt <= updatedAt), so the walk stops
+	// without burning the remaining page budget.
+	calls := 0
+	cursor := "next"
+	old := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			calls++
+			resp := response.(*issueCommentsResponse)
+			resp.User.IssueComments.Nodes = []struct {
+				CreatedAt  time.Time
+				UpdatedAt  time.Time
+				Repository struct{ NameWithOwner string }
+			}{
+				{CreatedAt: old, UpdatedAt: old,
+					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo"}},
+			}
+			resp.User.IssueComments.PageInfo = pageInfo{EndCursor: &cursor, HasNextPage: true}
+			return nil
+		},
+	}
+
+	dr := daterange.DateRange{
+		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+	}
+	events, err := newTestClient(mock).FetchIssueComments("user", dr)
+	if err != nil {
+		t.Fatalf("reaching the end of the relevant window is not an error: %v", err)
+	}
+	if len(events) != 0 {
+		t.Errorf("expected 0 events, got %d", len(events))
+	}
+	if calls != 1 {
+		t.Errorf("expected the walk to stop after 1 page, got %d calls", calls)
+	}
+}
+
+func TestFetchIssueComments_ReturnsPartialResultsOnError(t *testing.T) {
+	inRange := time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC)
+	cursor := "next"
+	calls := 0
+
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			calls++
+			if calls > 1 {
+				return fmt.Errorf("network blip")
+			}
+			resp := response.(*issueCommentsResponse)
+			resp.User.IssueComments.Nodes = []struct {
+				CreatedAt  time.Time
+				UpdatedAt  time.Time
+				Repository struct{ NameWithOwner string }
+			}{
+				{CreatedAt: inRange, UpdatedAt: inRange,
+					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo"}},
+			}
+			resp.User.IssueComments.PageInfo = pageInfo{EndCursor: &cursor, HasNextPage: true}
+			return nil
+		},
+	}
+
+	dr := daterange.DateRange{
+		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+	}
+	events, err := newTestClient(mock).FetchIssueComments("user", dr)
+	if err == nil {
+		t.Fatal("expected the page error to be reported")
+	}
+	if len(events) != 1 {
+		t.Errorf("successfully fetched comments must be returned alongside the error, got %d", len(events))
 	}
 }
 

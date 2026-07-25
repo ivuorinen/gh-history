@@ -4,14 +4,20 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ivuorinen/gh-history/internal/daterange"
 	"github.com/ivuorinen/gh-history/internal/models"
 	"github.com/ivuorinen/gh-history/internal/testutil"
 )
 
+// dr builds a DateRange from a start/end pair for concise test setup.
+func dr(start, end time.Time) daterange.DateRange {
+	return daterange.DateRange{Start: start, End: end}
+}
+
 func TestStreaksEmpty(t *testing.T) {
 	start := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 	end := time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC)
-	info := CalculateStreaks(nil, start, end)
+	info := CalculateStreaks(nil, dr(start, end))
 
 	if info.LongestStreak != 0 {
 		t.Errorf("expected 0 longest streak, got %d", info.LongestStreak)
@@ -34,7 +40,7 @@ func TestStreaksConsecutive(t *testing.T) {
 	}
 	start := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 	end := time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC)
-	info := CalculateStreaks(events, start, end)
+	info := CalculateStreaks(events, dr(start, end))
 
 	if info.LongestStreak != 5 {
 		t.Errorf("expected 5 day streak, got %d", info.LongestStreak)
@@ -55,7 +61,7 @@ func TestStreaksWithGaps(t *testing.T) {
 	}
 	start := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 	end := time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC)
-	info := CalculateStreaks(events, start, end)
+	info := CalculateStreaks(events, dr(start, end))
 
 	if info.LongestStreak != 3 {
 		t.Errorf("expected longest streak 3, got %d", info.LongestStreak)
@@ -73,7 +79,7 @@ func TestStreaksDuplicateDates(t *testing.T) {
 	}
 	start := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 	end := time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC)
-	info := CalculateStreaks(events, start, end)
+	info := CalculateStreaks(events, dr(start, end))
 
 	if info.ActiveDays != 2 {
 		t.Errorf("expected 2 active days (deduped), got %d", info.ActiveDays)
@@ -93,7 +99,7 @@ func TestCalculateStreaksFromCalendar_ConsecutiveDays(t *testing.T) {
 	}
 	start := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 	end := time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC)
-	info := CalculateStreaksFromCalendar(days, start, end)
+	info := CalculateStreaksFromCalendar(days, dr(start, end))
 
 	if info.LongestStreak != 5 {
 		t.Errorf("expected 5 day streak, got %d", info.LongestStreak)
@@ -114,7 +120,7 @@ func TestCalculateStreaksFromCalendar_WithGaps(t *testing.T) {
 	}
 	start := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 	end := time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC)
-	info := CalculateStreaksFromCalendar(days, start, end)
+	info := CalculateStreaksFromCalendar(days, dr(start, end))
 
 	if info.LongestStreak != 3 {
 		t.Errorf("expected longest streak 3, got %d", info.LongestStreak)
@@ -132,7 +138,7 @@ func TestCalculateStreaksFromCalendar_ZeroCountDays(t *testing.T) {
 	}
 	start := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 	end := time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC)
-	info := CalculateStreaksFromCalendar(days, start, end)
+	info := CalculateStreaksFromCalendar(days, dr(start, end))
 
 	if info.LongestStreak != 1 {
 		t.Errorf("expected longest streak 1 (zero-count breaks streak), got %d", info.LongestStreak)
@@ -145,7 +151,7 @@ func TestCalculateStreaksFromCalendar_ZeroCountDays(t *testing.T) {
 func TestCalculateStreaksFromCalendar_Empty(t *testing.T) {
 	start := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 	end := time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC)
-	info := CalculateStreaksFromCalendar(nil, start, end)
+	info := CalculateStreaksFromCalendar(nil, dr(start, end))
 
 	if info.LongestStreak != 0 {
 		t.Errorf("expected 0 longest streak, got %d", info.LongestStreak)

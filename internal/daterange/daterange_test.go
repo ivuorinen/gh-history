@@ -28,14 +28,20 @@ func TestNewInvalid(t *testing.T) {
 }
 
 func TestYear(t *testing.T) {
-	dr := Year(2024)
+	dr, err := Year(2024)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if dr.Days() != 366 { // 2024 is a leap year
 		t.Errorf("expected 366 days, got %d", dr.Days())
 	}
 }
 
 func TestYearNonLeap(t *testing.T) {
-	dr := Year(2023)
+	dr, err := Year(2023)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if dr.Days() != 365 {
 		t.Errorf("expected 365 days, got %d", dr.Days())
 	}
@@ -43,7 +49,10 @@ func TestYearNonLeap(t *testing.T) {
 
 func TestYearCurrentCapsToToday(t *testing.T) {
 	now := time.Now().UTC()
-	dr := Year(now.Year())
+	dr, err := Year(now.Year())
+	if err != nil {
+		t.Fatal(err)
+	}
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	if dr.End.After(today) {
 		t.Errorf("expected end <= today (%v), got %v", today, dr.End)
@@ -53,63 +62,28 @@ func TestYearCurrentCapsToToday(t *testing.T) {
 	}
 }
 
-func TestContains(t *testing.T) {
-	dr := DateRange{Start: d(2024, 1, 1), End: d(2024, 1, 31)}
-	if !dr.Contains(d(2024, 1, 15)) {
-		t.Error("should contain Jan 15")
+// A year that has not started must be rejected. Capping its end to today would
+// otherwise produce a range whose start is after its end, which yields zero
+// fetch chunks and a silently empty report with a negative day count.
+func TestYearFutureIsRejected(t *testing.T) {
+	future := time.Now().UTC().Year() + 5
+	dr, err := Year(future)
+	if err == nil {
+		t.Fatalf("expected error for future year %d, got range %v..%v", future, dr.Start, dr.End)
 	}
-	if dr.Contains(d(2024, 2, 1)) {
-		t.Error("should not contain Feb 1")
-	}
-	if !dr.Contains(d(2024, 1, 1)) {
-		t.Error("should contain start date")
-	}
-	if !dr.Contains(d(2024, 1, 31)) {
-		t.Error("should contain end date")
+	if _, err := ParseDateRange("", "", future, false, false); err == nil {
+		t.Errorf("ParseDateRange should propagate the future-year error")
 	}
 }
 
-func TestOverlaps(t *testing.T) {
-	a := DateRange{Start: d(2024, 1, 1), End: d(2024, 1, 31)}
-	b := DateRange{Start: d(2024, 1, 15), End: d(2024, 2, 15)}
-	if !a.Overlaps(b) {
-		t.Error("should overlap")
+func TestYearBoundaryIsInclusiveOfToday(t *testing.T) {
+	// The current year must still be accepted: start is Jan 1, never after today.
+	now := time.Now().UTC()
+	if _, err := Year(now.Year()); err != nil {
+		t.Errorf("current year should be valid, got %v", err)
 	}
-
-	c := DateRange{Start: d(2024, 3, 1), End: d(2024, 3, 31)}
-	if a.Overlaps(c) {
-		t.Error("should not overlap")
-	}
-}
-
-func TestSubtract(t *testing.T) {
-	a := DateRange{Start: d(2024, 1, 1), End: d(2024, 1, 31)}
-
-	// No overlap
-	b := DateRange{Start: d(2024, 3, 1), End: d(2024, 3, 31)}
-	result := a.Subtract(b)
-	if len(result) != 1 || result[0] != a {
-		t.Errorf("no overlap: expected [%v], got %v", a, result)
-	}
-
-	// Full overlap
-	c := DateRange{Start: d(2024, 1, 1), End: d(2024, 1, 31)}
-	result = a.Subtract(c)
-	if len(result) != 0 {
-		t.Errorf("full overlap: expected empty, got %v", result)
-	}
-
-	// Partial overlap (middle)
-	e := DateRange{Start: d(2024, 1, 10), End: d(2024, 1, 20)}
-	result = a.Subtract(e)
-	if len(result) != 2 {
-		t.Fatalf("middle overlap: expected 2 ranges, got %d", len(result))
-	}
-	if result[0].End != d(2024, 1, 9) {
-		t.Errorf("expected first range end Jan 9, got %v", result[0].End)
-	}
-	if result[1].Start != d(2024, 1, 21) {
-		t.Errorf("expected second range start Jan 21, got %v", result[1].Start)
+	if _, err := Year(now.Year() + 1); err == nil {
+		t.Error("next year should be rejected")
 	}
 }
 

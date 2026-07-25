@@ -24,15 +24,20 @@ func New(start, end time.Time) (DateRange, error) {
 }
 
 // Year creates a DateRange spanning the given year.
-// If the year is the current year or later, the end date is capped to today.
-func Year(year int) DateRange {
+// If the year is in progress, the end date is capped to today. A year that has
+// not started yet is an error: capping its end to today would otherwise yield a
+// range whose start is after its end.
+func Year(year int) (DateRange, error) {
 	start := time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC)
 	end := time.Date(year, 12, 31, 0, 0, 0, 0, time.UTC)
 	today := ghutil.TruncateToDay(ghutil.NowUTC())
+	if start.After(today) {
+		return DateRange{}, fmt.Errorf("year %d has not started yet", year)
+	}
 	if end.After(today) {
 		end = today
 	}
-	return DateRange{Start: start, End: end}
+	return New(start, end)
 }
 
 // LastMonth creates a DateRange for the previous calendar month.
@@ -54,38 +59,6 @@ func LastNDays(n int) DateRange {
 // Days returns the total number of days in the range (inclusive).
 func (dr DateRange) Days() int {
 	return int(dr.End.Sub(dr.Start).Hours()/24) + 1
-}
-
-// Contains checks if a time falls within this range (date-only comparison).
-func (dr DateRange) Contains(t time.Time) bool {
-	d := ghutil.TruncateToDay(t)
-	return !d.Before(dr.Start) && !d.After(dr.End)
-}
-
-// Overlaps checks if this range overlaps with another.
-func (dr DateRange) Overlaps(other DateRange) bool {
-	return !dr.Start.After(other.End) && !other.Start.After(dr.End)
-}
-
-// Subtract removes another range from this one, returning remaining ranges.
-func (dr DateRange) Subtract(other DateRange) []DateRange {
-	if !dr.Overlaps(other) {
-		return []DateRange{dr}
-	}
-	var result []DateRange
-	if dr.Start.Before(other.Start) {
-		result = append(result, DateRange{
-			Start: dr.Start,
-			End:   other.Start.AddDate(0, 0, -1),
-		})
-	}
-	if dr.End.After(other.End) {
-		result = append(result, DateRange{
-			Start: other.End.AddDate(0, 0, 1),
-			End:   dr.End,
-		})
-	}
-	return result
 }
 
 // StartDateTime returns the start as beginning of day UTC.
@@ -119,7 +92,7 @@ func ParseDateRange(fromDate, toDate string, year int, lastMonth, last90 bool) (
 	}
 
 	if year != 0 {
-		return Year(year), nil
+		return Year(year)
 	}
 	if lastMonth {
 		return LastMonth(), nil

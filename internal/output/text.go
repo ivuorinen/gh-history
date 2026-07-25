@@ -3,6 +3,7 @@ package output
 import (
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 
 	"github.com/cli/go-gh/v2/pkg/tableprinter"
@@ -12,31 +13,51 @@ import (
 	"github.com/ivuorinen/gh-history/internal/models"
 )
 
-// AllCategories lists categories in display order.
+// AllCategories lists categories in display order. It matches the categories
+// analysis.EventCategories can actually produce.
 var AllCategories = []models.Category{
-	models.CategoryCommits,
 	models.CategoryPullRequests,
 	models.CategoryIssues,
 	models.CategoryReviews,
 	models.CategoryComments,
 	models.CategoryRepos,
-	models.CategoryReleases,
 	models.CategoryOther,
 }
 
 // FormatText writes a plain text report to stdout using terminal-aware table formatting.
-func FormatText(stats models.Statistics) {
+func FormatText(stats models.Statistics) error {
 	t := term.FromEnv()
 	isTTY := t.IsTerminalOutput()
 	width := 80
 	if w, _, err := t.Size(); err == nil && w > 0 {
 		width = w
 	}
-	FormatTextTo(t.Out(), isTTY, width, stats)
+	return FormatTextTo(t.Out(), isTTY, width, stats)
+}
+
+// errWriter records the first write error. go-gh's non-TTY table printer writes
+// eagerly and its Render always returns nil, so checking Render alone would let
+// a truncated report be reported as a success.
+type errWriter struct {
+	w   io.Writer
+	err error
+}
+
+func (e *errWriter) Write(p []byte) (int, error) {
+	if e.err != nil {
+		return 0, e.err
+	}
+	n, err := e.w.Write(p)
+	if err != nil {
+		e.err = err
+	}
+	return n, err
 }
 
 // FormatTextTo writes a plain text report to w. This is the testable core of FormatText.
-func FormatTextTo(w io.Writer, isTTY bool, width int, stats models.Statistics) {
+func FormatTextTo(out io.Writer, isTTY bool, width int, stats models.Statistics) error {
+	w := &errWriter{w: out}
+
 	// Header
 	fmt.Fprintf(w, "GitHub Activity Report: %s\n", stats.Username)
 	fmt.Fprintf(w, "%s to %s\n", stats.DateRange.Start.Format(ghutil.DateFormat), stats.DateRange.End.Format(ghutil.DateFormat))
@@ -47,36 +68,14 @@ func FormatTextTo(w io.Writer, isTTY bool, width int, stats models.Statistics) {
 	fmt.Fprintln(w, strings.Repeat("-", 50))
 
 	tp := tableprinter.New(w, isTTY, width)
-	tp.AddField("Total Events")
-	tp.AddField(fmtInt(stats.TotalEvents))
-	tp.EndRow()
-
-	if stats.Streaks != nil {
-		s := stats.Streaks
-		tp.AddField("Active Days")
-		tp.AddField(fmt.Sprintf("%d / %d (%.1f%%)", s.ActiveDays, s.TotalDays, s.ActivityRate()))
-		tp.EndRow()
-		tp.AddField("Longest Streak")
-		tp.AddField(ghText.Pluralize(s.LongestStreak, "day"))
-		tp.EndRow()
-		tp.AddField("Current Streak")
-		tp.AddField(ghText.Pluralize(s.CurrentStreak, "day"))
+	for _, row := range BuildSummary(stats) {
+		tp.AddField(row.Label)
+		tp.AddField(row.Value)
 		tp.EndRow()
 	}
-
-	tp.AddField("Commits")
-	tp.AddField(fmtInt(stats.CommitCount))
-	tp.EndRow()
-	tp.AddField("PRs Opened")
-	tp.AddField(fmt.Sprintf("%d", stats.PROpened))
-	tp.EndRow()
-	tp.AddField("PRs Merged")
-	tp.AddField(fmt.Sprintf("%d", stats.PRMerged))
-	tp.EndRow()
-	tp.AddField("Reviews")
-	tp.AddField(fmt.Sprintf("%d", stats.ReviewsCount))
-	tp.EndRow()
-	tp.Render()
+	if err := tp.Render(); err != nil {
+		return fmt.Errorf("render summary table: %w", err)
+	}
 
 	// Categories — keep manual formatting for the Unicode bar chart
 	fmt.Fprintln(w, "\nActivity by Category")
@@ -117,13 +116,26 @@ func FormatTextTo(w io.Writer, isTTY bool, width int, stats models.Statistics) {
 			tp2.AddField(fmt.Sprintf("%s events", fmtInt(rc.Count)))
 			tp2.EndRow()
 		}
-		tp2.Render()
+		if err := tp2.Render(); err != nil {
+			return fmt.Errorf("render repositories table: %w", err)
+		}
 	}
+	if w.err != nil {
+		return fmt.Errorf("write text report: %w", w.err)
+	}
+	return nil
 }
 
+// fmtInt renders n with thousands separators. It groups every three digits, not
+// just the first: a single divide by 1000 renders 1234567 as "1234,567".
 func fmtInt(n int) string {
-	if n < 1000 {
-		return fmt.Sprintf("%d", n)
+	s := strconv.Itoa(n)
+	sign := ""
+	if strings.HasPrefix(s, "-") {
+		sign, s = "-", s[1:]
 	}
-	return fmt.Sprintf("%d,%03d", n/1000, n%1000)
+	for i := len(s) - 3; i > 0; i -= 3 {
+		s = s[:i] + "," + s[i:]
+	}
+	return sign + s
 }

@@ -28,12 +28,10 @@ func (c *Calculator) Calculate(events []models.Event) models.Statistics {
 		EventsByHour:     make(map[int]int),
 	}
 
-	if len(events) == 0 {
-		streaks := CalculateStreaks(nil, c.DateRange.Start, c.DateRange.End)
-		stats.Streaks = &streaks
-		return stats
-	}
-
+	// No early return for an empty event slice: CalendarDays and
+	// TotalCommitContributions are independent of the public event list (they
+	// include private-repository activity), so bailing out here would zero the
+	// report for users whose contributions are all private.
 	for _, event := range events {
 		cat := CategorizeEvent(event.Type)
 		stats.EventsByCategory[cat]++
@@ -62,17 +60,16 @@ func (c *Calculator) Calculate(events []models.Event) models.Statistics {
 
 	// Prefer calendar-based streaks (includes private repos)
 	if len(filteredDays) > 0 {
-		streaks := CalculateStreaksFromCalendar(filteredDays, c.DateRange.Start, c.DateRange.End)
+		streaks := CalculateStreaksFromCalendar(filteredDays, c.DateRange)
 		stats.Streaks = &streaks
 	} else {
-		streaks := CalculateStreaks(events, c.DateRange.Start, c.DateRange.End)
+		streaks := CalculateStreaks(events, c.DateRange)
 		stats.Streaks = &streaks
 	}
 
-	// Use GraphQL commit total if higher than event-based count
-	if c.TotalCommitContributions > stats.CommitCount {
-		stats.CommitCount = c.TotalCommitContributions
-	}
+	// Commit counts come from the GraphQL contributions total, which covers
+	// private repositories. No synthesized event carries commit data.
+	stats.CommitCount = c.TotalCommitContributions
 
 	// Build calendar on stats
 	if len(filteredDays) > 0 {
@@ -88,56 +85,26 @@ func (c *Calculator) Calculate(events []models.Event) models.Statistics {
 
 func trackDetailedStats(stats *models.Statistics, event models.Event) {
 	switch event.Type {
-	case "PushEvent":
-		stats.CommitCount += countCommits(event.Payload)
 	case "PullRequestEvent":
-		trackActionCount(event, &stats.PROpened, &stats.PRClosed, func(pr map[string]any) bool {
-			if merged, ok := pr["merged"].(bool); ok && merged {
+		switch event.Action {
+		case models.ActionOpened:
+			stats.PROpened++
+		case models.ActionClosed:
+			// Merged and closed-without-merge are mutually exclusive.
+			if event.Merged {
 				stats.PRMerged++
-				return true
-			}
-			return false
-		})
-	case "IssuesEvent":
-		trackActionCount(event, &stats.IssuesOpened, &stats.IssuesClosed, nil)
-	case "PullRequestReviewEvent":
-		stats.ReviewsCount++
-	}
-}
-
-// countCommits extracts the commit count from a PushEvent payload.
-// It tries the "commits" array first, then "size" (as float64 from JSON or int from Go),
-// and falls back to 1 since every PushEvent represents at least one commit.
-func countCommits(payload map[string]any) int {
-	if commits, ok := payload["commits"].([]any); ok && len(commits) > 0 {
-		return len(commits)
-	}
-	if size, ok := payload["size"].(float64); ok && size > 0 {
-		return int(size)
-	}
-	if size, ok := payload["size"].(int); ok && size > 0 {
-		return size
-	}
-	return 1
-}
-
-// trackActionCount handles the common opened/closed action pattern for PRs and Issues.
-// For "closed" events, if checkMerged is non-nil it is called with the payload to
-// allow distinguishing merged PRs from closed ones. If checkMerged returns true,
-// *closed is NOT incremented (the caller handled it as a merge).
-func trackActionCount(event models.Event, opened, closed *int, checkMerged func(map[string]any) bool) {
-	action, _ := event.Payload["action"].(string)
-	switch action {
-	case "opened":
-		*opened++
-	case "closed":
-		if checkMerged != nil {
-			if pr, ok := event.Payload["pull_request"].(map[string]any); ok {
-				if checkMerged(pr) {
-					return
-				}
+			} else {
+				stats.PRClosed++
 			}
 		}
-		*closed++
+	case "IssuesEvent":
+		switch event.Action {
+		case models.ActionOpened:
+			stats.IssuesOpened++
+		case models.ActionClosed:
+			stats.IssuesClosed++
+		}
+	case "PullRequestReviewEvent":
+		stats.ReviewsCount++
 	}
 }
