@@ -5,10 +5,10 @@ import (
 	"io"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/cli/go-gh/v2/pkg/tableprinter"
 	"github.com/cli/go-gh/v2/pkg/term"
-	ghText "github.com/cli/go-gh/v2/pkg/text"
 	"github.com/ivuorinen/gh-history/internal/ghutil"
 	"github.com/ivuorinen/gh-history/internal/models"
 )
@@ -82,7 +82,7 @@ func FormatTextTo(out io.Writer, isTTY bool, width int, stats models.Statistics)
 	fmt.Fprintln(w, strings.Repeat("-", 50))
 
 	for _, entry := range BuildCategoryBars(stats, 20, AllCategories) {
-		fmt.Fprintf(w, "  %s %6s  %s  %5.1f%%\n", ghText.PadRight(18, entry.Label), fmtInt(entry.Count), entry.Bar, entry.Percent)
+		fmt.Fprintf(w, "  %s %6s  %s  %5.1f%%\n", padRight(18, entry.Label), fmtInt(entry.Count), entry.Bar, entry.Percent)
 	}
 
 	// Weekday distribution
@@ -90,7 +90,7 @@ func FormatTextTo(out io.Writer, isTTY bool, width int, stats models.Statistics)
 		fmt.Fprintln(w, "\nActivity by Day of Week")
 		fmt.Fprintln(w, strings.Repeat("-", 50))
 		for _, entry := range weekdayEntries {
-			fmt.Fprintf(w, "  %s %6s  %s  %5.1f%%\n", ghText.PadRight(18, entry.Label), fmtInt(entry.Count), entry.Bar, entry.Percent)
+			fmt.Fprintf(w, "  %s %6s  %s  %5.1f%%\n", padRight(18, entry.Label), fmtInt(entry.Count), entry.Bar, entry.Percent)
 		}
 	}
 
@@ -99,7 +99,7 @@ func FormatTextTo(out io.Writer, isTTY bool, width int, stats models.Statistics)
 		fmt.Fprintln(w, "\nActivity by Hour (UTC)")
 		fmt.Fprintln(w, strings.Repeat("-", 50))
 		for _, entry := range hourlyEntries {
-			fmt.Fprintf(w, "  %s %6s  %s  %5.1f%%\n", ghText.PadRight(18, entry.Label), fmtInt(entry.Count), entry.Bar, entry.Percent)
+			fmt.Fprintf(w, "  %s %6s  %s  %5.1f%%\n", padRight(18, entry.Label), fmtInt(entry.Count), entry.Bar, entry.Percent)
 		}
 	}
 
@@ -124,6 +124,27 @@ func FormatTextTo(out io.Writer, isTTY bool, width int, stats models.Statistics)
 		return fmt.Errorf("write text report: %w", w.err)
 	}
 	return nil
+}
+
+// padRight pads s on the right with spaces to reach width, and never truncates.
+//
+// Width is measured in runes. Every label passed here is a fixed ASCII string
+// (category names, weekday names, zero-padded hours), so this is exact; a label
+// containing double-width runes would under-pad by one column per such rune.
+func padRight(width int, s string) string {
+	if pad := width - utf8.RuneCountInString(s); pad > 0 {
+		return s + strings.Repeat(" ", pad)
+	}
+	return s
+}
+
+// pluralize renders "1 day" / "2 days". The naive "s" suffix matches every noun
+// this is called with.
+func pluralize(n int, thing string) string {
+	if n == 1 {
+		return fmt.Sprintf("%d %s", n, thing)
+	}
+	return fmt.Sprintf("%d %ss", n, thing)
 }
 
 // fmtInt renders n with thousands separators. It groups every three digits, not

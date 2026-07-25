@@ -33,6 +33,46 @@ func TestFmtInt(t *testing.T) {
 	}
 }
 
+// padRight and pluralize replace go-gh's text.PadRight/text.Pluralize; these
+// cases pin the behaviour that was inherited from them.
+func TestPadRight(t *testing.T) {
+	tests := []struct {
+		width int
+		in    string
+		want  string
+	}{
+		{5, "ab", "ab   "},
+		{5, "abcde", "abcde"},   // exact width: untouched
+		{3, "abcdef", "abcdef"}, // longer than width: never truncates
+		{0, "ab", "ab"},
+		{4, "", "    "},
+		{3, "äö", "äö "}, // counted in runes, not bytes
+	}
+	for _, tc := range tests {
+		if got := padRight(tc.width, tc.in); got != tc.want {
+			t.Errorf("padRight(%d, %q) = %q, want %q", tc.width, tc.in, got, tc.want)
+		}
+	}
+}
+
+func TestPluralize(t *testing.T) {
+	tests := []struct {
+		n    int
+		want string
+	}{
+		{0, "0 days"},
+		{1, "1 day"},
+		{2, "2 days"},
+		{100, "100 days"},
+		{-1, "-1 days"},
+	}
+	for _, tc := range tests {
+		if got := pluralize(tc.n, "day"); got != tc.want {
+			t.Errorf("pluralize(%d, \"day\") = %q, want %q", tc.n, got, tc.want)
+		}
+	}
+}
+
 // Every format renders the same statistics; --format must change presentation
 // only, never which numbers a report contains.
 func TestSummaryParityAcrossFormats(t *testing.T) {

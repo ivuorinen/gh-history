@@ -41,7 +41,10 @@ Source lives in `internal/` with seven packages:
 - Standard `go vet` and `gofmt` formatting
 - All functions return errors explicitly — no panics in library code
 - `internal/` package layout — nothing exported outside the module
-- `go-gh/v2` for terminal detection, table printing, auth, browser, markdown rendering
+- `go-gh/v2` for terminal detection, table printing, auth, and browser opening only.
+  Its `pkg/markdown`, `pkg/jsonpretty` and `pkg/text` were removed deliberately: they cost
+  6.1 MB of binary and pulled in `golang.org/x/net` purely to colourise terminal output and
+  supply two string helpers. Markdown and JSON print raw; do not reintroduce them.
 
 ## Build & Release
 

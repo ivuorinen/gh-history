@@ -56,6 +56,9 @@ gh history octocat --format html            # writes a file and opens it in your
 gh history octocat --format json -o stats.json
 ```
 
+Markdown and JSON are written verbatim, so they pipe and redirect cleanly; only
+`text` adapts its layout to the terminal.
+
 The four formats agree on every shared statistic — the summary never differs
 between them. **JSON is the full offering**: on top of that summary it carries
 detail the human-readable formats deliberately omit.

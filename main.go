@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"os"
@@ -10,9 +9,6 @@ import (
 
 	"github.com/cli/go-gh/v2/pkg/auth"
 	"github.com/cli/go-gh/v2/pkg/browser"
-	"github.com/cli/go-gh/v2/pkg/jsonpretty"
-	"github.com/cli/go-gh/v2/pkg/markdown"
-	"github.com/cli/go-gh/v2/pkg/term"
 	"github.com/ivuorinen/gh-history/internal/analysis"
 	"github.com/ivuorinen/gh-history/internal/api"
 	"github.com/ivuorinen/gh-history/internal/daterange"
@@ -194,21 +190,14 @@ func sortedRepoCounts(counts map[string]int) []models.RepoCount {
 	return out
 }
 
-// writeToFileOrStdout writes data to a file or stdout with optional terminal rendering.
-func writeToFileOrStdout(data []byte, outputFile string, renderForTerminal func([]byte) string) {
+// writeToFileOrStdout writes data to a file, or to stdout when no file is given.
+func writeToFileOrStdout(data []byte, outputFile string) {
 	if outputFile != "" {
 		if err := os.WriteFile(outputFile, data, 0o644); err != nil {
 			fatal("writing file: %v", err)
 		}
 		fmt.Fprintf(os.Stderr, "Saved to: %s\n", outputFile)
 		return
-	}
-	if renderForTerminal != nil {
-		t := term.FromEnv()
-		if t.IsTerminalOutput() {
-			fmt.Print(renderForTerminal(data))
-			return
-		}
 	}
 	fmt.Println(string(data))
 }
@@ -220,26 +209,15 @@ func writeOutput(cfg *config, stats models.Statistics) {
 			fatal("%v", err)
 		}
 	case "json":
+		// FormatJSON already returns indented JSON, so terminal rendering only
+		// ever added colour — not worth the dependency it cost.
 		data, err := output.FormatJSON(stats)
 		if err != nil {
 			fatal("%v", err)
 		}
-		writeToFileOrStdout(data, cfg.outputFile, func(data []byte) string {
-			t := term.FromEnv()
-			var buf bytes.Buffer
-			_ = jsonpretty.Format(&buf, bytes.NewReader(data), "  ", t.IsColorEnabled())
-			return buf.String()
-		})
+		writeToFileOrStdout(data, cfg.outputFile)
 	case "markdown":
-		md := output.FormatMarkdown(stats)
-		writeToFileOrStdout([]byte(md), cfg.outputFile, func(data []byte) string {
-			t := term.FromEnv()
-			rendered, err := markdown.Render(string(data), markdown.WithTheme(t.Theme()))
-			if err != nil {
-				return string(data)
-			}
-			return rendered
-		})
+		writeToFileOrStdout([]byte(output.FormatMarkdown(stats)), cfg.outputFile)
 	case "html":
 		outPath := cfg.outputFile
 		if outPath == "" {

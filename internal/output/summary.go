@@ -3,7 +3,6 @@ package output
 import (
 	"fmt"
 
-	ghText "github.com/cli/go-gh/v2/pkg/text"
 	"github.com/ivuorinen/gh-history/internal/models"
 )
 
@@ -31,8 +30,8 @@ func BuildSummary(stats models.Statistics) []SummaryRow {
 		rows = append(rows,
 			SummaryRow{"Active Days", fmt.Sprintf("%s / %s (%.1f%%)",
 				fmtInt(s.ActiveDays), fmtInt(s.TotalDays), s.ActivityRate())},
-			SummaryRow{"Longest Streak", ghText.Pluralize(s.LongestStreak, "day")},
-			SummaryRow{"Current Streak", ghText.Pluralize(s.CurrentStreak, "day")},
+			SummaryRow{"Longest Streak", pluralize(s.LongestStreak, "day")},
+			SummaryRow{"Current Streak", pluralize(s.CurrentStreak, "day")},
 		)
 	}
 	return rows
