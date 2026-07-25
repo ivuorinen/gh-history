@@ -13,11 +13,6 @@ build:
 test:
 	go test ./...
 
-# Run tests with verbose output
-.PHONY: test-verbose
-test-verbose:
-	go test -v ./...
-
 # Run tests with race detector
 .PHONY: test-race
 test-race:
@@ -75,10 +70,6 @@ uninstall:
 clean:
 	rm -f $(BINARY)
 	rm -rf dist/
-
-.PHONY: dist
-dist:
-	mkdir -p dist
 
 # Create a calver release (must be on clean main branch)
 .PHONY: release

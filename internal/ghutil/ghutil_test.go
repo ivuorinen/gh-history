@@ -33,13 +33,6 @@ func TestSafeDiv(t *testing.T) {
 	}
 }
 
-func TestNowUTC(t *testing.T) {
-	now := NowUTC()
-	if now.Location() != time.UTC {
-		t.Errorf("NowUTC() location = %v, want UTC", now.Location())
-	}
-}
-
 func TestDateFormat(t *testing.T) {
 	if DateFormat != "2006-01-02" {
 		t.Errorf("DateFormat = %q, want %q", DateFormat, "2006-01-02")

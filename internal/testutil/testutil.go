@@ -10,18 +10,11 @@ import (
 // MakeEvent creates a minimal event on the given date, for tests that care only
 // about the date. IssueCommentEvent is used because it carries no action.
 func MakeEvent(year, month, day int) models.Event {
-	return MakeTypedEvent("IssueCommentEvent", year, month, day, "")
-}
-
-// MakeTypedEvent creates an event of the given type and action on the given date.
-func MakeTypedEvent(eventType string, year, month, day int, action string) models.Event {
 	d := time.Date(year, time.Month(month), day, 12, 0, 0, 0, time.UTC)
 	return models.Event{
-		ID:        d.Format("20060102") + "-" + eventType,
-		Type:      eventType,
-		Actor:     "user",
+		ID:        d.Format("20060102") + "-IssueCommentEvent",
+		Type:      "IssueCommentEvent",
 		Repo:      "user/repo",
-		Action:    action,
 		CreatedAt: d,
 	}
 }
@@ -30,26 +23,27 @@ func MakeTypedEvent(eventType string, year, month, day int, action string) model
 func SampleEvents() []models.Event {
 	return []models.Event{
 		{
-			ID: "1", Type: "IssueCommentEvent", Actor: "user", Repo: "user/repo1",
+			ID: "1", Type: "IssueCommentEvent", Repo: "user/repo1",
 			CreatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
 		},
 		{
-			ID: "2", Type: "PullRequestEvent", Actor: "user", Repo: "user/repo1",
-			Action:    models.ActionOpened,
+			ID: "2", Type: "PullRequestEvent", Repo: "user/repo1",
+			Action: models.ActionOpened, Number: 7, Title: "Add widget",
 			CreatedAt: time.Date(2024, 1, 15, 11, 0, 0, 0, time.UTC),
 		},
 		{
-			ID: "3", Type: "PullRequestEvent", Actor: "user", Repo: "user/repo1",
-			Action: models.ActionClosed, Merged: true,
+			ID: "3", Type: "PullRequestEvent", Repo: "user/repo1",
+			Action: models.ActionClosed, Merged: true, Number: 7, Title: "Add widget",
 			CreatedAt: time.Date(2024, 1, 16, 9, 0, 0, 0, time.UTC),
 		},
 		{
-			ID: "4", Type: "IssuesEvent", Actor: "user", Repo: "user/repo2",
-			Action:    models.ActionOpened,
+			ID: "4", Type: "IssuesEvent", Repo: "user/repo2",
+			Action: models.ActionOpened, Number: 12, Title: "Widget is broken",
 			CreatedAt: time.Date(2024, 1, 17, 14, 0, 0, 0, time.UTC),
 		},
 		{
-			ID: "5", Type: "PullRequestReviewEvent", Actor: "user", Repo: "user/repo1",
+			ID: "5", Type: "PullRequestReviewEvent", Repo: "user/repo1",
+			Number: 7, Title: "Add widget", ReviewState: "APPROVED",
 			CreatedAt: time.Date(2024, 1, 18, 16, 0, 0, 0, time.UTC),
 		},
 	}
@@ -101,6 +95,7 @@ func SampleStats() models.Statistics {
 		},
 		Calendar: &models.ContributionCalendar{
 			TotalContributions: 24,
+			ReportedTotal:      30,
 			Days:               SampleCalendarDays(),
 		},
 		CommitCount:  80,
@@ -110,6 +105,14 @@ func SampleStats() models.Statistics {
 		IssuesOpened: 15,
 		IssuesClosed: 12,
 		ReviewsCount: 10,
+		Events:       SampleEvents(),
+		Totals: models.ContributionTotals{
+			Commits: 80, Issues: 15, PullRequests: 10, Reviews: 10, Repositories: 3,
+		},
+		CommitsByRepo: []models.RepoCount{
+			{Repo: "testuser/repo1", Count: 50},
+			{Repo: "testuser/repo2", Count: 30},
+		},
 	}
 }
 

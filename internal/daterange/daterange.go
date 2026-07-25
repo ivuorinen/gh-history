@@ -30,7 +30,7 @@ func New(start, end time.Time) (DateRange, error) {
 func Year(year int) (DateRange, error) {
 	start := time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC)
 	end := time.Date(year, 12, 31, 0, 0, 0, 0, time.UTC)
-	today := ghutil.TruncateToDay(ghutil.NowUTC())
+	today := ghutil.TruncateToDay(time.Now().UTC())
 	if start.After(today) {
 		return DateRange{}, fmt.Errorf("year %d has not started yet", year)
 	}
@@ -42,7 +42,7 @@ func Year(year int) (DateRange, error) {
 
 // LastMonth creates a DateRange for the previous calendar month.
 func LastMonth() DateRange {
-	now := ghutil.NowUTC()
+	now := time.Now().UTC()
 	firstOfThisMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
 	lastOfPrevMonth := firstOfThisMonth.AddDate(0, 0, -1)
 	firstOfPrevMonth := time.Date(lastOfPrevMonth.Year(), lastOfPrevMonth.Month(), 1, 0, 0, 0, 0, time.UTC)
@@ -51,7 +51,7 @@ func LastMonth() DateRange {
 
 // LastNDays creates a DateRange for the last n days (inclusive of today).
 func LastNDays(n int) DateRange {
-	today := ghutil.TruncateToDay(ghutil.NowUTC())
+	today := ghutil.TruncateToDay(time.Now().UTC())
 	start := today.AddDate(0, 0, -(n - 1))
 	return DateRange{Start: start, End: today}
 }
@@ -59,11 +59,6 @@ func LastNDays(n int) DateRange {
 // Days returns the total number of days in the range (inclusive).
 func (dr DateRange) Days() int {
 	return int(dr.End.Sub(dr.Start).Hours()/24) + 1
-}
-
-// StartDateTime returns the start as beginning of day UTC.
-func (dr DateRange) StartDateTime() time.Time {
-	return dr.Start
 }
 
 // EndDateTime returns the start of the day after End in UTC.
@@ -105,7 +100,7 @@ func ParseDateRange(fromDate, toDate string, year int, lastMonth, last90 bool) (
 		return LastNDays(90), nil
 	}
 
-	today := ghutil.TruncateToDay(ghutil.NowUTC())
+	today := ghutil.TruncateToDay(time.Now().UTC())
 	var start, end time.Time
 
 	start, err := parseDateInput("start", fromDate)

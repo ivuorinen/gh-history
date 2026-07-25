@@ -33,11 +33,18 @@ const (
 type Event struct {
 	ID        string
 	Type      string
-	Actor     string // GitHub login who performed the event (not necessarily the report subject)
 	Repo      string
 	Action    string // ActionOpened, ActionClosed, or "" when not applicable
 	Merged    bool   // Only meaningful for a closed PullRequestEvent
 	CreatedAt time.Time
+
+	// Detail surfaced by the JSON format. Empty when the event type does not
+	// carry the field.
+	Number           int       // Pull request or issue number
+	Title            string    // Pull request or issue title
+	Description      string    // Repository description, for CreateEvent
+	ReviewState      string    // APPROVED, CHANGES_REQUESTED, COMMENTED, …
+	SubjectCreatedAt time.Time // When the PR or issue itself was created
 }
 
 // Date returns the event date (without time).
@@ -61,6 +68,17 @@ func (s StreakInfo) ActivityRate() float64 {
 	return ghutil.SafeDiv(s.ActiveDays, s.TotalDays) * 100
 }
 
+// ContributionTotals holds GitHub's own contribution counts for the period.
+// Unlike the event-derived counters these include private repositories, so they
+// are generally higher than what the public event list can account for.
+type ContributionTotals struct {
+	Commits      int
+	Issues       int
+	PullRequests int
+	Reviews      int
+	Repositories int
+}
+
 // Statistics holds calculated statistics from GitHub events.
 type Statistics struct {
 	Username         string // Report subject
@@ -81,6 +99,11 @@ type Statistics struct {
 	IssuesOpened     int
 	IssuesClosed     int
 	ReviewsCount     int
+
+	// Detail surfaced by the JSON format only.
+	Events        []Event            // The events the statistics were computed from
+	Totals        ContributionTotals // GitHub's own totals, private repos included
+	CommitsByRepo []RepoCount        // Commit counts per repository, private repos included
 }
 
 // TopRepos returns the top n repositories by event count.
@@ -120,8 +143,22 @@ type ContributionDay struct {
 	ContributionCount int
 }
 
+// Weekday returns the day index using this project's convention (0=Monday),
+// matching Statistics.EventsByWeekday. GitHub's own contributionDays.weekday
+// uses 0=Sunday, so it is derived from Date here rather than carried through —
+// two conflicting weekday conventions in one document is a footgun.
+func (d ContributionDay) Weekday() int {
+	return (int(d.Date.Weekday()) + 6) % 7
+}
+
 // ContributionCalendar holds the full contribution calendar from GraphQL.
 type ContributionCalendar struct {
+	// TotalContributions is the sum over Days, which are filtered to the
+	// requested range.
 	TotalContributions int
-	Days               []ContributionDay
+	// ReportedTotal is GitHub's own figure for the query window. That window is
+	// week-aligned and so can be wider than the requested range, which is why
+	// it is reported separately rather than replacing TotalContributions.
+	ReportedTotal int
+	Days          []ContributionDay
 }

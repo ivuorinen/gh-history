@@ -104,9 +104,16 @@ func isNotFound(err error) bool {
 
 // ContributionResult holds events plus calendar data from a GraphQL contributionsCollection query.
 type ContributionResult struct {
-	Events                   []models.Event
-	CalendarDays             []models.ContributionDay
-	TotalCommitContributions int
+	Events       []models.Event
+	CalendarDays []models.ContributionDay
+	// Totals are GitHub's own contribution counts for the window, which include
+	// private repositories. Callers querying multiple windows must sum them.
+	Totals models.ContributionTotals
+	// CommitsByRepo is GitHub's per-repository commit breakdown, private repos
+	// included. Callers querying multiple windows must merge by repository.
+	CommitsByRepo []models.RepoCount
+	// CalendarTotal is GitHub's reported total for the (week-aligned) window.
+	CalendarTotal int
 }
 
 type contributionsResponse struct {
@@ -124,7 +131,6 @@ type contributionsResponse struct {
 					ContributionDays []struct {
 						Date              string
 						ContributionCount int
-						Weekday           int
 					}
 				}
 			}
@@ -224,7 +230,6 @@ query($login: String!, $from: DateTime!, $to: DateTime!) {
           contributionDays {
             date
             contributionCount
-            weekday
           }
         }
       }
@@ -454,25 +459,29 @@ func (c *Client) FetchContributions(username string, dr daterange.DateRange) (Co
 	for _, n := range allPRs {
 		repo := n.PullRequest.Repository.NameWithOwner
 		events = append(events, models.Event{
-			ID:        fmt.Sprintf("gql-pr-opened-%d-%s", n.PullRequest.Number, repo),
-			Type:      "PullRequestEvent",
-			Actor:     username,
-			Repo:      repo,
-			Action:    models.ActionOpened,
-			CreatedAt: n.OccurredAt,
+			ID:               fmt.Sprintf("gql-pr-opened-%d-%s", n.PullRequest.Number, repo),
+			Type:             "PullRequestEvent",
+			Repo:             repo,
+			Action:           models.ActionOpened,
+			CreatedAt:        n.OccurredAt,
+			Number:           n.PullRequest.Number,
+			Title:            n.PullRequest.Title,
+			SubjectCreatedAt: n.PullRequest.CreatedAt,
 		})
 
 		if (n.PullRequest.State == "CLOSED" || n.PullRequest.State == "MERGED") && n.PullRequest.ClosedAt != nil {
 			closedAt := *n.PullRequest.ClosedAt
-			if !closedAt.Before(dr.StartDateTime()) && closedAt.Before(dr.EndDateTime()) {
+			if !closedAt.Before(dr.Start) && closedAt.Before(dr.EndDateTime()) {
 				events = append(events, models.Event{
-					ID:        fmt.Sprintf("gql-pr-closed-%d-%s", n.PullRequest.Number, repo),
-					Type:      "PullRequestEvent",
-					Actor:     username,
-					Repo:      repo,
-					Action:    models.ActionClosed,
-					Merged:    n.PullRequest.MergedAt != nil,
-					CreatedAt: closedAt,
+					ID:               fmt.Sprintf("gql-pr-closed-%d-%s", n.PullRequest.Number, repo),
+					Type:             "PullRequestEvent",
+					Repo:             repo,
+					Action:           models.ActionClosed,
+					Merged:           n.PullRequest.MergedAt != nil,
+					CreatedAt:        closedAt,
+					Number:           n.PullRequest.Number,
+					Title:            n.PullRequest.Title,
+					SubjectCreatedAt: n.PullRequest.CreatedAt,
 				})
 			}
 		}
@@ -481,24 +490,28 @@ func (c *Client) FetchContributions(username string, dr daterange.DateRange) (Co
 	for _, n := range allIssues {
 		repo := n.Issue.Repository.NameWithOwner
 		events = append(events, models.Event{
-			ID:        fmt.Sprintf("gql-issue-opened-%d-%s", n.Issue.Number, repo),
-			Type:      "IssuesEvent",
-			Actor:     username,
-			Repo:      repo,
-			Action:    models.ActionOpened,
-			CreatedAt: n.OccurredAt,
+			ID:               fmt.Sprintf("gql-issue-opened-%d-%s", n.Issue.Number, repo),
+			Type:             "IssuesEvent",
+			Repo:             repo,
+			Action:           models.ActionOpened,
+			CreatedAt:        n.OccurredAt,
+			Number:           n.Issue.Number,
+			Title:            n.Issue.Title,
+			SubjectCreatedAt: n.Issue.CreatedAt,
 		})
 
 		if n.Issue.State == "CLOSED" && n.Issue.ClosedAt != nil {
 			closedAt := *n.Issue.ClosedAt
-			if !closedAt.Before(dr.StartDateTime()) && closedAt.Before(dr.EndDateTime()) {
+			if !closedAt.Before(dr.Start) && closedAt.Before(dr.EndDateTime()) {
 				events = append(events, models.Event{
-					ID:        fmt.Sprintf("gql-issue-closed-%d-%s", n.Issue.Number, repo),
-					Type:      "IssuesEvent",
-					Actor:     username,
-					Repo:      repo,
-					Action:    models.ActionClosed,
-					CreatedAt: closedAt,
+					ID:               fmt.Sprintf("gql-issue-closed-%d-%s", n.Issue.Number, repo),
+					Type:             "IssuesEvent",
+					Repo:             repo,
+					Action:           models.ActionClosed,
+					CreatedAt:        closedAt,
+					Number:           n.Issue.Number,
+					Title:            n.Issue.Title,
+					SubjectCreatedAt: n.Issue.CreatedAt,
 				})
 			}
 		}
@@ -508,22 +521,24 @@ func (c *Client) FetchContributions(username string, dr daterange.DateRange) (Co
 		repo := n.PullRequestReview.PullRequest.Repository.NameWithOwner
 		submittedAt := n.PullRequestReview.SubmittedAt.Format(time.RFC3339)
 		events = append(events, models.Event{
-			ID:        fmt.Sprintf("gql-review-%s-%d-%s", submittedAt, n.PullRequestReview.PullRequest.Number, repo),
-			Type:      "PullRequestReviewEvent",
-			Actor:     username,
-			Repo:      repo,
-			CreatedAt: n.OccurredAt,
+			ID:          fmt.Sprintf("gql-review-%s-%d-%s", submittedAt, n.PullRequestReview.PullRequest.Number, repo),
+			Type:        "PullRequestReviewEvent",
+			Repo:        repo,
+			CreatedAt:   n.OccurredAt,
+			Number:      n.PullRequestReview.PullRequest.Number,
+			Title:       n.PullRequestReview.PullRequest.Title,
+			ReviewState: n.PullRequestReview.State,
 		})
 	}
 
 	for _, n := range allRepos {
 		repo := n.Repository.NameWithOwner
 		events = append(events, models.Event{
-			ID:        fmt.Sprintf("gql-repo-created-%s", repo),
-			Type:      "CreateEvent",
-			Actor:     username,
-			Repo:      repo,
-			CreatedAt: n.OccurredAt,
+			ID:          fmt.Sprintf("gql-repo-created-%s", repo),
+			Type:        "CreateEvent",
+			Repo:        repo,
+			CreatedAt:   n.OccurredAt,
+			Description: n.Repository.Description,
 		})
 	}
 
@@ -542,13 +557,29 @@ func (c *Client) FetchContributions(username string, dr daterange.DateRange) (Co
 		}
 	}
 
+	commitsByRepo := make([]models.RepoCount, 0, len(cc.CommitContributionsByRepository))
+	for _, r := range cc.CommitContributionsByRepository {
+		commitsByRepo = append(commitsByRepo, models.RepoCount{
+			Repo:  r.Repository.NameWithOwner,
+			Count: r.Contributions.TotalCount,
+		})
+	}
+
 	c.logf("  GraphQL: %d PRs, %d issues, %d reviews, %d repos, %d calendar days\n",
 		len(allPRs), len(allIssues), len(allReviews), len(allRepos), len(calendarDays))
 
 	return ContributionResult{
-		Events:                   events,
-		CalendarDays:             calendarDays,
-		TotalCommitContributions: cc.TotalCommitContributions,
+		Events:       events,
+		CalendarDays: calendarDays,
+		Totals: models.ContributionTotals{
+			Commits:      cc.TotalCommitContributions,
+			Issues:       cc.TotalIssueContributions,
+			PullRequests: cc.TotalPullRequestContributions,
+			Reviews:      cc.TotalPullRequestReviewContributions,
+			Repositories: cc.TotalRepositoryContributions,
+		},
+		CommitsByRepo: commitsByRepo,
+		CalendarTotal: cc.ContributionCalendar.TotalContributions,
 	}, nil
 }
 
@@ -664,7 +695,7 @@ type issueCommentsResponse struct {
 // reached before the walk provably passed the start of the range.
 func (c *Client) FetchIssueComments(username string, dr daterange.DateRange) ([]models.Event, error) {
 	var events []models.Event
-	startDT := dr.StartDateTime()
+	startDT := dr.Start
 	endDT := dr.EndDateTime()
 
 	var cursor *string
@@ -696,7 +727,6 @@ func (c *Client) FetchIssueComments(username string, dr daterange.DateRange) ([]
 			events = append(events, models.Event{
 				ID:        fmt.Sprintf("gql-comment-%s-%s", n.CreatedAt.Format(time.RFC3339), repo),
 				Type:      "IssueCommentEvent",
-				Actor:     username,
 				Repo:      repo,
 				CreatedAt: n.CreatedAt,
 			})

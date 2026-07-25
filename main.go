@@ -106,15 +106,19 @@ func resolveUser(cfg *config) string {
 
 // fetchResult holds events and supplemental data from all fetch sources.
 type fetchResult struct {
-	Events                   []models.Event
-	CalendarDays             []models.ContributionDay
-	TotalCommitContributions int
+	Events        []models.Event
+	CalendarDays  []models.ContributionDay
+	Totals        models.ContributionTotals
+	CommitsByRepo []models.RepoCount
+	CalendarTotal int
 }
 
 func fetchEvents(cfg *config, client *api.Client, dr daterange.DateRange, username string) fetchResult {
 	var allEvents []models.Event
 	var allCalendarDays []models.ContributionDay
-	var totalCommitContributions int
+	var totals models.ContributionTotals
+	var calendarTotal int
+	commitsByRepo := map[string]int{}
 
 	logVerbose(cfg.verbose, "Fetching %s to %s...",
 		dr.Start.Format(ghutil.DateFormat), dr.End.Format(ghutil.DateFormat))
@@ -128,7 +132,18 @@ func fetchEvents(cfg *config, client *api.Client, dr daterange.DateRange, userna
 		}
 		allEvents = append(allEvents, result.Events...)
 		allCalendarDays = append(allCalendarDays, result.CalendarDays...)
-		totalCommitContributions += result.TotalCommitContributions
+
+		// GitHub reports these per query window, so multi-year ranges must
+		// accumulate them rather than keep the last chunk's figures.
+		totals.Commits += result.Totals.Commits
+		totals.Issues += result.Totals.Issues
+		totals.PullRequests += result.Totals.PullRequests
+		totals.Reviews += result.Totals.Reviews
+		totals.Repositories += result.Totals.Repositories
+		calendarTotal += result.CalendarTotal
+		for _, rc := range result.CommitsByRepo {
+			commitsByRepo[rc.Repo] += rc.Count
+		}
 	}
 
 	// Keep whatever was retrieved and warn regardless of verbosity: a report
@@ -154,10 +169,29 @@ func fetchEvents(cfg *config, client *api.Client, dr daterange.DateRange, userna
 	})
 
 	return fetchResult{
-		Events:                   deduped,
-		CalendarDays:             allCalendarDays,
-		TotalCommitContributions: totalCommitContributions,
+		Events:        deduped,
+		CalendarDays:  allCalendarDays,
+		Totals:        totals,
+		CommitsByRepo: sortedRepoCounts(commitsByRepo),
+		CalendarTotal: calendarTotal,
 	}
+}
+
+// sortedRepoCounts converts the accumulated per-repository counts into a slice
+// ordered by count descending, breaking ties on the repository name so the
+// output does not vary between runs on Go's randomized map iteration order.
+func sortedRepoCounts(counts map[string]int) []models.RepoCount {
+	out := make([]models.RepoCount, 0, len(counts))
+	for repo, count := range counts {
+		out = append(out, models.RepoCount{Repo: repo, Count: count})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Count != out[j].Count {
+			return out[i].Count > out[j].Count
+		}
+		return out[i].Repo < out[j].Repo
+	})
+	return out
 }
 
 // writeToFileOrStdout writes data to a file or stdout with optional terminal rendering.
@@ -257,10 +291,12 @@ func handleMain(args []string) {
 	result := fetchEvents(cfg, client, dr, username)
 
 	calc := &analysis.Calculator{
-		Username:                 username,
-		DateRange:                dr,
-		CalendarDays:             result.CalendarDays,
-		TotalCommitContributions: result.TotalCommitContributions,
+		Username:      username,
+		DateRange:     dr,
+		CalendarDays:  result.CalendarDays,
+		Totals:        result.Totals,
+		CommitsByRepo: result.CommitsByRepo,
+		CalendarTotal: result.CalendarTotal,
 	}
 	stats := calc.Calculate(result.Events)
 

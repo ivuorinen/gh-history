@@ -10,11 +10,6 @@ const DateFormat = time.DateOnly
 // MaxPaginationPages is the maximum number of pages to fetch in pagination loops.
 const MaxPaginationPages = 10
 
-// NowUTC returns the current time in UTC.
-func NowUTC() time.Time {
-	return time.Now().UTC()
-}
-
 // TruncateToDay returns t with hour, minute, second, and nanosecond set to zero in UTC.
 func TruncateToDay(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC)

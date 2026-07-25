@@ -294,6 +294,121 @@ func TestFetchContributions(t *testing.T) {
 	}
 }
 
+// Everything the GraphQL query asks for must reach the event or the result —
+// fetching a field and then dropping it is what made these dead in the first
+// place.
+func TestFetchContributions_WiresQueriedDetail(t *testing.T) {
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			resp := response.(*contributionsResponse)
+			cc := &resp.User.ContributionsCollection
+			cc.TotalCommitContributions = 11
+			cc.TotalIssueContributions = 22
+			cc.TotalPullRequestContributions = 33
+			cc.TotalPullRequestReviewContributions = 44
+			cc.TotalRepositoryContributions = 55
+			cc.ContributionCalendar.TotalContributions = 66
+			cc.CommitContributionsByRepository = []struct {
+				Repository    struct{ NameWithOwner string }
+				Contributions struct{ TotalCount int }
+			}{
+				{
+					Repository:    struct{ NameWithOwner string }{NameWithOwner: "user/private"},
+					Contributions: struct{ TotalCount int }{TotalCount: 99},
+				},
+			}
+			cc.PullRequestContributions.Nodes = []prContributionNode{{
+				OccurredAt: time.Date(2024, 1, 10, 10, 0, 0, 0, time.UTC),
+				PullRequest: struct {
+					Number     int
+					Title      string
+					State      string
+					CreatedAt  time.Time
+					ClosedAt   *time.Time
+					MergedAt   *time.Time
+					Repository struct{ NameWithOwner string }
+				}{
+					Number: 42, Title: "Fix the thing", State: "OPEN",
+					CreatedAt:  time.Date(2024, 1, 9, 8, 0, 0, 0, time.UTC),
+					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo1"},
+				},
+			}}
+			cc.PullRequestReviewContributions.Nodes = []reviewContributionNode{{
+				OccurredAt: time.Date(2024, 1, 14, 10, 0, 0, 0, time.UTC),
+				PullRequestReview: struct {
+					State       string
+					SubmittedAt time.Time
+					PullRequest struct {
+						Number     int
+						Title      string
+						Repository struct{ NameWithOwner string }
+					}
+				}{
+					State:       "CHANGES_REQUESTED",
+					SubmittedAt: time.Date(2024, 1, 14, 10, 0, 0, 0, time.UTC),
+					PullRequest: struct {
+						Number     int
+						Title      string
+						Repository struct{ NameWithOwner string }
+					}{
+						Number: 7, Title: "Someone else's PR",
+						Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo2"},
+					},
+				},
+			}}
+			cc.RepositoryContributions.Nodes = []repoContributionNode{{
+				OccurredAt: time.Date(2024, 1, 5, 10, 0, 0, 0, time.UTC),
+				Repository: struct {
+					NameWithOwner string
+					Description   string
+				}{NameWithOwner: "user/new-repo", Description: "A brand new repo"},
+			}}
+			return nil
+		},
+	}
+
+	dr := daterange.DateRange{
+		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+	}
+	result, err := newTestClient(mock).FetchContributions("user", dr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := models.ContributionTotals{
+		Commits: 11, Issues: 22, PullRequests: 33, Reviews: 44, Repositories: 55,
+	}
+	if result.Totals != want {
+		t.Errorf("Totals = %+v, want %+v", result.Totals, want)
+	}
+	if result.CalendarTotal != 66 {
+		t.Errorf("CalendarTotal = %d, want 66", result.CalendarTotal)
+	}
+	if len(result.CommitsByRepo) != 1 ||
+		result.CommitsByRepo[0].Repo != "user/private" ||
+		result.CommitsByRepo[0].Count != 99 {
+		t.Errorf("CommitsByRepo = %+v", result.CommitsByRepo)
+	}
+
+	byType := map[string]models.Event{}
+	for _, e := range result.Events {
+		byType[e.Type] = e
+	}
+	if pr := byType["PullRequestEvent"]; pr.Number != 42 ||
+		pr.Title != "Fix the thing" ||
+		!pr.SubjectCreatedAt.Equal(time.Date(2024, 1, 9, 8, 0, 0, 0, time.UTC)) {
+		t.Errorf("PR detail not wired: %+v", pr)
+	}
+	if rv := byType["PullRequestReviewEvent"]; rv.ReviewState != "CHANGES_REQUESTED" ||
+		rv.Number != 7 || rv.Title != "Someone else's PR" {
+		t.Errorf("review detail not wired: %+v", rv)
+	}
+	if cr := byType["CreateEvent"]; cr.Description != "A brand new repo" {
+		t.Errorf("repo description not wired: %+v", cr)
+	}
+}
+
 func TestCheckUserExists_NotFoundUsesStructuredError(t *testing.T) {
 	mock := &mockGQLClient{
 		doFunc: func(query string, variables map[string]any, response any) error {

@@ -93,7 +93,7 @@ func calculateStreaksFromDates(activeDates []time.Time, dr daterange.DateRange) 
 	}
 
 	// Current streak: check from today backwards
-	today := ghutil.TruncateToDay(ghutil.NowUTC())
+	today := ghutil.TruncateToDay(time.Now().UTC())
 	if !end.Before(today) {
 		lastActive := activeDates[len(activeDates)-1]
 		yesterday := today.AddDate(0, 0, -1)

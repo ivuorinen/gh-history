@@ -56,7 +56,25 @@ gh history octocat --format html            # writes a file and opens it in your
 gh history octocat --format json -o stats.json
 ```
 
-All formats report the same statistics; only the presentation differs.
+The four formats agree on every shared statistic — the summary never differs
+between them. **JSON is the full offering**: on top of that summary it carries
+detail the human-readable formats deliberately omit.
+
+| | text / markdown / html | json |
+|---|---|---|
+| Summary (events, commits, PRs, issues, reviews, streaks) | yes | yes |
+| Top 15 repositories | yes | yes |
+| Category, weekday and hour distributions | yes | yes |
+| Full per-repository event counts | — | `events_by_repo` |
+| Per-day event counts | heatmap only | `events_by_date` |
+| Contribution calendar, per day | heatmap only | `calendar` |
+| GitHub's own totals, private repos included | — | `contribution_totals` |
+| Per-repository commit counts, private repos included | — | `commits_by_repo` |
+| The event list, with titles, numbers and review states | — | `events` |
+
+`contribution_totals` and `commits_by_repo` come straight from GitHub and count
+private-repository activity, so they are normally higher than the event-derived
+figures under `summary`, which can only see public events.
 
 `--format html` always writes to a file and opens it in your default browser. With
 no `--output` the file is `<username>-report.html` in the current directory; with

@@ -5,10 +5,39 @@ import (
 	"time"
 
 	"github.com/ivuorinen/gh-history/internal/daterange"
+	"github.com/ivuorinen/gh-history/internal/models"
 )
 
 func d(year, month, day int) time.Time {
 	return time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
+}
+
+func TestSortedRepoCounts(t *testing.T) {
+	// Counts accumulated across year chunks: repo1 appears in two chunks.
+	got := sortedRepoCounts(map[string]int{
+		"u/repo1": 30 + 20,
+		"u/repo2": 40,
+		"u/repo3": 40,
+	})
+	want := []models.RepoCount{
+		{Repo: "u/repo1", Count: 50},
+		{Repo: "u/repo2", Count: 40}, // tie broken by name, so output is stable
+		{Repo: "u/repo3", Count: 40},
+	}
+	if len(got) != len(want) {
+		t.Fatalf("expected %d entries, got %d", len(want), len(got))
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("index %d: got %+v, want %+v", i, got[i], want[i])
+		}
+	}
+}
+
+func TestSortedRepoCounts_Empty(t *testing.T) {
+	if got := sortedRepoCounts(map[string]int{}); len(got) != 0 {
+		t.Errorf("expected empty slice, got %v", got)
+	}
 }
 
 func TestParseFlags(t *testing.T) {

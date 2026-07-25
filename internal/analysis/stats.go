@@ -8,10 +8,12 @@ import (
 
 // Calculator computes statistics from GitHub events.
 type Calculator struct {
-	Username                 string
-	DateRange                daterange.DateRange
-	CalendarDays             []models.ContributionDay
-	TotalCommitContributions int
+	Username      string
+	DateRange     daterange.DateRange
+	CalendarDays  []models.ContributionDay
+	Totals        models.ContributionTotals
+	CommitsByRepo []models.RepoCount
+	CalendarTotal int
 }
 
 // Calculate processes events and returns computed statistics.
@@ -69,11 +71,19 @@ func (c *Calculator) Calculate(events []models.Event) models.Statistics {
 
 	// Commit counts come from the GraphQL contributions total, which covers
 	// private repositories. No synthesized event carries commit data.
-	stats.CommitCount = c.TotalCommitContributions
+	stats.CommitCount = c.Totals.Commits
+
+	// Detail carried through for the JSON format.
+	stats.Events = events
+	stats.Totals = c.Totals
+	stats.CommitsByRepo = c.CommitsByRepo
 
 	// Build calendar on stats
 	if len(filteredDays) > 0 {
-		cal := &models.ContributionCalendar{Days: filteredDays}
+		cal := &models.ContributionCalendar{
+			Days:          filteredDays,
+			ReportedTotal: c.CalendarTotal,
+		}
 		for _, d := range filteredDays {
 			cal.TotalContributions += d.ContributionCount
 		}

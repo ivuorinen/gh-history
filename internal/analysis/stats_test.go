@@ -70,7 +70,7 @@ func TestCalculate_NoEventsStillUsesCalendarAndCommitTotal(t *testing.T) {
 			{Date: time.Date(2024, 1, 11, 0, 0, 0, 0, time.UTC), ContributionCount: 3},
 			{Date: time.Date(2024, 1, 12, 0, 0, 0, 0, time.UTC), ContributionCount: 7},
 		},
-		TotalCommitContributions: 42,
+		Totals: models.ContributionTotals{Commits: 42},
 	}
 	stats := calc.Calculate(nil)
 
@@ -211,7 +211,7 @@ func TestWeekdayMapping(t *testing.T) {
 		End:   time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
 	}
 	events := []models.Event{{
-		ID: "1", Type: "IssueCommentEvent", Actor: "user", Repo: "user/repo",
+		ID: "1", Type: "IssueCommentEvent", Repo: "user/repo",
 		CreatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC), // Monday
 	}}
 	calc := &Calculator{Username: "user", DateRange: dr}
@@ -257,9 +257,9 @@ func TestCalculate_UsesCalendarForStreaks(t *testing.T) {
 func TestCalculate_CommitCountFromGraphQLTotal(t *testing.T) {
 	dr := testutil.SampleDateRange()
 	calc := &Calculator{
-		Username:                 "user",
-		DateRange:                dr,
-		TotalCommitContributions: 500,
+		Username:  "user",
+		DateRange: dr,
+		Totals:    models.ContributionTotals{Commits: 500},
 	}
 	stats := calc.Calculate(testutil.SampleEvents())
 
@@ -282,7 +282,7 @@ func TestCalculate_CalendarDaysFilteredToRange(t *testing.T) {
 		{Date: time.Date(2025, 1, 2, 0, 0, 0, 0, time.UTC), ContributionCount: 1},
 	}
 	events := []models.Event{
-		{ID: "1", Type: "IssueCommentEvent", Actor: "user", Repo: "user/repo",
+		{ID: "1", Type: "IssueCommentEvent", Repo: "user/repo",
 			CreatedAt: time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC)},
 	}
 	calc := &Calculator{

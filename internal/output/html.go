@@ -21,7 +21,7 @@ type htmlReportData struct {
 	Username  string
 	DateStart string
 	DateEnd   string
-	Cards     []htmlCard
+	Cards     []SummaryRow
 
 	HasCategories  bool
 	CategoriesJSON template.JS
@@ -55,11 +55,6 @@ func barsAlt(prefix string, entries []BarChartEntry) string {
 		parts = append(parts, fmt.Sprintf("%s %d", e.Label, e.Count))
 	}
 	return prefix + ": " + strings.Join(parts, ", ")
-}
-
-type htmlCard struct {
-	Label string
-	Value string
 }
 
 type htmlRepoRow struct {
@@ -353,9 +348,7 @@ func buildHTML(stats models.Statistics) (string, error) {
 
 	// Cards — same source as every other format, so no statistic is
 	// format-specific.
-	for _, row := range BuildSummary(stats) {
-		data.Cards = append(data.Cards, htmlCard(row))
-	}
+	data.Cards = BuildSummary(stats)
 
 	// Categories chart
 	if len(stats.EventsByCategory) > 0 {
@@ -462,7 +455,18 @@ func buildHTML(stats models.Statistics) (string, error) {
 // buildHeatmapData returns the heatmap JSON, a text alternative, and whether the
 // data came from the contribution calendar (rather than public event dates).
 func buildHeatmapData(stats models.Statistics) (payload, alt string, fromCalendar bool, err error) {
-	dateMap, fromCalendar := contributionCounts(stats)
+	// Prefer the contribution calendar (which includes private repositories)
+	// over public event dates. analysis.Calculate makes the same choice for
+	// streaks; a different source here would make the heatmap contradict the
+	// streak figures in the same report.
+	dateMap := stats.EventsByDate
+	fromCalendar = stats.Calendar != nil && len(stats.Calendar.Days) > 0
+	if fromCalendar {
+		dateMap = make(map[string]int, len(stats.Calendar.Days))
+		for _, d := range stats.Calendar.Days {
+			dateMap[d.Date.Format(ghutil.DateFormat)] = d.ContributionCount
+		}
+	}
 	if len(dateMap) == 0 {
 		return "", "", fromCalendar, nil
 	}
