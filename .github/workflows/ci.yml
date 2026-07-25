@@ -36,8 +36,10 @@ jobs:
       - name: go vet
         run: go vet ./...
 
+      # Pinned, not @latest: an unpinned tool changes CI behaviour without a
+      # commit, and this is the linter the build gates on.
       - name: staticcheck
-        run: go run honnef.co/go/tools/cmd/staticcheck@2025.1.1 ./...
+        run: go run honnef.co/go/tools/cmd/staticcheck@2026.1 ./...
 
       - name: Test with race detector
         run: go test -race ./...
@@ -58,6 +60,7 @@ jobs:
           go-version-file: go.mod
 
       # Reachability-aware: only fails on vulnerabilities this code can actually
-      # reach, unlike a plain dependency-version scan.
+      # reach, unlike a plain dependency-version scan. Pinned for the same
+      # reason as staticcheck above.
       - name: govulncheck
-        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.6.0 ./...
