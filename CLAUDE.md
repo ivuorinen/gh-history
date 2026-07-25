@@ -42,7 +42,8 @@ Source lives in `internal/` with seven packages:
 
 ## Code Conventions
 
-- **Go 1.26+** required
+- **Go 1.26.5+** required (the `go` directive in `go.mod` is the single source of truth;
+  every CI step reads it via `go-version-file`, so bump it there and nowhere else)
 - Standard `go vet` and `gofmt` formatting
 - All functions return errors explicitly — no panics in library code
 - `internal/` package layout — nothing exported outside the module
