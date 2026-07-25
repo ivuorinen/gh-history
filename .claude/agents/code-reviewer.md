@@ -23,10 +23,11 @@ Review recent code changes for quality, consistency, and adherence to project co
 - `gofmt` formatted
 - `go vet` clean
 - Uses `internal/` package layout — nothing exported outside the module
-- Reuses `go-gh/v2` utilities that are still depended on (tableprinter, term detection, auth, browser)
-- Does NOT reintroduce `go-gh/v2` `pkg/markdown`, `pkg/jsonpretty` or `pkg/text`: they were
-  removed deliberately (6.1 MB of binary and the `x/net` dependency for colour and two
-  helpers). `output.padRight` and `output.pluralize` replace `text.PadRight`/`text.Pluralize`.
+- Uses `go-gh/v2` for `pkg/api` and `pkg/auth` ONLY. Does not reintroduce `pkg/markdown`,
+  `pkg/jsonpretty`, `pkg/text`, `pkg/tableprinter`, `pkg/term` or `pkg/browser` — all were
+  removed deliberately, taking the binary from 15.3 MB to 8.7 MB. In-tree replacements:
+  `output.table`, `output.terminalOut`, `output.padRight`, `output.pluralize`,
+  `main.browserCommand`.
 - No unnecessary dependencies or abstractions
 
 ### Testing

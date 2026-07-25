@@ -1,6 +1,8 @@
 package main
 
 import (
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -10,6 +12,55 @@ import (
 
 func d(year, month, day int) time.Time {
 	return time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
+}
+
+func TestBrowserCommand(t *testing.T) {
+	tests := []struct {
+		name     string
+		launcher string
+		goos     string
+		wantName string
+		wantArgN int
+	}{
+		{"linux default", "", "linux", "xdg-open", 1},
+		{"macos default", "", "darwin", "open", 1},
+		{"windows default", "", "windows", "rundll32", 2},
+		{"BROWSER wins over the platform default", "firefox", "linux", "firefox", 1},
+		{"BROWSER with its own flags", "firefox --new-tab", "linux", "firefox", 2},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			name, args, err := browserCommand("report.html", tc.launcher, tc.goos)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if name != tc.wantName {
+				t.Errorf("name = %q, want %q", name, tc.wantName)
+			}
+			if len(args) != tc.wantArgN {
+				t.Errorf("args = %v, want %d of them", args, tc.wantArgN)
+			}
+			if !filepath.IsAbs(args[len(args)-1]) {
+				t.Errorf("path argument must be absolute, got %q", args[len(args)-1])
+			}
+		})
+	}
+}
+
+// A relative path beginning with "-" would be read as a flag by the opener;
+// making it absolute is what prevents that.
+func TestBrowserCommand_LeadingDashPathIsNotAFlag(t *testing.T) {
+	_, args, err := browserCommand("-rf.html", "", "linux")
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := args[len(args)-1]
+	if strings.HasPrefix(got, "-") {
+		t.Errorf("path argument still looks like a flag: %q", got)
+	}
+	if !filepath.IsAbs(got) {
+		t.Errorf("expected an absolute path, got %q", got)
+	}
 }
 
 func TestSortedRepoCounts(t *testing.T) {

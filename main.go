@@ -4,11 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 
 	"github.com/cli/go-gh/v2/pkg/auth"
-	"github.com/cli/go-gh/v2/pkg/browser"
 	"github.com/ivuorinen/gh-history/internal/analysis"
 	"github.com/ivuorinen/gh-history/internal/api"
 	"github.com/ivuorinen/gh-history/internal/daterange"
@@ -230,8 +232,9 @@ func writeOutput(cfg *config, stats models.Statistics) {
 			fatal("%v", err)
 		}
 		fmt.Fprintf(os.Stderr, "Report saved to: %s\n", outPath)
-		b := browser.New("", os.Stdout, os.Stderr)
-		_ = b.Browse(outPath)
+		if err := openInBrowser(outPath); err != nil {
+			logVerbose(cfg.verbose, "could not open a browser: %v", err)
+		}
 	default:
 		fatal("unknown format %q", cfg.format)
 	}
@@ -279,6 +282,46 @@ func handleMain(args []string) {
 	stats := calc.Calculate(result.Events)
 
 	writeOutput(cfg, stats)
+}
+
+// openInBrowser opens path in the user's browser, honouring $BROWSER the way
+// the gh CLI does before falling back to the platform opener.
+//
+// The path is made absolute first: a relative path beginning with "-" would
+// otherwise be read as a flag by the opener. Arguments are passed as a list, so
+// nothing is interpreted by a shell.
+func openInBrowser(path string) error {
+	name, args, err := browserCommand(path, os.Getenv("BROWSER"), runtime.GOOS)
+	if err != nil {
+		return err
+	}
+	cmd := exec.Command(name, args...)
+	cmd.Stderr = os.Stderr
+	return cmd.Start()
+}
+
+// browserCommand builds the opener invocation for path. Split out from
+// openInBrowser so it can be tested without launching anything.
+func browserCommand(path, launcher, goos string) (string, []string, error) {
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return "", nil, err
+	}
+	if launcher != "" {
+		fields := strings.Fields(launcher)
+		if len(fields) == 0 {
+			return "", nil, fmt.Errorf("BROWSER is set but empty")
+		}
+		return fields[0], append(fields[1:], abs), nil
+	}
+	switch goos {
+	case "darwin":
+		return "open", []string{abs}, nil
+	case "windows":
+		return "rundll32", []string{"url.dll,FileProtocolHandler", abs}, nil
+	default:
+		return "xdg-open", []string{abs}, nil
+	}
 }
 
 // newAPIClient creates an API client using go-gh's auth.

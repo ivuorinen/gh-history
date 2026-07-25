@@ -7,8 +7,6 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/cli/go-gh/v2/pkg/tableprinter"
-	"github.com/cli/go-gh/v2/pkg/term"
 	"github.com/ivuorinen/gh-history/internal/ghutil"
 	"github.com/ivuorinen/gh-history/internal/models"
 )
@@ -26,13 +24,8 @@ var AllCategories = []models.Category{
 
 // FormatText writes a plain text report to stdout using terminal-aware table formatting.
 func FormatText(stats models.Statistics) error {
-	t := term.FromEnv()
-	isTTY := t.IsTerminalOutput()
-	width := 80
-	if w, _, err := t.Size(); err == nil && w > 0 {
-		width = w
-	}
-	return FormatTextTo(t.Out(), isTTY, width, stats)
+	out, isTTY, width := terminalOut()
+	return FormatTextTo(out, isTTY, width, stats)
 }
 
 // errWriter records the first write error. go-gh's non-TTY table printer writes
@@ -67,7 +60,7 @@ func FormatTextTo(out io.Writer, isTTY bool, width int, stats models.Statistics)
 	fmt.Fprintln(w, "\nSummary")
 	fmt.Fprintln(w, strings.Repeat("-", 50))
 
-	tp := tableprinter.New(w, isTTY, width)
+	tp := newTable(w, isTTY, width)
 	for _, row := range BuildSummary(stats) {
 		tp.AddField(row.Label)
 		tp.AddField(row.Value)
@@ -109,7 +102,7 @@ func FormatTextTo(out io.Writer, isTTY bool, width int, stats models.Statistics)
 		fmt.Fprintln(w, "\nTop Repositories")
 		fmt.Fprintln(w, strings.Repeat("-", 50))
 
-		tp2 := tableprinter.New(w, isTTY, width)
+		tp2 := newTable(w, isTTY, width)
 		for i, rc := range topRepos {
 			tp2.AddField(fmt.Sprintf("%d.", i+1))
 			tp2.AddField(rc.Repo)

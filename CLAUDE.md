@@ -41,10 +41,15 @@ Source lives in `internal/` with seven packages:
 - Standard `go vet` and `gofmt` formatting
 - All functions return errors explicitly — no panics in library code
 - `internal/` package layout — nothing exported outside the module
-- `go-gh/v2` for terminal detection, table printing, auth, and browser opening only.
-  Its `pkg/markdown`, `pkg/jsonpretty` and `pkg/text` were removed deliberately: they cost
-  6.1 MB of binary and pulled in `golang.org/x/net` purely to colourise terminal output and
-  supply two string helpers. Markdown and JSON print raw; do not reintroduce them.
+- `go-gh/v2` is used for **two things only**: `pkg/api` (GraphQL client) and `pkg/auth`
+  (token resolution). Everything else was removed deliberately and must not be reintroduced:
+  - `pkg/markdown`, `pkg/jsonpretty`, `pkg/text` — cost 6.1 MB and pulled in
+    `golang.org/x/net`, purely for terminal colour and two string helpers.
+  - `pkg/tableprinter`, `pkg/term`, `pkg/browser` — replaced by `output.table`,
+    `output.terminalOut` and `main.browserCommand`; they pulled in the lipgloss stack,
+    go-runewidth, reflow and terminfo.
+- Terminal width and TTY detection use `golang.org/x/term`, which is linked via `pkg/api`
+  regardless. Markdown and JSON print verbatim.
 
 ## Build & Release
 
