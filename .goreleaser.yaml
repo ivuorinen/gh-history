@@ -51,6 +51,15 @@ signs:
 
 release:
   name_template: "{{.Tag}}"
+  # The archives are binary-only and cannot carry extra files, so the project
+  # licence travels with the release itself.
+  #
+  # Dependency notices are NOT shipped: the only direct requirement is
+  # golang.org/x/term (BSD-3) with its transitive golang.org/x/sys. If that set
+  # grows, generate notices into third_party/ during a `before` hook and add a
+  # matching glob here — a glob for files no step produces would fail the release.
+  extra_files:
+    - glob: LICENSE
   footer: >-
 
     ---

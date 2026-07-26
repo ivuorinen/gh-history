@@ -12,8 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      # id-token is required by cosign keyless signing. No attestations are
+      # produced, so attestations: write is deliberately not granted.
       id-token: write
-      attestations: write
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:

@@ -11,9 +11,9 @@ func TestBuildCategoryBars_Standard(t *testing.T) {
 	stats := models.Statistics{
 		TotalEvents: 100,
 		EventsByCategory: map[models.Category]int{
-			models.CategoryCommits:      50,
-			models.CategoryPullRequests: 30,
-			models.CategoryIssues:       20,
+			models.CategoryPullRequests: 50,
+			models.CategoryIssues:       30,
+			models.CategoryRepos:        20,
 		},
 	}
 
@@ -22,9 +22,12 @@ func TestBuildCategoryBars_Standard(t *testing.T) {
 		t.Fatalf("expected 3 entries, got %d", len(entries))
 	}
 
-	// First entry should be commits (follows AllCategories order)
-	if entries[0].Label != "Commits" {
-		t.Errorf("expected first label Commits, got %q", entries[0].Label)
+	// First entry follows AllCategories order, not count order
+	if entries[0].Label != "Pull Requests" {
+		t.Errorf("expected first label Pull Requests, got %q", entries[0].Label)
+	}
+	if entries[2].Label != "Repository Actions" {
+		t.Errorf("expected last label Repository Actions, got %q", entries[2].Label)
 	}
 	if entries[0].Count != 50 {
 		t.Errorf("expected count 50, got %d", entries[0].Count)
@@ -52,7 +55,7 @@ func TestBuildCategoryBars_SingleCategory(t *testing.T) {
 	stats := models.Statistics{
 		TotalEvents: 10,
 		EventsByCategory: map[models.Category]int{
-			models.CategoryCommits: 10,
+			models.CategoryRepos: 10,
 		},
 	}
 	entries := BuildCategoryBars(stats, 20, AllCategories)
@@ -68,7 +71,7 @@ func TestBuildCategoryBars_ZeroBarWidth(t *testing.T) {
 	stats := models.Statistics{
 		TotalEvents: 10,
 		EventsByCategory: map[models.Category]int{
-			models.CategoryCommits: 10,
+			models.CategoryRepos: 10,
 		},
 	}
 	// Should not panic with barWidth=0

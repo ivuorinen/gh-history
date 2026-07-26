@@ -25,23 +25,39 @@ go run . [username]     # Run locally
 
 Entry point: `main.go` (flag-based CLI via `flag.NewFlagSet`).
 
+`parseFlags` loops over `fs.Parse` rather than calling it once: Go's `flag` package
+stops at the first non-flag argument, so a single call silently drops every flag
+written after the positional username (`gh history octocat --format json`). Keep the
+loop, and keep `TestParseFlags`'s "flags AFTER the positional username" case.
+
 Source lives in `internal/` with seven packages:
 
-- **api/** — GitHub GraphQL client using `go-gh/v2`. Token resolution via `GH_TOKEN`, `GITHUB_TOKEN`, or `gh auth` config. Pagination via cursor-based GraphQL.
+- **api/** — GitHub GraphQL client over `net/http` (`graphQLClient`). Host and token are resolved in `main` (`resolveHost`/`resolveToken`) via `--hostname`/`GH_HOST` and the token env vars or `gh auth token`. Pagination via cursor-based GraphQL.
 - **analysis/** — `Calculator` processes events into a `Statistics` struct. Streak calculation, event categorization (8 categories), activity rate computation.
 - **daterange/** — Date range types and parsing. Supports `--year`, `--last-month`, `--last-90-days`, `--from`/`--to`. Current/future years cap end date to today.
 - **ghutil/** — Shared utilities: date format constants, pagination limits, user normalization.
 - **models/** — Core data types: `Event`, `Statistics`, `Streaks`, `Category`, `ContributionDay`.
-- **output/** — Formatters (text via `go-gh` tableprinter, JSON, Markdown, HTML) and Plotly chart generation. HTML report embeds charts inline.
+- **output/** — Formatters (text via the in-tree `table`, JSON, Markdown, HTML) and Plotly chart generation. Terminal detection lives in `terminalOut`. HTML report embeds charts inline.
 - **testutil/** — Test helpers and sample data fixtures.
 
 ## Code Conventions
 
-- **Go 1.26+** required
+- **Go 1.26.5+** required (the `go` directive in `go.mod` is the single source of truth;
+  every CI step reads it via `go-version-file`, so bump it there and nowhere else)
 - Standard `go vet` and `gofmt` formatting
 - All functions return errors explicitly — no panics in library code
 - `internal/` package layout — nothing exported outside the module
-- `go-gh/v2` for terminal detection, table printing, auth, browser, markdown rendering
+- **No `cli/go-gh` dependency.** The only requirement is `golang.org/x/term` (plus its
+  `golang.org/x/sys`). Do not reintroduce go-gh; in-tree replacements are
+  `api.graphQLClient` (GraphQL over `net/http`), `main.resolveHost` / `resolveToken`
+  (auth), `output.table`, `output.terminalOut`, `output.padRight`, `output.pluralize`
+  and `main.browserCommand`. The binary went from 15.3 MB to 8.1 MB.
+- **The `Time-Zone` request header is load-bearing.** GitHub buckets
+  `contributionsCollection` by it, so omitting it changes every count in the report —
+  measured on a one-day query: 1 review without the header, 2 with the local zone.
+  `api.LocalTimeZone` recovers the IANA name from `TZ` or the `/etc/localtime` symlink,
+  because Go's `time.Local` only reports "Local". Keep it, and keep its tests.
+- Markdown and JSON print verbatim; only `text` adapts to the terminal.
 
 ## Build & Release
 

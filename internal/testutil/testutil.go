@@ -7,23 +7,14 @@ import (
 	"github.com/ivuorinen/gh-history/internal/models"
 )
 
-// MakeEvent creates a minimal PushEvent on the given date.
+// MakeEvent creates a minimal event on the given date, for tests that care only
+// about the date. IssueCommentEvent is used because it carries no action.
 func MakeEvent(year, month, day int) models.Event {
-	return MakeTypedEvent("PushEvent", year, month, day, nil)
-}
-
-// MakeTypedEvent creates an event of the given type on the given date with an optional payload.
-func MakeTypedEvent(eventType string, year, month, day int, payload map[string]any) models.Event {
-	if payload == nil {
-		payload = map[string]any{}
-	}
 	d := time.Date(year, time.Month(month), day, 12, 0, 0, 0, time.UTC)
 	return models.Event{
-		ID:        d.Format("20060102") + "-" + eventType,
-		Type:      eventType,
-		Actor:     "user",
+		ID:        d.Format("20060102") + "-IssueCommentEvent",
+		Type:      "IssueCommentEvent",
 		Repo:      "user/repo",
-		Payload:   payload,
 		CreatedAt: d,
 	}
 }
@@ -32,28 +23,27 @@ func MakeTypedEvent(eventType string, year, month, day int, payload map[string]a
 func SampleEvents() []models.Event {
 	return []models.Event{
 		{
-			ID: "1", Type: "PushEvent", Actor: "user", Repo: "user/repo1",
-			Payload:   map[string]any{"commits": []any{map[string]any{"sha": "a"}, map[string]any{"sha": "b"}}},
+			ID: "1", Type: "IssueCommentEvent", Repo: "user/repo1",
 			CreatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
 		},
 		{
-			ID: "2", Type: "PullRequestEvent", Actor: "user", Repo: "user/repo1",
-			Payload:   map[string]any{"action": "opened"},
+			ID: "2", Type: "PullRequestEvent", Repo: "user/repo1",
+			Action: models.ActionOpened, Number: 7, Title: "Add widget",
 			CreatedAt: time.Date(2024, 1, 15, 11, 0, 0, 0, time.UTC),
 		},
 		{
-			ID: "3", Type: "PullRequestEvent", Actor: "user", Repo: "user/repo1",
-			Payload:   map[string]any{"action": "closed", "pull_request": map[string]any{"merged": true}},
+			ID: "3", Type: "PullRequestEvent", Repo: "user/repo1",
+			Action: models.ActionClosed, Merged: true, Number: 7, Title: "Add widget",
 			CreatedAt: time.Date(2024, 1, 16, 9, 0, 0, 0, time.UTC),
 		},
 		{
-			ID: "4", Type: "IssuesEvent", Actor: "user", Repo: "user/repo2",
-			Payload:   map[string]any{"action": "opened"},
+			ID: "4", Type: "IssuesEvent", Repo: "user/repo2",
+			Action: models.ActionOpened, Number: 12, Title: "Widget is broken",
 			CreatedAt: time.Date(2024, 1, 17, 14, 0, 0, 0, time.UTC),
 		},
 		{
-			ID: "5", Type: "PullRequestReviewEvent", Actor: "user", Repo: "user/repo1",
-			Payload:   map[string]any{},
+			ID: "5", Type: "PullRequestReviewEvent", Repo: "user/repo1",
+			Number: 7, Title: "Add widget", ReviewState: "APPROVED",
 			CreatedAt: time.Date(2024, 1, 18, 16, 0, 0, 0, time.UTC),
 		},
 	}
@@ -70,22 +60,22 @@ func SampleDateRange() daterange.DateRange {
 // SampleStats returns a complete Statistics struct suitable for formatter tests.
 func SampleStats() models.Statistics {
 	return models.Statistics{
-		Username:  "testuser",
-		DateRange: SampleDateRange(),
+		Username:    "testuser",
+		DateRange:   SampleDateRange(),
 		TotalEvents: 100,
 		EventsByCategory: map[models.Category]int{
-			models.CategoryCommits:      50,
 			models.CategoryPullRequests: 20,
 			models.CategoryIssues:       15,
 			models.CategoryReviews:      10,
 			models.CategoryComments:     5,
+			models.CategoryRepos:        50,
 		},
 		EventsByType: map[string]int{
-			"PushEvent":               50,
-			"PullRequestEvent":        20,
-			"IssuesEvent":             15,
-			"PullRequestReviewEvent":  10,
-			"IssueCommentEvent":       5,
+			"CreateEvent":            50,
+			"PullRequestEvent":       20,
+			"IssuesEvent":            15,
+			"PullRequestReviewEvent": 10,
+			"IssueCommentEvent":      5,
 		},
 		EventsByRepo: map[string]int{
 			"testuser/repo1": 60,
@@ -105,12 +95,24 @@ func SampleStats() models.Statistics {
 		},
 		Calendar: &models.ContributionCalendar{
 			TotalContributions: 24,
+			ReportedTotal:      30,
 			Days:               SampleCalendarDays(),
 		},
 		CommitCount:  80,
 		PROpened:     10,
 		PRMerged:     8,
+		PRClosed:     2,
+		IssuesOpened: 15,
+		IssuesClosed: 12,
 		ReviewsCount: 10,
+		Events:       SampleEvents(),
+		Totals: models.ContributionTotals{
+			Commits: 80, Issues: 15, PullRequests: 10, Reviews: 10, Repositories: 3,
+		},
+		CommitsByRepo: []models.RepoCount{
+			{Repo: "testuser/repo1", Count: 50},
+			{Repo: "testuser/repo2", Count: 30},
+		},
 	}
 }
 
@@ -125,26 +127,4 @@ func SampleCalendarDays() []models.ContributionDay {
 		})
 	}
 	return days
-}
-
-// SampleCacheEvents returns a 2-event set for cache tests.
-func SampleCacheEvents() []models.Event {
-	return []models.Event{
-		{
-			ID:        "1",
-			Type:      "PushEvent",
-			Actor:     "testuser",
-			Repo:      "testuser/repo1",
-			Payload:   map[string]any{"commits": []any{map[string]any{"sha": "abc"}}},
-			CreatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
-		},
-		{
-			ID:        "2",
-			Type:      "IssuesEvent",
-			Actor:     "testuser",
-			Repo:      "testuser/repo2",
-			Payload:   map[string]any{"action": "opened"},
-			CreatedAt: time.Date(2024, 1, 16, 14, 30, 0, 0, time.UTC),
-		},
-	}
 }

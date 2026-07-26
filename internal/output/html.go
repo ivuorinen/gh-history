@@ -8,9 +8,9 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 
-	ghText "github.com/cli/go-gh/v2/pkg/text"
 	"github.com/ivuorinen/gh-history/internal/analysis"
 	"github.com/ivuorinen/gh-history/internal/ghutil"
 	"github.com/ivuorinen/gh-history/internal/models"
@@ -21,25 +21,40 @@ type htmlReportData struct {
 	Username  string
 	DateStart string
 	DateEnd   string
-	Cards     []htmlCard
+	Cards     []SummaryRow
 
 	HasCategories  bool
 	CategoriesJSON template.JS
+	CategoriesAlt  string
 
 	WeeklyJSON template.JS
+	WeeklyAlt  string
 	HourlyJSON template.JS
+	HourlyAlt  string
 
-	HasHeatmap  bool
-	HeatmapJSON template.JS
+	HasHeatmap   bool
+	HeatmapJSON  template.JS
+	HeatmapTitle string
+	HeatmapAlt   string
 
 	HasTopRepos  bool
 	TopReposJSON template.JS
+	TopReposAlt  string
 	ReposTable   []htmlRepoRow
 }
 
-type htmlCard struct {
-	Label string
-	Value string
+// barsAlt renders bar-chart entries as a screen-reader alternative. Charts are
+// canvas/SVG drawn by Plotly and carry no text of their own, so without this the
+// data is unavailable to assistive technology.
+func barsAlt(prefix string, entries []BarChartEntry) string {
+	if len(entries) == 0 {
+		return prefix + ": no data"
+	}
+	parts := make([]string, 0, len(entries))
+	for _, e := range entries {
+		parts = append(parts, fmt.Sprintf("%s %d", e.Label, e.Count))
+	}
+	return prefix + ": " + strings.Join(parts, ", ")
 }
 
 type htmlRepoRow struct {
@@ -64,7 +79,12 @@ var reportTemplate = template.Must(template.New("report").Parse(`<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GitHub Activity Report: {{.Username}}</title>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- Pinned version + Subresource Integrity: "plotly-latest" is a moving
+         target and an unpinned, unverified CDN script executes whatever the CDN
+         serves. The hash is the sha384 of plotly-3.0.1.min.js. -->
+    <script src="https://cdn.plot.ly/plotly-3.0.1.min.js"
+            integrity="sha384-8cEu0XVLh4s92OG4Ua4ZS75MN//b+0KqyCrhQqaXgHMVHnKC3DNVhwUyH5spa1J2"
+            crossorigin="anonymous"></script>
     <style>
         :root {
             --bg-primary: #0d1117;
@@ -129,10 +149,18 @@ var reportTemplate = template.Must(template.New("report").Parse(`<!DOCTYPE html>
             border-bottom: 1px solid var(--bg-primary);
         }
         th { color: var(--text-secondary); }
+        .chart-fallback {
+            display: none;
+            padding: 1rem;
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+        }
+        .no-plotly .chart-fallback { display: block; }
+        .no-plotly .chart { display: none; }
     </style>
 </head>
 <body>
-    <div class="container">
+    <main class="container">
         <header>
             <h1>GitHub Activity Report</h1>
             <div class="date-range">
@@ -149,10 +177,16 @@ var reportTemplate = template.Must(template.New("report").Parse(`<!DOCTYPE html>
             {{end}}
         </div>
 
+        <p class="chart-fallback">Charts could not be loaded: the Plotly library
+        is unavailable (no network connection, or the script failed its integrity
+        check). The summary above and the repository table below are unaffected;
+        each chart's figures are in its description, which screen readers announce
+        and which the page source shows as the chart's <code>aria-label</code>.</p>
+
         {{if .HasCategories}}
-        <div class="chart-section">
-            <h2 class="chart-title">Activity Distribution</h2>
-            <div class="chart" id="chart-categories"></div>
+        <section class="chart-section" aria-labelledby="h-categories">
+            <h2 class="chart-title" id="h-categories">Activity Distribution</h2>
+            <div class="chart" id="chart-categories" role="img" aria-label="{{.CategoriesAlt}}"></div>
             <script>
                 (function() {
                     var d = {{.CategoriesJSON}};
@@ -170,12 +204,12 @@ var reportTemplate = template.Must(template.New("report").Parse(`<!DOCTYPE html>
                     }, {responsive: true});
                 })();
             </script>
-        </div>
+        </section>
         {{end}}
 
-        <div class="chart-section">
-            <h2 class="chart-title">Activity by Day of Week</h2>
-            <div class="chart" id="chart-weekly"></div>
+        <section class="chart-section" aria-labelledby="h-weekly">
+            <h2 class="chart-title" id="h-weekly">Activity by Day of Week</h2>
+            <div class="chart" id="chart-weekly" role="img" aria-label="{{.WeeklyAlt}}"></div>
             <script>
                 (function() {
                     var d = {{.WeeklyJSON}};
@@ -194,11 +228,11 @@ var reportTemplate = template.Must(template.New("report").Parse(`<!DOCTYPE html>
                     }, {responsive: true});
                 })();
             </script>
-        </div>
+        </section>
 
-        <div class="chart-section">
-            <h2 class="chart-title">Activity by Hour</h2>
-            <div class="chart" id="chart-hourly"></div>
+        <section class="chart-section" aria-labelledby="h-hourly">
+            <h2 class="chart-title" id="h-hourly">Activity by Hour</h2>
+            <div class="chart" id="chart-hourly" role="img" aria-label="{{.HourlyAlt}}"></div>
             <script>
                 (function() {
                     var d = {{.HourlyJSON}};
@@ -217,12 +251,12 @@ var reportTemplate = template.Must(template.New("report").Parse(`<!DOCTYPE html>
                     }, {responsive: true});
                 })();
             </script>
-        </div>
+        </section>
 
         {{if .HasHeatmap}}
-        <div class="chart-section">
-            <h2 class="chart-title">Contribution Heatmap</h2>
-            <div class="chart" id="chart-heatmap"></div>
+        <section class="chart-section" aria-labelledby="h-heatmap">
+            <h2 class="chart-title" id="h-heatmap">{{.HeatmapTitle}}</h2>
+            <div class="chart" id="chart-heatmap" role="img" aria-label="{{.HeatmapAlt}}"></div>
             <script>
                 (function() {
                     var d = {{.HeatmapJSON}};
@@ -242,13 +276,13 @@ var reportTemplate = template.Must(template.New("report").Parse(`<!DOCTYPE html>
                     }, {responsive: true});
                 })();
             </script>
-        </div>
+        </section>
         {{end}}
 
         {{if .HasTopRepos}}
-        <div class="chart-section">
-            <h2 class="chart-title">Top Repositories</h2>
-            <div class="chart" id="chart-repos"></div>
+        <section class="chart-section" aria-labelledby="h-repos-chart">
+            <h2 class="chart-title" id="h-repos-chart">Top Repositories</h2>
+            <div class="chart" id="chart-repos" role="img" aria-label="{{.TopReposAlt}}"></div>
             <script>
                 (function() {
                     var d = {{.TopReposJSON}};
@@ -267,21 +301,29 @@ var reportTemplate = template.Must(template.New("report").Parse(`<!DOCTYPE html>
                     }, {responsive: true});
                 })();
             </script>
-        </div>
+        </section>
 
-        <div class="chart-section">
-            <h2 class="chart-title">Top Repositories</h2>
+        <section class="chart-section" aria-labelledby="h-repos-table">
+            <h2 class="chart-title" id="h-repos-table">Top Repositories (table)</h2>
             <table>
-                <thead><tr><th>#</th><th>Repository</th><th>Events</th></tr></thead>
+                <caption class="stat-label">Repositories by number of events in the reporting period</caption>
+                <thead><tr><th scope="col">#</th><th scope="col">Repository</th><th scope="col">Events</th></tr></thead>
                 <tbody>
                     {{range .ReposTable}}
                     <tr><td>{{.Rank}}</td><td>{{.Repo}}</td><td>{{.Count}}</td></tr>
                     {{end}}
                 </tbody>
             </table>
-        </div>
+        </section>
         {{end}}
-    </div>
+    </main>
+    <script>
+        // Surface a readable message instead of blank boxes when the CDN script
+        // is missing or fails its integrity check.
+        if (typeof Plotly === 'undefined') {
+            document.documentElement.classList.add('no-plotly');
+        }
+    </script>
 </body>
 </html>`))
 
@@ -306,22 +348,9 @@ func buildHTML(stats models.Statistics) (string, error) {
 		DateEnd:   stats.DateRange.End.Format(ghutil.DateFormat),
 	}
 
-	// Cards
-	data.Cards = []htmlCard{
-		{"Total Events", fmt.Sprintf("%d", stats.TotalEvents)},
-		{"Commits", fmt.Sprintf("%d", stats.CommitCount)},
-		{"PRs Opened", fmt.Sprintf("%d", stats.PROpened)},
-		{"PRs Merged", fmt.Sprintf("%d", stats.PRMerged)},
-		{"Code Reviews", fmt.Sprintf("%d", stats.ReviewsCount)},
-	}
-	if stats.Streaks != nil {
-		s := stats.Streaks
-		data.Cards = append(data.Cards,
-			htmlCard{"Active Days", fmt.Sprintf("%d / %d", s.ActiveDays, s.TotalDays)},
-			htmlCard{"Longest Streak", ghText.Pluralize(s.LongestStreak, "day")},
-			htmlCard{"Current Streak", ghText.Pluralize(s.CurrentStreak, "day")},
-		)
-	}
+	// Cards — same source as every other format, so no statistic is
+	// format-specific.
+	data.Cards = BuildSummary(stats)
 
 	// Categories chart
 	if len(stats.EventsByCategory) > 0 {
@@ -339,6 +368,8 @@ func buildHTML(stats models.Statistics) (string, error) {
 		}
 		data.HasCategories = true
 		data.CategoriesJSON = template.JS(catJSON)
+		data.CategoriesAlt = barsAlt("Activity distribution by category",
+			BuildCategoryBars(stats, 1, AllCategories))
 	}
 
 	// Weekly chart
@@ -352,6 +383,7 @@ func buildHTML(stats models.Statistics) (string, error) {
 		return "", err
 	}
 	data.WeeklyJSON = template.JS(weeklyJSON)
+	data.WeeklyAlt = barsAlt("Activity by day of week", BuildWeekdayBars(stats, 1))
 
 	// Hourly chart
 	hours := make([]int, 24)
@@ -365,15 +397,24 @@ func buildHTML(stats models.Statistics) (string, error) {
 		return "", err
 	}
 	data.HourlyJSON = template.JS(hourlyJSON)
+	data.HourlyAlt = barsAlt("Activity by hour UTC", BuildHourlyBars(stats, 1))
 
 	// Heatmap
-	heatmapData, err := buildHeatmapData(stats)
+	heatmapData, summary, fromCalendar, err := buildHeatmapData(stats)
 	if err != nil {
 		return "", err
 	}
 	if heatmapData != "" {
 		data.HasHeatmap = true
 		data.HeatmapJSON = template.JS(heatmapData)
+		// Name the source: the calendar includes private repositories, event
+		// dates do not, and the two give visibly different pictures.
+		if fromCalendar {
+			data.HeatmapTitle = "Contribution Heatmap (all repositories)"
+		} else {
+			data.HeatmapTitle = "Contribution Heatmap (public events)"
+		}
+		data.HeatmapAlt = summary
 	}
 
 	// Top repos
@@ -391,6 +432,11 @@ func buildHTML(stats models.Statistics) (string, error) {
 		}
 		data.HasTopRepos = true
 		data.TopReposJSON = template.JS(reposJSON)
+		altParts := make([]string, 0, len(topRepos))
+		for _, rc := range topRepos {
+			altParts = append(altParts, fmt.Sprintf("%s %d", rc.Repo, rc.Count))
+		}
+		data.TopReposAlt = "Top repositories by events: " + strings.Join(altParts, ", ")
 
 		for i, rc := range topRepos {
 			data.ReposTable = append(data.ReposTable, htmlRepoRow{
@@ -408,9 +454,23 @@ func buildHTML(stats models.Statistics) (string, error) {
 	return buf.String(), nil
 }
 
-func buildHeatmapData(stats models.Statistics) (string, error) {
-	if len(stats.EventsByDate) == 0 {
-		return "", nil
+// buildHeatmapData returns the heatmap JSON, a text alternative, and whether the
+// data came from the contribution calendar (rather than public event dates).
+func buildHeatmapData(stats models.Statistics) (payload, alt string, fromCalendar bool, err error) {
+	// Prefer the contribution calendar (which includes private repositories)
+	// over public event dates. analysis.Calculate makes the same choice for
+	// streaks; a different source here would make the heatmap contradict the
+	// streak figures in the same report.
+	dateMap := stats.EventsByDate
+	fromCalendar = stats.Calendar != nil && len(stats.Calendar.Days) > 0
+	if fromCalendar {
+		dateMap = make(map[string]int, len(stats.Calendar.Days))
+		for _, d := range stats.Calendar.Days {
+			dateMap[d.Date.Format(ghutil.DateFormat)] = d.ContributionCount
+		}
+	}
+	if len(dateMap) == 0 {
+		return "", "", fromCalendar, nil
 	}
 
 	type dateCount struct {
@@ -418,28 +478,31 @@ func buildHeatmapData(stats models.Statistics) (string, error) {
 		count int
 	}
 	var dates []dateCount
-	for ds, count := range stats.EventsByDate {
+	total := 0
+	// The calendar source includes every day in the window, zero-count days
+	// among them, so active days must be counted rather than taken from len().
+	activeDays := 0
+	for ds, count := range dateMap {
 		d, err := time.Parse(ghutil.DateFormat, ds)
 		if err != nil {
 			continue
 		}
 		dates = append(dates, dateCount{d, count})
+		total += count
+		if count > 0 {
+			activeDays++
+		}
 	}
 	sort.Slice(dates, func(i, j int) bool {
 		return dates[i].date.Before(dates[j].date)
 	})
 
 	if len(dates) == 0 {
-		return "", nil
+		return "", "", fromCalendar, nil
 	}
 
 	start := dates[0].date
 	end := dates[len(dates)-1].date
-
-	dateMap := make(map[string]int)
-	for _, dc := range dates {
-		dateMap[dc.date.Format(ghutil.DateFormat)] = dc.count
-	}
 
 	dayNames := []string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
 	var weekLabels []string
@@ -452,16 +515,29 @@ func buildHeatmapData(stats models.Statistics) (string, error) {
 	wd := (int(current.Weekday()) + 6) % 7
 	current = current.AddDate(0, 0, -wd)
 
-	for !current.After(end.AddDate(0, 0, 7)) {
+	// current is Monday-aligned and steps a week at a time, so this already
+	// emits the whole week containing end. Extending past end would render a
+	// trailing all-zero column.
+	for !current.After(end) {
 		weekLabel := current.Format("Jan 02")
 		weekLabels = append(weekLabels, weekLabel)
 		for d := range 7 {
 			day := current.AddDate(0, 0, d)
-			count := dateMap[day.Format(ghutil.DateFormat)]
-			z[d] = append(z[d], count)
+			z[d] = append(z[d], dateMap[day.Format(ghutil.DateFormat)])
 		}
 		current = current.AddDate(0, 0, 7)
 	}
 
-	return mustJSON(map[string]any{"y": dayNames, "x": weekLabels, "z": z})
+	payload, err = mustJSON(map[string]any{"y": dayNames, "x": weekLabels, "z": z})
+	if err != nil {
+		return "", "", fromCalendar, err
+	}
+	source := "public events"
+	if fromCalendar {
+		source = "all repositories"
+	}
+	alt = fmt.Sprintf("Contribution heatmap from %s: %d contributions across %d active days, %s to %s",
+		source, total, activeDays,
+		start.Format(ghutil.DateFormat), end.Format(ghutil.DateFormat))
+	return payload, alt, fromCalendar, nil
 }

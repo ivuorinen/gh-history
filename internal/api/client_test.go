@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ivuorinen/gh-history/internal/daterange"
+	"github.com/ivuorinen/gh-history/internal/models"
 )
 
 // mockGQLClient implements gqlDoer for testing.
@@ -56,7 +57,14 @@ func TestCheckUserExistsGraphQL(t *testing.T) {
 				resp.User = &user
 				return nil
 			}
-			return fmt.Errorf("Could not resolve to a User with the login of '%s'", login)
+			// What GitHub actually returns for an unknown login: a structured
+			// GraphQL error of type NOT_FOUND.
+			return &GraphQLError{
+				Errors: []GraphQLErrorItem{{
+					Type:    "NOT_FOUND",
+					Message: fmt.Sprintf("Could not resolve to a User with the login of '%s'", login),
+				}},
+			}
 		},
 	}
 
@@ -263,17 +271,432 @@ func TestFetchContributions(t *testing.T) {
 		t.Error("expected to find event gql-pr-opened-1-user/repo1")
 	}
 
-	// Check merged PR has merged=true
+	// Check merged PR is flagged as merged, and opened PRs carry the open action
 	for _, e := range events {
-		if e.ID == "gql-pr-closed-2-user/repo2" {
-			pr, ok := e.Payload["pull_request"].(map[string]any)
-			if !ok {
-				t.Fatal("expected pull_request in payload")
+		switch e.ID {
+		case "gql-pr-closed-2-user/repo2":
+			if e.Action != models.ActionClosed {
+				t.Errorf("expected closed action, got %q", e.Action)
 			}
-			if merged, _ := pr["merged"].(bool); !merged {
-				t.Error("expected merged=true for merged PR")
+			if !e.Merged {
+				t.Error("expected Merged=true for merged PR")
+			}
+		case "gql-pr-opened-1-user/repo1":
+			if e.Action != models.ActionOpened {
+				t.Errorf("expected opened action, got %q", e.Action)
+			}
+			if e.Merged {
+				t.Error("expected Merged=false for opened PR")
 			}
 		}
+	}
+}
+
+// Everything the GraphQL query asks for must reach the event or the result —
+// fetching a field and then dropping it is what made these dead in the first
+// place.
+func TestFetchContributions_WiresQueriedDetail(t *testing.T) {
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			resp := response.(*contributionsResponse)
+			cc := &resp.User.ContributionsCollection
+			cc.TotalCommitContributions = 11
+			cc.TotalIssueContributions = 22
+			cc.TotalPullRequestContributions = 33
+			cc.TotalPullRequestReviewContributions = 44
+			cc.TotalRepositoryContributions = 55
+			cc.ContributionCalendar.TotalContributions = 66
+			cc.CommitContributionsByRepository = []struct {
+				Repository    struct{ NameWithOwner string }
+				Contributions struct{ TotalCount int }
+			}{
+				{
+					Repository:    struct{ NameWithOwner string }{NameWithOwner: "user/private"},
+					Contributions: struct{ TotalCount int }{TotalCount: 99},
+				},
+			}
+			cc.PullRequestContributions.Nodes = []prContributionNode{{
+				OccurredAt: time.Date(2024, 1, 10, 10, 0, 0, 0, time.UTC),
+				PullRequest: struct {
+					Number     int
+					Title      string
+					State      string
+					CreatedAt  time.Time
+					ClosedAt   *time.Time
+					MergedAt   *time.Time
+					Repository struct{ NameWithOwner string }
+				}{
+					Number: 42, Title: "Fix the thing", State: "OPEN",
+					CreatedAt:  time.Date(2024, 1, 9, 8, 0, 0, 0, time.UTC),
+					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo1"},
+				},
+			}}
+			cc.PullRequestReviewContributions.Nodes = []reviewContributionNode{{
+				OccurredAt: time.Date(2024, 1, 14, 10, 0, 0, 0, time.UTC),
+				PullRequestReview: struct {
+					State       string
+					SubmittedAt time.Time
+					PullRequest struct {
+						Number     int
+						Title      string
+						Repository struct{ NameWithOwner string }
+					}
+				}{
+					State:       "CHANGES_REQUESTED",
+					SubmittedAt: time.Date(2024, 1, 14, 10, 0, 0, 0, time.UTC),
+					PullRequest: struct {
+						Number     int
+						Title      string
+						Repository struct{ NameWithOwner string }
+					}{
+						Number: 7, Title: "Someone else's PR",
+						Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo2"},
+					},
+				},
+			}}
+			cc.RepositoryContributions.Nodes = []repoContributionNode{{
+				OccurredAt: time.Date(2024, 1, 5, 10, 0, 0, 0, time.UTC),
+				Repository: struct {
+					NameWithOwner string
+					Description   string
+				}{NameWithOwner: "user/new-repo", Description: "A brand new repo"},
+			}}
+			return nil
+		},
+	}
+
+	dr := daterange.DateRange{
+		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+	}
+	result, err := newTestClient(mock).FetchContributions("user", dr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := models.ContributionTotals{
+		Commits: 11, Issues: 22, PullRequests: 33, Reviews: 44, Repositories: 55,
+	}
+	if result.Totals != want {
+		t.Errorf("Totals = %+v, want %+v", result.Totals, want)
+	}
+	if result.CalendarTotal != 66 {
+		t.Errorf("CalendarTotal = %d, want 66", result.CalendarTotal)
+	}
+	if len(result.CommitsByRepo) != 1 ||
+		result.CommitsByRepo[0].Repo != "user/private" ||
+		result.CommitsByRepo[0].Count != 99 {
+		t.Errorf("CommitsByRepo = %+v", result.CommitsByRepo)
+	}
+
+	byType := map[string]models.Event{}
+	for _, e := range result.Events {
+		byType[e.Type] = e
+	}
+	if pr := byType["PullRequestEvent"]; pr.Number != 42 ||
+		pr.Title != "Fix the thing" ||
+		!pr.SubjectCreatedAt.Equal(time.Date(2024, 1, 9, 8, 0, 0, 0, time.UTC)) {
+		t.Errorf("PR detail not wired: %+v", pr)
+	}
+	if rv := byType["PullRequestReviewEvent"]; rv.ReviewState != "CHANGES_REQUESTED" ||
+		rv.Number != 7 || rv.Title != "Someone else's PR" {
+		t.Errorf("review detail not wired: %+v", rv)
+	}
+	if cr := byType["CreateEvent"]; cr.Description != "A brand new repo" {
+		t.Errorf("repo description not wired: %+v", cr)
+	}
+}
+
+func TestCheckUserExists_NotFoundUsesStructuredError(t *testing.T) {
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			return &GraphQLError{
+				Errors: []GraphQLErrorItem{{
+					Type:    "NOT_FOUND",
+					Message: "Could not resolve to a User with the login of 'nobody'",
+				}},
+			}
+		},
+	}
+	exists, err := newTestClient(mock).CheckUserExists("nobody")
+	if err != nil {
+		t.Fatalf("NOT_FOUND should not be an error, got %v", err)
+	}
+	if exists {
+		t.Error("expected user not to exist")
+	}
+}
+
+func TestCheckUserExists_NotFoundIndependentOfWording(t *testing.T) {
+	// Detection must survive GitHub rewording its message.
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			return &GraphQLError{
+				Errors: []GraphQLErrorItem{{
+					Type:    "NOT_FOUND",
+					Message: "totally different wording",
+				}},
+			}
+		},
+	}
+	exists, err := newTestClient(mock).CheckUserExists("nobody")
+	if err != nil {
+		t.Fatalf("expected nil error, got %v", err)
+	}
+	if exists {
+		t.Error("expected user not to exist")
+	}
+}
+
+func TestCheckUserExists_OtherGraphQLErrorIsReturned(t *testing.T) {
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			return &GraphQLError{
+				Errors: []GraphQLErrorItem{{Type: "RATE_LIMITED", Message: "slow down"}},
+			}
+		},
+	}
+	if _, err := newTestClient(mock).CheckUserExists("someone"); err == nil {
+		t.Fatal("expected a non-NOT_FOUND GraphQL error to be returned")
+	}
+}
+
+func TestFetchContributions_PaginationErrorIsReturned(t *testing.T) {
+	cursor := "cursor123"
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			if strings.Contains(query, "pullRequestContributions(first: 100)") {
+				resp := response.(*contributionsResponse)
+				resp.User.ContributionsCollection.PullRequestContributions.PageInfo = pageInfo{
+					EndCursor: &cursor, HasNextPage: true,
+				}
+				return nil
+			}
+			return fmt.Errorf("rate limited")
+		},
+	}
+
+	dr := daterange.DateRange{
+		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+	}
+	_, err := newTestClient(mock).FetchContributions("user", dr)
+	if err == nil {
+		t.Fatal("a failed pagination page must not be reported as a complete result")
+	}
+	if !strings.Contains(err.Error(), "rate limited") {
+		t.Errorf("expected the underlying error to be wrapped, got: %v", err)
+	}
+}
+
+// Hitting the page limit must not throw away what was fetched: a user with more
+// nodes than the limit allows would otherwise never get a report at all. The
+// result is returned with the affected collection named so the caller can warn.
+func TestFetchContributions_PageLimitReportsTruncation(t *testing.T) {
+	cursor := "cursor123"
+	node := prContributionNode{
+		OccurredAt: time.Date(2024, 1, 10, 10, 0, 0, 0, time.UTC),
+		PullRequest: struct {
+			Number     int
+			Title      string
+			State      string
+			CreatedAt  time.Time
+			ClosedAt   *time.Time
+			MergedAt   *time.Time
+			Repository struct{ NameWithOwner string }
+		}{
+			Number: 1, State: "OPEN",
+			Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo"},
+		},
+	}
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			// Every page claims another page follows, so the limit is reached.
+			if strings.Contains(query, "pullRequestContributions(first: 100)") {
+				resp := response.(*contributionsResponse)
+				resp.User.ContributionsCollection.TotalCommitContributions = 5
+				resp.User.ContributionsCollection.PullRequestContributions.Nodes = []prContributionNode{node}
+				resp.User.ContributionsCollection.PullRequestContributions.PageInfo = pageInfo{
+					EndCursor: &cursor, HasNextPage: true,
+				}
+				return nil
+			}
+			resp := response.(*paginatePRsResponse)
+			resp.User.ContributionsCollection.PullRequestContributions.Nodes = []prContributionNode{node}
+			resp.User.ContributionsCollection.PullRequestContributions.PageInfo = pageInfo{
+				EndCursor: &cursor, HasNextPage: true,
+			}
+			return nil
+		},
+	}
+
+	dr := daterange.DateRange{
+		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+	}
+	result, err := newTestClient(mock).FetchContributions("user", dr)
+	if err != nil {
+		t.Fatalf("truncation must not abort the fetch, got: %v", err)
+	}
+	if len(result.Truncated) != 1 || result.Truncated[0] != "pull request contributions" {
+		t.Errorf("Truncated = %v, want the PR collection named", result.Truncated)
+	}
+	if len(result.Events) == 0 {
+		t.Error("the nodes fetched before the limit must be kept, not discarded")
+	}
+	if result.Totals.Commits != 5 {
+		t.Errorf("data outside the truncated collection must survive, got Commits=%d", result.Totals.Commits)
+	}
+}
+
+// A genuine transport failure is still fatal — that is not the same as running
+// out of page budget.
+func TestFetchContributions_RealErrorStillAborts(t *testing.T) {
+	cursor := "cursor123"
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			if strings.Contains(query, "pullRequestContributions(first: 100)") {
+				resp := response.(*contributionsResponse)
+				resp.User.ContributionsCollection.PullRequestContributions.PageInfo = pageInfo{
+					EndCursor: &cursor, HasNextPage: true,
+				}
+				return nil
+			}
+			return fmt.Errorf("rate limited")
+		},
+	}
+	dr := daterange.DateRange{
+		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+	}
+	if _, err := newTestClient(mock).FetchContributions("user", dr); err == nil {
+		t.Fatal("a transport failure must still abort the fetch")
+	}
+}
+
+func TestFetchIssueComments_FiltersToRange(t *testing.T) {
+	inRange := time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC)
+	beforeRange := time.Date(2023, 12, 20, 10, 0, 0, 0, time.UTC)
+	afterRange := time.Date(2024, 2, 5, 10, 0, 0, 0, time.UTC)
+
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			resp := response.(*issueCommentsResponse)
+			resp.User.IssueComments.Nodes = []struct {
+				CreatedAt  time.Time
+				UpdatedAt  time.Time
+				Repository struct{ NameWithOwner string }
+			}{
+				// Edited recently, created after the range → excluded.
+				{CreatedAt: afterRange, UpdatedAt: afterRange,
+					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo1"}},
+				// In range → included.
+				{CreatedAt: inRange, UpdatedAt: inRange,
+					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo2"}},
+				// Created before the range but edited inside it → excluded by createdAt.
+				{CreatedAt: beforeRange, UpdatedAt: inRange,
+					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo3"}},
+			}
+			resp.User.IssueComments.PageInfo = pageInfo{HasNextPage: false}
+			return nil
+		},
+	}
+
+	dr := daterange.DateRange{
+		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+	}
+	events, err := newTestClient(mock).FetchIssueComments("user", dr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(events) != 1 {
+		t.Fatalf("expected 1 in-range comment, got %d", len(events))
+	}
+	if events[0].Repo != "user/repo2" {
+		t.Errorf("expected user/repo2, got %s", events[0].Repo)
+	}
+	if events[0].Type != "IssueCommentEvent" {
+		t.Errorf("expected IssueCommentEvent, got %s", events[0].Type)
+	}
+}
+
+func TestFetchIssueComments_StopsOnceUpdatedAtPredatesRange(t *testing.T) {
+	// updatedAt descending: the first node older than the range start proves no
+	// later node can be in range (createdAt <= updatedAt), so the walk stops
+	// without burning the remaining page budget.
+	calls := 0
+	cursor := "next"
+	old := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			calls++
+			resp := response.(*issueCommentsResponse)
+			resp.User.IssueComments.Nodes = []struct {
+				CreatedAt  time.Time
+				UpdatedAt  time.Time
+				Repository struct{ NameWithOwner string }
+			}{
+				{CreatedAt: old, UpdatedAt: old,
+					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo"}},
+			}
+			resp.User.IssueComments.PageInfo = pageInfo{EndCursor: &cursor, HasNextPage: true}
+			return nil
+		},
+	}
+
+	dr := daterange.DateRange{
+		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+	}
+	events, err := newTestClient(mock).FetchIssueComments("user", dr)
+	if err != nil {
+		t.Fatalf("reaching the end of the relevant window is not an error: %v", err)
+	}
+	if len(events) != 0 {
+		t.Errorf("expected 0 events, got %d", len(events))
+	}
+	if calls != 1 {
+		t.Errorf("expected the walk to stop after 1 page, got %d calls", calls)
+	}
+}
+
+func TestFetchIssueComments_ReturnsPartialResultsOnError(t *testing.T) {
+	inRange := time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC)
+	cursor := "next"
+	calls := 0
+
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			calls++
+			if calls > 1 {
+				return fmt.Errorf("network blip")
+			}
+			resp := response.(*issueCommentsResponse)
+			resp.User.IssueComments.Nodes = []struct {
+				CreatedAt  time.Time
+				UpdatedAt  time.Time
+				Repository struct{ NameWithOwner string }
+			}{
+				{CreatedAt: inRange, UpdatedAt: inRange,
+					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo"}},
+			}
+			resp.User.IssueComments.PageInfo = pageInfo{EndCursor: &cursor, HasNextPage: true}
+			return nil
+		},
+	}
+
+	dr := daterange.DateRange{
+		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+	}
+	events, err := newTestClient(mock).FetchIssueComments("user", dr)
+	if err == nil {
+		t.Fatal("expected the page error to be reported")
+	}
+	if len(events) != 1 {
+		t.Errorf("successfully fetched comments must be returned alongside the error, got %d", len(events))
 	}
 }
 

@@ -5,7 +5,6 @@ import (
 	"sort"
 	"strings"
 
-	ghText "github.com/cli/go-gh/v2/pkg/text"
 	"github.com/ivuorinen/gh-history/internal/ghutil"
 	"github.com/ivuorinen/gh-history/internal/models"
 )
@@ -22,17 +21,8 @@ func FormatMarkdown(stats models.Statistics) string {
 	b.WriteString("## Summary\n\n")
 	b.WriteString("| Metric | Value |\n")
 	b.WriteString("|--------|-------|\n")
-	fmt.Fprintf(&b, "| Total Events | %d |\n", stats.TotalEvents)
-	fmt.Fprintf(&b, "| Commits | %d |\n", stats.CommitCount)
-	fmt.Fprintf(&b, "| PRs Opened | %d |\n", stats.PROpened)
-	fmt.Fprintf(&b, "| PRs Merged | %d |\n", stats.PRMerged)
-	fmt.Fprintf(&b, "| Code Reviews | %d |\n", stats.ReviewsCount)
-
-	if stats.Streaks != nil {
-		s := stats.Streaks
-		fmt.Fprintf(&b, "| Active Days | %d / %d |\n", s.ActiveDays, s.TotalDays)
-		fmt.Fprintf(&b, "| Longest Streak | %s |\n", ghText.Pluralize(s.LongestStreak, "day"))
-		fmt.Fprintf(&b, "| Current Streak | %s |\n", ghText.Pluralize(s.CurrentStreak, "day"))
+	for _, row := range BuildSummary(stats) {
+		fmt.Fprintf(&b, "| %s | %s |\n", row.Label, row.Value)
 	}
 
 	b.WriteString("\n## Activity by Category\n\n")

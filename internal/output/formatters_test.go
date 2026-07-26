@@ -68,9 +68,6 @@ func TestGenerateHTMLContainsCharts(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !strings.Contains(html, "plotly-latest.min.js") {
-		t.Error("should include Plotly CDN")
-	}
 	if !strings.Contains(html, "chart-categories") {
 		t.Error("should contain category chart")
 	}
@@ -82,5 +79,77 @@ func TestGenerateHTMLContainsCharts(t *testing.T) {
 	}
 	if !strings.Contains(html, "testuser") {
 		t.Error("should contain username")
+	}
+}
+
+// The CDN script must be pinned and integrity-checked: "plotly-latest" is a
+// moving target and an unverified script runs whatever the CDN serves.
+func TestGenerateHTML_PlotlyIsPinnedWithIntegrity(t *testing.T) {
+	html, err := buildHTML(testutil.SampleStats())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if strings.Contains(html, "plotly-latest") {
+		t.Error("Plotly must not be loaded from an unpinned 'latest' URL")
+	}
+	if !strings.Contains(html, "cdn.plot.ly/plotly-3.0.1.min.js") {
+		t.Error("expected a pinned Plotly version")
+	}
+	if !strings.Contains(html, `integrity="sha384-`) {
+		t.Error("expected a Subresource Integrity hash on the Plotly script")
+	}
+	if !strings.Contains(html, `crossorigin="anonymous"`) {
+		t.Error("SRI requires crossorigin on a cross-origin script")
+	}
+}
+
+// Charts are drawn by Plotly and carry no text of their own, so each needs a
+// text alternative for assistive technology (WCAG 2.2 AA 1.1.1).
+func TestGenerateHTML_ChartsHaveTextAlternatives(t *testing.T) {
+	html, err := buildHTML(testutil.SampleStats())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, want := range []string{
+		`id="chart-categories" role="img" aria-label="`,
+		`id="chart-weekly" role="img" aria-label="`,
+		`id="chart-hourly" role="img" aria-label="`,
+		`id="chart-heatmap" role="img" aria-label="`,
+		`id="chart-repos" role="img" aria-label="`,
+	} {
+		if !strings.Contains(html, want) {
+			t.Errorf("missing accessible chart markup: %s", want)
+		}
+	}
+	if !strings.Contains(html, "<main") {
+		t.Error("expected a main landmark")
+	}
+	// Two sections previously shared the heading "Top Repositories".
+	if strings.Count(html, ">Top Repositories<") > 1 {
+		t.Error("duplicate 'Top Repositories' headings make heading navigation ambiguous")
+	}
+}
+
+// The heatmap must use the same source as the streak figures, or the two
+// contradict each other in the same report.
+func TestGenerateHTML_HeatmapPrefersCalendar(t *testing.T) {
+	stats := testutil.SampleStats() // has both Calendar and EventsByDate
+	html, err := buildHTML(stats)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(html, "Contribution Heatmap (all repositories)") {
+		t.Error("expected the heatmap to be sourced from the contribution calendar")
+	}
+
+	stats.Calendar = nil
+	html, err = buildHTML(stats)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(html, "Contribution Heatmap (public events)") {
+		t.Error("expected the heatmap to fall back to event dates and say so")
 	}
 }
