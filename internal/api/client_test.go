@@ -1,7 +1,6 @@
 package api
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -490,19 +489,40 @@ func TestFetchContributions_PaginationErrorIsReturned(t *testing.T) {
 	}
 }
 
+// Hitting the page limit must not throw away what was fetched: a user with more
+// nodes than the limit allows would otherwise never get a report at all. The
+// result is returned with the affected collection named so the caller can warn.
 func TestFetchContributions_PageLimitReportsTruncation(t *testing.T) {
 	cursor := "cursor123"
+	node := prContributionNode{
+		OccurredAt: time.Date(2024, 1, 10, 10, 0, 0, 0, time.UTC),
+		PullRequest: struct {
+			Number     int
+			Title      string
+			State      string
+			CreatedAt  time.Time
+			ClosedAt   *time.Time
+			MergedAt   *time.Time
+			Repository struct{ NameWithOwner string }
+		}{
+			Number: 1, State: "OPEN",
+			Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo"},
+		},
+	}
 	mock := &mockGQLClient{
 		doFunc: func(query string, variables map[string]any, response any) error {
 			// Every page claims another page follows, so the limit is reached.
 			if strings.Contains(query, "pullRequestContributions(first: 100)") {
 				resp := response.(*contributionsResponse)
+				resp.User.ContributionsCollection.TotalCommitContributions = 5
+				resp.User.ContributionsCollection.PullRequestContributions.Nodes = []prContributionNode{node}
 				resp.User.ContributionsCollection.PullRequestContributions.PageInfo = pageInfo{
 					EndCursor: &cursor, HasNextPage: true,
 				}
 				return nil
 			}
 			resp := response.(*paginatePRsResponse)
+			resp.User.ContributionsCollection.PullRequestContributions.Nodes = []prContributionNode{node}
 			resp.User.ContributionsCollection.PullRequestContributions.PageInfo = pageInfo{
 				EndCursor: &cursor, HasNextPage: true,
 			}
@@ -514,9 +534,43 @@ func TestFetchContributions_PageLimitReportsTruncation(t *testing.T) {
 		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
 	}
-	_, err := newTestClient(mock).FetchContributions("user", dr)
-	if !errors.Is(err, ErrTruncated) {
-		t.Fatalf("expected ErrTruncated when the page limit is hit, got: %v", err)
+	result, err := newTestClient(mock).FetchContributions("user", dr)
+	if err != nil {
+		t.Fatalf("truncation must not abort the fetch, got: %v", err)
+	}
+	if len(result.Truncated) != 1 || result.Truncated[0] != "pull request contributions" {
+		t.Errorf("Truncated = %v, want the PR collection named", result.Truncated)
+	}
+	if len(result.Events) == 0 {
+		t.Error("the nodes fetched before the limit must be kept, not discarded")
+	}
+	if result.Totals.Commits != 5 {
+		t.Errorf("data outside the truncated collection must survive, got Commits=%d", result.Totals.Commits)
+	}
+}
+
+// A genuine transport failure is still fatal — that is not the same as running
+// out of page budget.
+func TestFetchContributions_RealErrorStillAborts(t *testing.T) {
+	cursor := "cursor123"
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			if strings.Contains(query, "pullRequestContributions(first: 100)") {
+				resp := response.(*contributionsResponse)
+				resp.User.ContributionsCollection.PullRequestContributions.PageInfo = pageInfo{
+					EndCursor: &cursor, HasNextPage: true,
+				}
+				return nil
+			}
+			return fmt.Errorf("rate limited")
+		},
+	}
+	dr := daterange.DateRange{
+		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+	}
+	if _, err := newTestClient(mock).FetchContributions("user", dr); err == nil {
+		t.Fatal("a transport failure must still abort the fetch")
 	}
 }
 

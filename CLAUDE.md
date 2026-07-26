@@ -32,12 +32,12 @@ loop, and keep `TestParseFlags`'s "flags AFTER the positional username" case.
 
 Source lives in `internal/` with seven packages:
 
-- **api/** — GitHub GraphQL client using `go-gh/v2`. Token resolution via `GH_TOKEN`, `GITHUB_TOKEN`, or `gh auth` config. Pagination via cursor-based GraphQL.
+- **api/** — GitHub GraphQL client over `net/http` (`graphQLClient`). Host and token are resolved in `main` (`resolveHost`/`resolveToken`) via `--hostname`/`GH_HOST` and the token env vars or `gh auth token`. Pagination via cursor-based GraphQL.
 - **analysis/** — `Calculator` processes events into a `Statistics` struct. Streak calculation, event categorization (8 categories), activity rate computation.
 - **daterange/** — Date range types and parsing. Supports `--year`, `--last-month`, `--last-90-days`, `--from`/`--to`. Current/future years cap end date to today.
 - **ghutil/** — Shared utilities: date format constants, pagination limits, user normalization.
 - **models/** — Core data types: `Event`, `Statistics`, `Streaks`, `Category`, `ContributionDay`.
-- **output/** — Formatters (text via `go-gh` tableprinter, JSON, Markdown, HTML) and Plotly chart generation. HTML report embeds charts inline.
+- **output/** — Formatters (text via the in-tree `table`, JSON, Markdown, HTML) and Plotly chart generation. Terminal detection lives in `terminalOut`. HTML report embeds charts inline.
 - **testutil/** — Test helpers and sample data fixtures.
 
 ## Code Conventions

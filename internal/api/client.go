@@ -108,6 +108,9 @@ type ContributionResult struct {
 	CommitsByRepo []models.RepoCount
 	// CalendarTotal is GitHub's reported total for the (week-aligned) window.
 	CalendarTotal int
+	// Truncated names the sub-collections that hit the pagination limit. When
+	// non-empty the result is usable but incomplete, and the caller must say so.
+	Truncated []string
 }
 
 type contributionsResponse struct {
@@ -421,29 +424,48 @@ func (c *Client) FetchContributions(username string, dr daterange.DateRange) (Co
 	cc := resp.User.ContributionsCollection
 
 	// Collect all nodes, paginating each sub-collection as needed. A pagination
-	// failure is fatal: silently returning a partial page would understate every
-	// statistic derived from it while looking like a complete result.
-	allPRs, err := c.paginatePRs(username, from, to, cc.PullRequestContributions.PageInfo)
-	if err != nil {
-		return ContributionResult{}, fmt.Errorf("pull request contributions: %w", err)
+	// failure aborts the fetch: silently returning a partial page would
+	// understate every statistic derived from it while looking like a complete
+	// result.
+	//
+	// Hitting the page limit is different. The data is genuinely incomplete, but
+	// discarding it would leave a user with more nodes than the limit allows
+	// unable to get any report at all. Keep what was fetched and record which
+	// collections were cut, so the caller can say so out loud.
+	var truncated []string
+	keep := func(what string, err error) error {
+		switch {
+		case err == nil:
+			return nil
+		case errors.Is(err, ErrTruncated):
+			truncated = append(truncated, what)
+			return nil
+		default:
+			return fmt.Errorf("%s: %w", what, err)
+		}
+	}
+
+	allPRs, prErr := c.paginatePRs(username, from, to, cc.PullRequestContributions.PageInfo)
+	if err := keep("pull request contributions", prErr); err != nil {
+		return ContributionResult{}, err
 	}
 	allPRs = append(cc.PullRequestContributions.Nodes, allPRs...)
 
-	allIssues, err := c.paginateIssues(username, from, to, cc.IssueContributions.PageInfo)
-	if err != nil {
-		return ContributionResult{}, fmt.Errorf("issue contributions: %w", err)
+	allIssues, issueErr := c.paginateIssues(username, from, to, cc.IssueContributions.PageInfo)
+	if err := keep("issue contributions", issueErr); err != nil {
+		return ContributionResult{}, err
 	}
 	allIssues = append(cc.IssueContributions.Nodes, allIssues...)
 
-	allReviews, err := c.paginateReviews(username, from, to, cc.PullRequestReviewContributions.PageInfo)
-	if err != nil {
-		return ContributionResult{}, fmt.Errorf("review contributions: %w", err)
+	allReviews, reviewErr := c.paginateReviews(username, from, to, cc.PullRequestReviewContributions.PageInfo)
+	if err := keep("review contributions", reviewErr); err != nil {
+		return ContributionResult{}, err
 	}
 	allReviews = append(cc.PullRequestReviewContributions.Nodes, allReviews...)
 
-	allRepos, err := c.paginateRepos(username, from, to, cc.RepositoryContributions.PageInfo)
-	if err != nil {
-		return ContributionResult{}, fmt.Errorf("repository contributions: %w", err)
+	allRepos, repoErr := c.paginateRepos(username, from, to, cc.RepositoryContributions.PageInfo)
+	if err := keep("repository contributions", repoErr); err != nil {
+		return ContributionResult{}, err
 	}
 	allRepos = append(cc.RepositoryContributions.Nodes, allRepos...)
 
@@ -574,6 +596,7 @@ func (c *Client) FetchContributions(username string, dr daterange.DateRange) (Co
 		},
 		CommitsByRepo: commitsByRepo,
 		CalendarTotal: cc.ContributionCalendar.TotalContributions,
+		Truncated:     truncated,
 	}, nil
 }
 

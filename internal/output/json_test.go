@@ -45,6 +45,23 @@ func TestFormatJSON_CarriesFullDetail(t *testing.T) {
 		}
 	}
 
+	// Both repo lists must use the same key casing: models.RepoCount carries no
+	// JSON tags, so emitting it directly would produce {"Repo","Count"} beside
+	// repoCounts' {"repo","count"} in the same document.
+	for _, key := range []string{"top_repos", "commits_by_repo"} {
+		entries := out[key].([]any)
+		if len(entries) == 0 {
+			t.Fatalf("%s is empty; the casing assertion needs data", key)
+		}
+		first := entries[0].(map[string]any)
+		if _, ok := first["repo"]; !ok {
+			t.Errorf("%s uses the wrong key casing: %v", key, first)
+		}
+		if _, ok := first["Repo"]; ok {
+			t.Errorf("%s leaked Go field names: %v", key, first)
+		}
+	}
+
 	byRepo := out["commits_by_repo"].([]any)
 	if len(byRepo) != 2 {
 		t.Fatalf("expected 2 commits_by_repo entries, got %d", len(byRepo))

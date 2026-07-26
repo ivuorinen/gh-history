@@ -106,8 +106,12 @@ type Statistics struct {
 	CommitsByRepo []RepoCount        // Commit counts per repository, private repos included
 }
 
-// TopRepos returns the top n repositories by event count.
+// TopRepos returns the top n repositories by event count. A non-positive n
+// returns nothing rather than panicking on the slice bound.
 func (s Statistics) TopRepos(n int) []RepoCount {
+	if n <= 0 {
+		return nil
+	}
 	repos := make([]RepoCount, 0, len(s.EventsByRepo))
 	for repo, count := range s.EventsByRepo {
 		repos = append(repos, RepoCount{Repo: repo, Count: count})

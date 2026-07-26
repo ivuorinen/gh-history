@@ -7,6 +7,9 @@ import (
 	"github.com/ivuorinen/gh-history/internal/ghutil"
 )
 
+// FirstGitHubYear is the year GitHub launched; no activity can predate it.
+const FirstGitHubYear = 2008
+
 // DateRange represents a date range for querying GitHub activity.
 type DateRange struct {
 	Start time.Time
@@ -28,6 +31,12 @@ func New(start, end time.Time) (DateRange, error) {
 // not started yet is an error: capping its end to today would otherwise yield a
 // range whose start is after its end.
 func Year(year int) (DateRange, error) {
+	// GitHub did not exist before 2008, and an unbounded lower end is not just
+	// useless: the range is split into one-year GraphQL chunks, so --year 1
+	// would issue two thousand requests before returning anything.
+	if year < FirstGitHubYear {
+		return DateRange{}, fmt.Errorf("year %d predates GitHub; use %d or later", year, FirstGitHubYear)
+	}
 	start := time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC)
 	end := time.Date(year, 12, 31, 0, 0, 0, 0, time.UTC)
 	today := ghutil.TruncateToDay(time.Now().UTC())

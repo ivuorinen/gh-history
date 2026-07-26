@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/ivuorinen/gh-history/internal/analysis"
 	"github.com/ivuorinen/gh-history/internal/api"
@@ -168,6 +170,13 @@ func fetchEvents(cfg *config, client *api.Client, dr daterange.DateRange, userna
 		result, err := client.FetchContributions(username, chunk)
 		if err != nil {
 			fatal("fetching contributions: %v", err)
+		}
+		// Incomplete but usable: warn regardless of verbosity rather than
+		// reporting understated figures as if they were complete.
+		for _, what := range result.Truncated {
+			fmt.Fprintf(os.Stderr,
+				"Warning: %s for %s to %s hit the pagination limit; counts are understated\n",
+				what, chunk.Start.Format(ghutil.DateFormat), chunk.End.Format(ghutil.DateFormat))
 		}
 		allEvents = append(allEvents, result.Events...)
 		allCalendarDays = append(allCalendarDays, result.CalendarDays...)
@@ -418,10 +427,18 @@ func resolveToken(host string) string {
 	return ghAuthToken(host)
 }
 
+// ghAuthTimeout bounds the gh subprocess. It is a local credential lookup, so
+// it should be near-instant; without a deadline a wedged gh (an unresponsive
+// keyring or credential helper, say) would hang gh-history indefinitely.
+const ghAuthTimeout = 10 * time.Second
+
 // ghAuthToken asks the gh CLI for a token. gh-history runs as a gh extension, so
 // gh is normally on PATH; when it is not, the caller proceeds unauthenticated.
 func ghAuthToken(host string) string {
-	out, err := exec.Command("gh", "auth", "token", "--hostname", host).Output()
+	ctx, cancel := context.WithTimeout(context.Background(), ghAuthTimeout)
+	defer cancel()
+
+	out, err := exec.CommandContext(ctx, "gh", "auth", "token", "--hostname", host).Output()
 	if err != nil {
 		return ""
 	}

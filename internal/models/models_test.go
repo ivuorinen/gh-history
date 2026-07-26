@@ -50,6 +50,19 @@ func TestTopRepos(t *testing.T) {
 			n:       0,
 			wantLen: 0,
 		},
+		{
+			// repos[:n] would panic on a negative bound.
+			name:    "negative n returns nothing rather than panicking",
+			byRepo:  map[string]int{"a/one": 1},
+			n:       -1,
+			wantLen: 0,
+		},
+		{
+			name:    "negative n on an empty map",
+			byRepo:  map[string]int{},
+			n:       -5,
+			wantLen: 0,
+		},
 	}
 
 	for _, tc := range tests {
@@ -141,15 +154,57 @@ func TestStreakInfoActivityRate(t *testing.T) {
 	}
 }
 
+// Streak arithmetic compares dates for an exact 24h delta, which only holds if
+// every date is normalized to UTC midnight. Asserting the exact day matters:
+// a local timestamp can fall on a different UTC date than it appears to.
 func TestEventDateTruncatesToUTCDay(t *testing.T) {
-	// Streak arithmetic compares dates for an exact 24h delta, which only holds
-	// if every date is normalized to UTC midnight.
-	e := Event{CreatedAt: time.Date(2024, 3, 15, 23, 59, 59, 999, time.FixedZone("x", 5*3600))}
-	got := e.Date()
-	if got.Location() != time.UTC {
-		t.Errorf("expected UTC, got %v", got.Location())
+	east5 := time.FixedZone("east5", 5*3600)
+	west8 := time.FixedZone("west8", -8*3600)
+
+	tests := []struct {
+		name string
+		in   time.Time
+		want time.Time
+	}{
+		{
+			name: "already UTC midnight",
+			in:   time.Date(2024, 3, 15, 0, 0, 0, 0, time.UTC),
+			want: time.Date(2024, 3, 15, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			name: "late UTC evening stays on the same day",
+			in:   time.Date(2024, 3, 15, 23, 59, 59, 999, time.UTC),
+			want: time.Date(2024, 3, 15, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			// 23:59 +05:00 is 18:59 UTC — still March 15.
+			name: "east of UTC, no boundary crossed",
+			in:   time.Date(2024, 3, 15, 23, 59, 59, 999, east5),
+			want: time.Date(2024, 3, 15, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			// 01:00 +05:00 is 20:00 UTC the previous day.
+			name: "east of UTC, crosses back a day",
+			in:   time.Date(2024, 3, 15, 1, 0, 0, 0, east5),
+			want: time.Date(2024, 3, 14, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			// 20:00 -08:00 is 04:00 UTC the next day.
+			name: "west of UTC, crosses forward a day",
+			in:   time.Date(2024, 3, 15, 20, 0, 0, 0, west8),
+			want: time.Date(2024, 3, 16, 0, 0, 0, 0, time.UTC),
+		},
 	}
-	if got.Hour() != 0 || got.Minute() != 0 || got.Second() != 0 || got.Nanosecond() != 0 {
-		t.Errorf("expected midnight, got %v", got)
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := Event{CreatedAt: tc.in}.Date()
+			if !got.Equal(tc.want) {
+				t.Errorf("Date() = %v, want %v", got, tc.want)
+			}
+			if got.Location() != time.UTC {
+				t.Errorf("expected UTC location, got %v", got.Location())
+			}
+		})
 	}
 }

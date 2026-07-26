@@ -44,7 +44,7 @@ func FormatJSON(stats models.Statistics) ([]byte, error) {
 		"events_by_category": stats.EventsByCategory,
 		"events_by_type":     stats.EventsByType,
 		"events_by_repo":     stats.EventsByRepo,
-		"top_repos":          stats.TopRepos(15),
+		"top_repos":          repoCounts(stats.TopRepos(15)),
 		"events_by_date":     stats.EventsByDate,
 		"events_by_weekday":  stats.EventsByWeekday,
 		"events_by_hour":     stats.EventsByHour,
@@ -104,6 +104,7 @@ func FormatJSON(stats models.Statistics) ([]byte, error) {
 
 // repoCounts renders a RepoCount slice with explicit keys rather than relying on
 // Go field names, so the JSON contract does not move when the struct is renamed.
+// Every RepoCount in the document goes through here, so the casing is uniform.
 func repoCounts(counts []models.RepoCount) []map[string]any {
 	out := make([]map[string]any, 0, len(counts))
 	for _, rc := range counts {

@@ -13,6 +13,10 @@ import (
 // determined.
 const defaultWidth = 80
 
+// minUsableWidth is the narrowest width the renderer is given. Anything less
+// leaves the table with no budget at all and collapses every column.
+const minUsableWidth = 20
+
 // terminalOut reports where to write, whether that destination is a terminal,
 // and how wide it is.
 //
@@ -43,7 +47,12 @@ func terminalOut() (w io.Writer, isTTY bool, width int) {
 func forcedWidth(spec string, realWidth int) (int, bool) {
 	if pct, ok := strings.CutSuffix(spec, "%"); ok {
 		if p, err := strconv.Atoi(pct); err == nil && p > 0 {
-			return realWidth * p / 100, true
+			// Integer division floors to 0 for small percentages (1% of 80
+			// columns), and a zero budget collapses every column.
+			if w := realWidth * p / 100; w >= minUsableWidth {
+				return w, true
+			}
+			return minUsableWidth, true
 		}
 		return 0, false
 	}

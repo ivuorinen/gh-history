@@ -23,7 +23,8 @@ Review recent code changes for quality, consistency, and adherence to project co
 - `gofmt` formatted
 - `go vet` clean
 - Uses `internal/` package layout — nothing exported outside the module
-- Has NO `cli/go-gh` dependency — `golang.org/x/term` is the only requirement. Does not
+- Has NO `cli/go-gh` dependency. `golang.org/x/term` is the only *direct* requirement;
+  its transitive `golang.org/x/sys` is expected and must not be flagged. Does not
   reintroduce go-gh or any other dependency for work a few lines of stdlib cover.
   In-tree replacements: `api.graphQLClient`, `main.resolveHost`/`resolveToken`,
   `output.table`, `output.terminalOut`, `output.padRight`, `output.pluralize`,

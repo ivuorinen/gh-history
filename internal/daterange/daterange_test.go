@@ -76,6 +76,22 @@ func TestYearFutureIsRejected(t *testing.T) {
 	}
 }
 
+// An unbounded lower end is not merely useless: the range is split into
+// one-year GraphQL chunks, so --year 1 would issue two thousand requests.
+func TestYearBeforeGitHubIsRejected(t *testing.T) {
+	for _, y := range []int{1, -5, 0, FirstGitHubYear - 1} {
+		if _, err := Year(y); err == nil {
+			t.Errorf("Year(%d) should be rejected", y)
+		}
+		if _, err := ParseDateRange("", "", y, false, false); y != 0 && err == nil {
+			t.Errorf("ParseDateRange(year=%d) should propagate the rejection", y)
+		}
+	}
+	if _, err := Year(FirstGitHubYear); err != nil {
+		t.Errorf("Year(%d) should be accepted, got %v", FirstGitHubYear, err)
+	}
+}
+
 func TestYearBoundaryIsInclusiveOfToday(t *testing.T) {
 	// The current year must still be accepted: start is Jan 1, never after today.
 	now := time.Now().UTC()

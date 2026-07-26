@@ -179,7 +179,9 @@ var reportTemplate = template.Must(template.New("report").Parse(`<!DOCTYPE html>
 
         <p class="chart-fallback">Charts could not be loaded: the Plotly library
         is unavailable (no network connection, or the script failed its integrity
-        check). All figures are still listed in the tables below.</p>
+        check). The summary above and the repository table below are unaffected;
+        each chart's figures are in its description, which screen readers announce
+        and which the page source shows as the chart's <code>aria-label</code>.</p>
 
         {{if .HasCategories}}
         <section class="chart-section" aria-labelledby="h-categories">
@@ -477,6 +479,9 @@ func buildHeatmapData(stats models.Statistics) (payload, alt string, fromCalenda
 	}
 	var dates []dateCount
 	total := 0
+	// The calendar source includes every day in the window, zero-count days
+	// among them, so active days must be counted rather than taken from len().
+	activeDays := 0
 	for ds, count := range dateMap {
 		d, err := time.Parse(ghutil.DateFormat, ds)
 		if err != nil {
@@ -484,6 +489,9 @@ func buildHeatmapData(stats models.Statistics) (payload, alt string, fromCalenda
 		}
 		dates = append(dates, dateCount{d, count})
 		total += count
+		if count > 0 {
+			activeDays++
+		}
 	}
 	sort.Slice(dates, func(i, j int) bool {
 		return dates[i].date.Before(dates[j].date)
@@ -529,7 +537,7 @@ func buildHeatmapData(stats models.Statistics) (payload, alt string, fromCalenda
 		source = "all repositories"
 	}
 	alt = fmt.Sprintf("Contribution heatmap from %s: %d contributions across %d active days, %s to %s",
-		source, total, len(dates),
+		source, total, activeDays,
 		start.Format(ghutil.DateFormat), end.Format(ghutil.DateFormat))
 	return payload, alt, fromCalendar, nil
 }

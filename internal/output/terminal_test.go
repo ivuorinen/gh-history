@@ -14,6 +14,9 @@ func TestForcedWidth(t *testing.T) {
 		{"100", 100, true, "absolute column count"},
 		{"80%", 160, true, "percentage of the real width"},
 		{"50%", 100, true, "percentage of the real width"},
+		// Integer division floors small percentages to 0, which would leave the
+		// renderer with no column budget at all.
+		{"1%", minUsableWidth, true, "tiny percentage clamps to a usable width"},
 		{"", 0, false, "empty is not a width"},
 		{"true", 0, false, "non-numeric forces TTY but not a width"},
 		{"abc%", 0, false, "non-numeric percentage"},
