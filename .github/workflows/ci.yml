@@ -41,9 +41,14 @@ jobs:
         run: go vet ./...
 
       # Pinned, not @latest: an unpinned tool changes CI behaviour without a
-      # commit, and this is the linter the build gates on.
+      # commit, and this is the linter the build gates on. Renovate bumps the
+      # version below via the customManagers:githubActionsVersions preset, so
+      # the pin still moves with a commit and a PR.
       - name: staticcheck
-        run: go run honnef.co/go/tools/cmd/staticcheck@2026.1 ./...
+        env:
+          # renovate: datasource=github-releases depName=dominikh/go-tools
+          STATICCHECK_VERSION: 2026.2.1
+        run: go run honnef.co/go/tools/cmd/staticcheck@"$STATICCHECK_VERSION" ./...
 
       - name: Test with race detector
         run: go test -race ./...
