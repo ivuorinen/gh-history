@@ -29,7 +29,7 @@ test-cov:
 # The gofmt check mirrors CI's, so a clean `make all` means a clean CI run.
 .PHONY: lint
 lint:
-	@unformatted=$$(gofmt -l .); \
+	@unformatted=$$(gofmt -l .) || { echo "gofmt failed to run"; exit 1; }; \
 	if [ -n "$$unformatted" ]; then \
 		echo "gofmt reported unformatted files:"; echo "$$unformatted"; exit 1; \
 	fi

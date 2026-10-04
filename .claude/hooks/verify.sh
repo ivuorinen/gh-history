@@ -23,7 +23,12 @@ fi
 
 fail=0
 
-unformatted=$(gofmt -l .)
+# A gofmt that fails (a file it cannot parse, gofmt missing) can print nothing
+# on stdout, which would read as "everything formatted".
+if ! unformatted=$(gofmt -l .); then
+  echo "gofmt: failed to run" >&2
+  fail=1
+fi
 if [[ -n "$unformatted" ]]; then
   echo "gofmt: unformatted files:" >&2
   echo "$unformatted" >&2
