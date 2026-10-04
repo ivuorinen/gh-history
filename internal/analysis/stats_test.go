@@ -57,9 +57,9 @@ func TestCalculateEmpty(t *testing.T) {
 	}
 }
 
-// A user whose activity is entirely in private repositories has calendar days
-// and a commit total but no public events. Those inputs must still reach the
-// report rather than being skipped along with the empty event list.
+// A user whose activity is entirely in repositories the token cannot see has
+// calendar days and a commit total but no events. Those inputs must still
+// reach the report rather than being skipped along with the empty event list.
 func TestCalculate_NoEventsStillUsesCalendarAndCommitTotal(t *testing.T) {
 	dr := testutil.SampleDateRange()
 	calc := &Calculator{

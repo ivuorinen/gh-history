@@ -31,9 +31,9 @@ func (c *Calculator) Calculate(events []models.Event) models.Statistics {
 	}
 
 	// No early return for an empty event slice: CalendarDays and
-	// TotalCommitContributions are independent of the public event list (they
-	// include private-repository activity), so bailing out here would zero the
-	// report for users whose contributions are all private.
+	// TotalCommitContributions are independent of the event list (they include
+	// commits and contributions the token cannot list), so bailing out here
+	// would zero the report for a user whose activity the token cannot see.
 	for _, event := range events {
 		cat := CategorizeEvent(event.Type)
 		stats.EventsByCategory[cat]++

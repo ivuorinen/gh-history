@@ -69,8 +69,9 @@ func (s StreakInfo) ActivityRate() float64 {
 }
 
 // ContributionTotals holds GitHub's own contribution counts for the period.
-// Unlike the event-derived counters these include private repositories, so they
-// are generally higher than what the public event list can account for.
+// The event-derived counters are computed from the contributions the token can
+// list, so the two agree unless the token cannot see some repositories or a
+// collection was truncated. Commits exist only here: no event carries them.
 type ContributionTotals struct {
 	Commits      int
 	Issues       int
