@@ -33,7 +33,7 @@ loop, and keep `TestParseFlags`'s "flags AFTER the positional username" case.
 Source lives in `internal/` with seven packages:
 
 - **api/** — GitHub GraphQL client over `net/http` (`graphQLClient`). Host and token are resolved in `main` (`resolveHost`/`resolveToken`) via `--hostname`/`GH_HOST` and the token env vars or `gh auth token`. Pagination via cursor-based GraphQL.
-- **analysis/** — `Calculator` processes events into a `Statistics` struct. Streak calculation, event categorization (8 categories), activity rate computation.
+- **analysis/** — `Calculator` processes events into a `Statistics` struct. Streak calculation, event categorization (6 categories; see `models.Category`), activity rate computation.
 - **daterange/** — Date range types and parsing. Supports `--year`, `--last-month`, `--last-90-days`, `--from`/`--to`. The current year and a `--to` after today are capped to today; a future `--year` and a start before 2008 are rejected.
 - **ghutil/** — Shared utilities: date format constants, pagination limits, user normalization.
 - **models/** — Core data types: `Event`, `Statistics`, `Streaks`, `Category`, `ContributionDay`.
