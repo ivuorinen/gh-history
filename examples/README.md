@@ -20,8 +20,8 @@ BROWSER=true gh history ivuorinen --from 2026-09-01 --to 2026-09-30 --format htm
 ```
 
 `BROWSER=true` stops the HTML run from opening a browser. GitHub's figures for a
-past month can change after the fact (the commit count for this month did), so a
-re-run will not necessarily match these files exactly.
+past month can change after the fact (September's commit count did), so a re-run
+will not necessarily match these files exactly.
 
 ## Private repositories are renamed
 
