@@ -57,7 +57,8 @@ gh history octocat --format json -o stats.json
 ```
 
 Markdown and JSON are written verbatim, so they pipe and redirect cleanly; only
-`text` adapts its layout to the terminal.
+`text` adapts its layout to the terminal. `--format text -o FILE` writes the
+non-terminal, tab-separated layout.
 
 The four formats agree on every shared statistic — the summary never differs
 between them. **JSON is the full offering**: on top of that summary it carries

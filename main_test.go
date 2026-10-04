@@ -527,6 +527,24 @@ func TestFetchEvents_AggregatesChunks(t *testing.T) {
 	}
 }
 
+// --output was silently dropped for the text format.
+func TestWriteOutput_TextHonoursOutputFile(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "report.txt")
+	stats := models.Statistics{
+		Username:  "octocat",
+		DateRange: daterange.DateRange{Start: d(2024, 1, 1), End: d(2024, 1, 31)},
+	}
+	writeOutput(&config{format: "text", outputFile: path}, stats)
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("text report was not written to --output: %v", err)
+	}
+	if !strings.Contains(string(data), "GitHub Activity Report: octocat") {
+		t.Errorf("unexpected file content:\n%s", data)
+	}
+}
+
 // A comment failure keeps whatever was fetched; it warns rather than failing.
 func TestFetchEvents_KeepsCommentsOnError(t *testing.T) {
 	dr := daterange.DateRange{Start: d(2024, 1, 1), End: d(2024, 1, 31)}

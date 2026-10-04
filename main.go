@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"flag"
 	"fmt"
@@ -265,9 +266,19 @@ func writeToFileOrStdout(data []byte, outputFile string) {
 func writeOutput(cfg *config, stats models.Statistics) {
 	switch cfg.format {
 	case "text":
-		if err := output.FormatText(stats); err != nil {
+		if cfg.outputFile == "" {
+			if err := output.FormatText(stats); err != nil {
+				fatal("%v", err)
+			}
+			return
+		}
+		// A file is not a terminal: write the same tab-separated layout a
+		// redirect gets, rather than silently ignoring --output.
+		var buf bytes.Buffer
+		if err := output.FormatTextTo(&buf, false, 0, stats); err != nil {
 			fatal("%v", err)
 		}
+		writeToFileOrStdout(buf.Bytes(), cfg.outputFile)
 	case "json":
 		// FormatJSON already returns indented JSON, so terminal rendering only
 		// ever added colour — not worth the dependency it cost.
