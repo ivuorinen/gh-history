@@ -64,6 +64,8 @@ Markdown and JSON are written verbatim, so they pipe and redirect cleanly; only
 `text` adapts its layout to the terminal. `--format text -o FILE` writes the
 non-terminal, tab-separated layout.
 
+[`examples/`](examples/) has one report in each format for the same month.
+
 The four formats agree on every shared statistic — the summary never differs
 between them. **JSON is the full offering**: on top of that summary it carries
 detail the human-readable formats deliberately omit.

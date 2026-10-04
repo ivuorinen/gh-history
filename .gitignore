@@ -3,6 +3,8 @@ gh-history
 
 # Generated reports
 *.html
+# ...except the committed, sanitized example
+!examples/report.html
 
 # Environment
 .env
