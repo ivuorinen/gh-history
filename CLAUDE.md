@@ -57,6 +57,11 @@ Source lives in `internal/` with seven packages:
   measured on a one-day query: 1 review without the header, 2 with the local zone.
   `api.LocalTimeZone` recovers the IANA name from `TZ` or the `/etc/localtime` symlink,
   because Go's `time.Local` only reports "Local". Keep it, and keep its tests.
+- **`contributionsCollection`'s `to` is inclusive by day.** GitHub counts the whole day
+  `to` falls on, so `FetchContributions` sends the last second of `End`
+  (`EndDateTime() - 1s`). Sending the next midnight added a day to every total —
+  measured: 41 commits reported for a one-day range whose day held 25. Keep
+  `TestFetchContributions_ToIsLastSecondOfEnd`.
 - Markdown and JSON print verbatim; only `text` adapts to the terminal.
 
 ## Build & Release

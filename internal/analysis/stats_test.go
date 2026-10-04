@@ -273,7 +273,7 @@ func TestCalculate_CalendarDaysFilteredToRange(t *testing.T) {
 		Start: time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
 		End:   time.Date(2025, 12, 31, 0, 0, 0, 0, time.UTC),
 	}
-	// Simulate week-aligned calendar data that extends outside the range
+	// Simulate calendar data from a query window wider than the range
 	calendarDays := []models.ContributionDay{
 		{Date: time.Date(2024, 12, 29, 0, 0, 0, 0, time.UTC), ContributionCount: 1}, // outside range
 		{Date: time.Date(2024, 12, 30, 0, 0, 0, 0, time.UTC), ContributionCount: 1}, // outside range

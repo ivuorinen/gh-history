@@ -106,7 +106,7 @@ type ContributionResult struct {
 	// CommitsByRepo is GitHub's per-repository commit breakdown, private repos
 	// included. Callers querying multiple windows must merge by repository.
 	CommitsByRepo []models.RepoCount
-	// CalendarTotal is GitHub's reported total for the (week-aligned) window.
+	// CalendarTotal is GitHub's reported calendar total for the query window.
 	CalendarTotal int
 	// Truncated names the sub-collections that hit the pagination limit. When
 	// non-empty the result is usable but incomplete, and the caller must say so.
@@ -413,7 +413,11 @@ type paginateReposResponse struct {
 // late in a chunk and closed in the next is never counted as closed or merged.
 func (c *Client) FetchContributions(username string, dr, report daterange.DateRange) (ContributionResult, error) {
 	from := dr.Start.Format(time.RFC3339)
-	to := dr.EndDateTime().Format(time.RFC3339)
+	// GitHub treats `to` as inclusive at day granularity: sending the next
+	// midnight counts the whole following day in every total and node list
+	// (measured: 41 commits for a one-day range whose day held 25). The last
+	// second of End is the boundary that matches the range.
+	to := dr.EndDateTime().Add(-time.Second).Format(time.RFC3339)
 
 	vars := map[string]any{
 		"login": username,

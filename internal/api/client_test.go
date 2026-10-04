@@ -785,6 +785,29 @@ func TestFetchContributionsPagination(t *testing.T) {
 	}
 }
 
+// GitHub counts the whole day `to` falls on, so `to` must be the last second of
+// End. Sending the next midnight added a day to every total.
+func TestFetchContributions_ToIsLastSecondOfEnd(t *testing.T) {
+	var gotFrom, gotTo any
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			gotFrom, gotTo = variables["from"], variables["to"]
+			return nil
+		},
+	}
+	day := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
+	dr := daterange.DateRange{Start: day, End: day}
+	if _, err := newTestClient(mock).FetchContributions("user", dr, dr); err != nil {
+		t.Fatal(err)
+	}
+	if gotFrom != "2025-01-01T00:00:00Z" {
+		t.Errorf("from = %v, want 2025-01-01T00:00:00Z", gotFrom)
+	}
+	if gotTo != "2025-01-01T23:59:59Z" {
+		t.Errorf("to = %v, want 2025-01-01T23:59:59Z", gotTo)
+	}
+}
+
 // A PR opened in one year chunk and merged in the next is a contribution of the
 // first chunk only, so its merge must be matched against the report range.
 func TestFetchContributions_CloseMatchedAgainstReportRange(t *testing.T) {

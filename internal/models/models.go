@@ -160,9 +160,9 @@ type ContributionCalendar struct {
 	// TotalContributions is the sum over Days, which are filtered to the
 	// requested range.
 	TotalContributions int
-	// ReportedTotal is GitHub's own figure for the query window. That window is
-	// week-aligned and so can be wider than the requested range, which is why
-	// it is reported separately rather than replacing TotalContributions.
+	// ReportedTotal is GitHub's own figure, summed over the query windows. It
+	// equals TotalContributions when the windows match the requested range, and
+	// is kept separate so a disagreement shows up instead of being hidden.
 	ReportedTotal int
 	Days          []ContributionDay
 }
