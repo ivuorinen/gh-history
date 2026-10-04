@@ -292,7 +292,7 @@ func TestParseFlags(t *testing.T) {
 			},
 		},
 		{
-			name: "hostname defaults to empty so go-gh resolves it",
+			name: "hostname defaults to empty so resolveHost picks it",
 			args: []string{},
 			check: func(t *testing.T, c *config) {
 				if c.hostname != "" {

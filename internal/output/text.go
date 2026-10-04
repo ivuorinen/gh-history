@@ -28,9 +28,9 @@ func FormatText(stats models.Statistics) error {
 	return FormatTextTo(out, isTTY, width, stats)
 }
 
-// errWriter records the first write error. go-gh's non-TTY table printer writes
-// eagerly and its Render always returns nil, so checking Render alone would let
-// a truncated report be reported as a success.
+// errWriter records the first write error. Most of the report is written with
+// fmt.Fprint* calls between table renders, and checking only table.Render's
+// error would let a truncated report be reported as a success.
 type errWriter struct {
 	w   io.Writer
 	err error

@@ -12,12 +12,11 @@ import (
 	"github.com/ivuorinen/gh-history/internal/models"
 )
 
-// RequestTimeout bounds every individual API request. Without it go-gh builds
-// an http.Client with a zero Timeout, which never gives up on a stalled
-// connection.
+// RequestTimeout bounds every individual API request. http.Client's zero
+// Timeout never gives up on a stalled connection, which would hang the CLI.
 const RequestTimeout = 30 * time.Second
 
-// gqlDoer abstracts go-gh's GraphQLClient.Do for testability.
+// gqlDoer abstracts graphQLClient.Do so tests can substitute canned responses.
 type gqlDoer interface {
 	Do(query string, variables map[string]any, response any) error
 }
