@@ -1,12 +1,14 @@
 package main
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/ivuorinen/gh-history/internal/api"
 	"github.com/ivuorinen/gh-history/internal/daterange"
 	"github.com/ivuorinen/gh-history/internal/models"
 )
@@ -453,5 +455,91 @@ func TestSplitIntoYearChunks_CrossYearBoundary(t *testing.T) {
 	expectedSecondStart := chunks[0].End.AddDate(0, 0, 1)
 	if !chunks[1].Start.Equal(expectedSecondStart) {
 		t.Errorf("chunks not contiguous: first ends %v, second starts %v", chunks[0].End, chunks[1].Start)
+	}
+}
+
+// fakeFetcher serves one canned ContributionResult per chunk, in call order,
+// and records the report range each chunk was fetched with.
+type fakeFetcher struct {
+	chunks      []api.ContributionResult
+	calls       int
+	reports     []daterange.DateRange
+	comments    []models.Event
+	commentsErr error
+}
+
+func (f *fakeFetcher) FetchContributions(_ string, _, report daterange.DateRange) (api.ContributionResult, error) {
+	f.reports = append(f.reports, report)
+	r := f.chunks[f.calls]
+	f.calls++
+	return r, nil
+}
+
+func (f *fakeFetcher) FetchIssueComments(string, daterange.DateRange) ([]models.Event, error) {
+	return f.comments, f.commentsErr
+}
+
+func TestFetchEvents_AggregatesChunks(t *testing.T) {
+	dr := daterange.DateRange{Start: d(2023, 1, 1), End: d(2024, 12, 31)}
+	shared := models.Event{ID: "dup", Type: "IssueCommentEvent", CreatedAt: d(2023, 6, 1)}
+	f := &fakeFetcher{
+		chunks: []api.ContributionResult{
+			{
+				Events:        []models.Event{shared, {ID: "a", CreatedAt: d(2023, 3, 1)}},
+				Totals:        models.ContributionTotals{Commits: 10, Reviews: 1},
+				CommitsByRepo: []models.RepoCount{{Repo: "u/x", Count: 4}, {Repo: "u/y", Count: 6}},
+				CalendarTotal: 11,
+			},
+			{
+				Events:        []models.Event{{ID: "b", CreatedAt: d(2024, 3, 1)}},
+				Totals:        models.ContributionTotals{Commits: 5, Reviews: 2},
+				CommitsByRepo: []models.RepoCount{{Repo: "u/x", Count: 5}},
+				CalendarTotal: 7,
+			},
+		},
+		comments: []models.Event{shared},
+	}
+
+	got, err := fetchEvents(&config{}, f, dr, "u")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Totals.Commits != 15 || got.Totals.Reviews != 3 {
+		t.Errorf("totals not summed across chunks: %+v", got.Totals)
+	}
+	if got.CalendarTotal != 18 {
+		t.Errorf("CalendarTotal = %d, want 18", got.CalendarTotal)
+	}
+	want := []models.RepoCount{{Repo: "u/x", Count: 9}, {Repo: "u/y", Count: 6}}
+	if len(got.CommitsByRepo) != 2 || got.CommitsByRepo[0] != want[0] || got.CommitsByRepo[1] != want[1] {
+		t.Errorf("CommitsByRepo = %+v, want %+v", got.CommitsByRepo, want)
+	}
+	if len(got.Events) != 3 {
+		t.Errorf("expected 3 events after dedup, got %d", len(got.Events))
+	}
+	if got.Events[0].ID != "b" {
+		t.Errorf("events must be newest first, got %q first", got.Events[0].ID)
+	}
+	for i, r := range f.reports {
+		if r != dr {
+			t.Errorf("chunk %d fetched with report range %v, want the whole range %v", i, r, dr)
+		}
+	}
+}
+
+// A comment failure keeps whatever was fetched; it warns rather than failing.
+func TestFetchEvents_KeepsCommentsOnError(t *testing.T) {
+	dr := daterange.DateRange{Start: d(2024, 1, 1), End: d(2024, 1, 31)}
+	f := &fakeFetcher{
+		chunks:      []api.ContributionResult{{}},
+		comments:    []models.Event{{ID: "c", CreatedAt: d(2024, 1, 2)}},
+		commentsErr: errors.New("network blip"),
+	}
+	got, err := fetchEvents(&config{}, f, dr, "u")
+	if err != nil {
+		t.Fatalf("a comment failure must not fail the fetch: %v", err)
+	}
+	if len(got.Events) != 1 {
+		t.Errorf("partial comments must be kept, got %d events", len(got.Events))
 	}
 }

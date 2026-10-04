@@ -154,7 +154,15 @@ type fetchResult struct {
 	CalendarTotal int
 }
 
-func fetchEvents(cfg *config, client *api.Client, dr daterange.DateRange, username string) fetchResult {
+// contributionFetcher is the part of *api.Client that fetchEvents uses. It is
+// an interface so the multi-chunk aggregation can be tested without the
+// network: both chunk-boundary bugs found in that code shipped untested.
+type contributionFetcher interface {
+	FetchContributions(username string, dr, report daterange.DateRange) (api.ContributionResult, error)
+	FetchIssueComments(username string, dr daterange.DateRange) ([]models.Event, error)
+}
+
+func fetchEvents(cfg *config, client contributionFetcher, dr daterange.DateRange, username string) (fetchResult, error) {
 	var allEvents []models.Event
 	var allCalendarDays []models.ContributionDay
 	var totals models.ContributionTotals
@@ -167,9 +175,9 @@ func fetchEvents(cfg *config, client *api.Client, dr daterange.DateRange, userna
 	for _, chunk := range splitIntoYearChunks(dr) {
 		logVerbose(cfg.verbose, "  GraphQL chunk: %s to %s",
 			chunk.Start.Format(ghutil.DateFormat), chunk.End.Format(ghutil.DateFormat))
-		result, err := client.FetchContributions(username, chunk)
+		result, err := client.FetchContributions(username, chunk, dr)
 		if err != nil {
-			fatal("fetching contributions: %v", err)
+			return fetchResult{}, fmt.Errorf("fetching contributions: %w", err)
 		}
 		// Incomplete but usable: warn regardless of verbosity rather than
 		// reporting understated figures as if they were complete.
@@ -222,7 +230,7 @@ func fetchEvents(cfg *config, client *api.Client, dr daterange.DateRange, userna
 		Totals:        totals,
 		CommitsByRepo: sortedRepoCounts(commitsByRepo),
 		CalendarTotal: calendarTotal,
-	}
+	}, nil
 }
 
 // sortedRepoCounts converts the accumulated per-repository counts into a slice
@@ -323,7 +331,10 @@ func handleMain(args []string) {
 		fatal("user %q not found", username)
 	}
 
-	result := fetchEvents(cfg, client, dr, username)
+	result, err := fetchEvents(cfg, client, dr, username)
+	if err != nil {
+		fatal("%v", err)
+	}
 
 	calc := &analysis.Calculator{
 		Username:      username,

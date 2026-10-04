@@ -406,7 +406,12 @@ type paginateReposResponse struct {
 
 // FetchContributions fetches PRs, issues, reviews, and calendar data via GraphQL contributionsCollection.
 // The date range must be at most 1 year; callers should split larger ranges into yearly chunks.
-func (c *Client) FetchContributions(username string, dr daterange.DateRange) (ContributionResult, error) {
+//
+// report is the whole range the caller is reporting on, of which dr is one
+// chunk. A PR or issue is a contribution only in the chunk where it was opened,
+// so its close is matched against report rather than dr: otherwise one opened
+// late in a chunk and closed in the next is never counted as closed or merged.
+func (c *Client) FetchContributions(username string, dr, report daterange.DateRange) (ContributionResult, error) {
 	from := dr.Start.Format(time.RFC3339)
 	to := dr.EndDateTime().Format(time.RFC3339)
 
@@ -487,7 +492,7 @@ func (c *Client) FetchContributions(username string, dr daterange.DateRange) (Co
 
 		if (n.PullRequest.State == "CLOSED" || n.PullRequest.State == "MERGED") && n.PullRequest.ClosedAt != nil {
 			closedAt := *n.PullRequest.ClosedAt
-			if !closedAt.Before(dr.Start) && closedAt.Before(dr.EndDateTime()) {
+			if !closedAt.Before(report.Start) && closedAt.Before(report.EndDateTime()) {
 				events = append(events, models.Event{
 					ID:               fmt.Sprintf("gql-pr-closed-%d-%s", n.PullRequest.Number, repo),
 					Type:             "PullRequestEvent",
@@ -518,7 +523,7 @@ func (c *Client) FetchContributions(username string, dr daterange.DateRange) (Co
 
 		if n.Issue.State == "CLOSED" && n.Issue.ClosedAt != nil {
 			closedAt := *n.Issue.ClosedAt
-			if !closedAt.Before(dr.Start) && closedAt.Before(dr.EndDateTime()) {
+			if !closedAt.Before(report.Start) && closedAt.Before(report.EndDateTime()) {
 				events = append(events, models.Event{
 					ID:               fmt.Sprintf("gql-issue-closed-%d-%s", n.Issue.Number, repo),
 					Type:             "IssuesEvent",
