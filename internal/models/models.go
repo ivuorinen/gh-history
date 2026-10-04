@@ -108,6 +108,10 @@ type Statistics struct {
 
 // TopRepos returns the top n repositories by event count. A non-positive n
 // returns nothing rather than panicking on the slice bound.
+//
+// Ties break on the repository name: the slice is built from map iteration, so
+// without a tie-break the order, and which tied repositories make the cut,
+// changed between identical runs.
 func (s Statistics) TopRepos(n int) []RepoCount {
 	if n <= 0 {
 		return nil
@@ -117,7 +121,10 @@ func (s Statistics) TopRepos(n int) []RepoCount {
 		repos = append(repos, RepoCount{Repo: repo, Count: count})
 	}
 	sort.Slice(repos, func(i, j int) bool {
-		return repos[i].Count > repos[j].Count
+		if repos[i].Count != repos[j].Count {
+			return repos[i].Count > repos[j].Count
+		}
+		return repos[i].Repo < repos[j].Repo
 	})
 	if len(repos) > n {
 		repos = repos[:n]

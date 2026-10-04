@@ -30,7 +30,9 @@ func FormatMarkdown(stats models.Statistics) string {
 	b.WriteString("|----------|-------|-----|------------|\n")
 
 	entries := BuildCategoryBars(stats, 20, AllCategories)
-	sort.Slice(entries, func(i, j int) bool {
+	// Stable, so equal counts keep AllCategories order instead of shuffling
+	// between runs.
+	sort.SliceStable(entries, func(i, j int) bool {
 		return entries[i].Count > entries[j].Count
 	})
 	for _, entry := range entries {
