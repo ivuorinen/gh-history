@@ -3,8 +3,10 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -133,14 +135,47 @@ func validZone(name string) bool {
 // message, so a proxy returning a large HTML page cannot flood the output.
 const maxErrorBody = 2048
 
+// retryDelays are the waits before each retry of a transient failure. Every
+// query this tool sends is a read, so repeating one is safe; without retries a
+// single gateway error on any page discarded the whole multi-request report.
+// A variable so tests can run without sleeping.
+var retryDelays = []time.Duration{time.Second, 2 * time.Second}
+
 // Do executes query with variables and unmarshals the response's "data" object
-// into response.
+// into response, retrying transient failures (see retryable).
 func (c *graphQLClient) Do(query string, variables map[string]any, response any) error {
 	body, err := json.Marshal(map[string]any{"query": query, "variables": variables})
 	if err != nil {
 		return fmt.Errorf("encode GraphQL request: %w", err)
 	}
+	for attempt := 0; ; attempt++ {
+		err = c.post(body, response)
+		if attempt >= len(retryDelays) || !retryable(err) {
+			return err
+		}
+		time.Sleep(retryDelays[attempt])
+	}
+}
 
+// retryable reports whether err is a failure GitHub's GraphQL endpoint is known
+// to produce under load and recover from: a 502, 503 or 504, or a timeout.
+// Client errors (4xx) and GraphQL errors are not retried; repeating them
+// returns the same answer.
+func retryable(err error) bool {
+	var httpErr *HTTPError
+	if errors.As(err, &httpErr) {
+		switch httpErr.StatusCode {
+		case http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusGatewayTimeout:
+			return true
+		}
+		return false
+	}
+	var netErr net.Error
+	return errors.As(err, &netErr) && netErr.Timeout()
+}
+
+// post sends one request and decodes its response.
+func (c *graphQLClient) post(body []byte, response any) error {
 	req, err := http.NewRequest(http.MethodPost, c.endpoint, bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("build GraphQL request: %w", err)
