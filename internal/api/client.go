@@ -693,6 +693,7 @@ query($login: String!, $after: String) {
   user(login: $login) {
     issueComments(first: 100, after: $after, orderBy: {field: UPDATED_AT, direction: DESC}) {
       nodes {
+        id
         createdAt
         updatedAt
         repository { nameWithOwner }
@@ -702,14 +703,20 @@ query($login: String!, $after: String) {
   }
 }`
 
+// issueCommentNode is one comment. ID is GitHub's node id, the only field that
+// is unique per comment: creation time and repository collide for two comments
+// posted in the same second.
+type issueCommentNode struct {
+	ID         string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	Repository struct{ NameWithOwner string }
+}
+
 type issueCommentsResponse struct {
 	User struct {
 		IssueComments struct {
-			Nodes []struct {
-				CreatedAt  time.Time
-				UpdatedAt  time.Time
-				Repository struct{ NameWithOwner string }
-			}
+			Nodes    []issueCommentNode
 			PageInfo pageInfo
 		}
 	}
@@ -751,7 +758,7 @@ func (c *Client) FetchIssueComments(username string, dr daterange.DateRange) ([]
 			}
 			repo := n.Repository.NameWithOwner
 			events = append(events, models.Event{
-				ID:        fmt.Sprintf("gql-comment-%s-%s", n.CreatedAt.Format(time.RFC3339), repo),
+				ID:        "gql-comment-" + n.ID,
 				Type:      "IssueCommentEvent",
 				Repo:      repo,
 				CreatedAt: n.CreatedAt,
