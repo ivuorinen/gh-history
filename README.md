@@ -138,6 +138,18 @@ instead, so a github.com token is never sent to an internal instance.
 Contribution counts are bucketed into days by your local time zone, matching what
 github.com shows. Set `TZ` to report against a different one.
 
+## Environment
+
+| Variable                                         | Effect                                                                 |
+|--------------------------------------------------|------------------------------------------------------------------------|
+| `GH_HOST`                                        | Host to query when `--hostname` is not given                           |
+| `GH_TOKEN`, `GITHUB_TOKEN`                       | Token for github.com and `*.ghe.com`, before `gh auth token`           |
+| `GH_ENTERPRISE_TOKEN`, `GITHUB_ENTERPRISE_TOKEN` | Token for a GitHub Enterprise Server host                              |
+| `GH_CONFIG_DIR`, `XDG_CONFIG_HOME`               | Where `hosts.yml` is read from (default `~/.config/gh`)                |
+| `BROWSER`                                        | Command that opens the HTML report instead of the platform opener      |
+| `GH_FORCE_TTY`                                   | Force the terminal `text` layout; a value of `100` or `80%` sets width |
+| `TZ`                                             | Time zone that contribution days are bucketed by                       |
+
 ## Development
 
 ```bash
