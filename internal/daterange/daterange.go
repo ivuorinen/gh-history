@@ -119,12 +119,19 @@ func ParseDateRange(fromDate, toDate string, year int, lastMonth, last90 bool) (
 	if fromDate == "" {
 		start = today.AddDate(-1, 0, 0)
 	}
+	// Same bounds Year applies: a pre-GitHub start issues one request per
+	// year back to it, and a future end inflates the day count the activity
+	// rate is divided by.
+	if start.Year() < FirstGitHubYear {
+		return DateRange{}, fmt.Errorf("start date %s predates GitHub; use %d or later",
+			start.Format(ghutil.DateFormat), FirstGitHubYear)
+	}
 
 	end, err = parseDateInput("end", toDate)
 	if err != nil {
 		return DateRange{}, err
 	}
-	if toDate == "" {
+	if toDate == "" || end.After(today) {
 		end = today
 	}
 

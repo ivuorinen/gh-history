@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/ivuorinen/gh-history/internal/ghutil"
 )
 
 func d(year, month, day int) time.Time {
@@ -126,6 +128,35 @@ func TestParseDateRange(t *testing.T) {
 	_, err = ParseDateRange("2024-01-01", "", 2024, false, false)
 	if err == nil {
 		t.Error("expected error for conflicting options")
+	}
+}
+
+// --from/--to get the bounds --year has: --from 0001-01-01 would otherwise
+// issue about two thousand chunk requests.
+func TestParseDateRange_FromBeforeGitHubIsRejected(t *testing.T) {
+	if _, err := ParseDateRange("0001-01-01", "2024-01-31", 0, false, false); err == nil {
+		t.Error("a start before GitHub existed must be rejected")
+	}
+	if _, err := ParseDateRange("2008-01-01", "2008-01-31", 0, false, false); err != nil {
+		t.Errorf("a start in %d must be accepted: %v", FirstGitHubYear, err)
+	}
+}
+
+// A future --to would inflate TotalDays and so understate the activity rate.
+func TestParseDateRange_FutureToIsCappedToToday(t *testing.T) {
+	today := ghutil.TruncateToDay(time.Now().UTC())
+	future := today.AddDate(0, 3, 0).Format(ghutil.DateFormat)
+	from := today.AddDate(0, 0, -3).Format(ghutil.DateFormat)
+
+	dr, err := ParseDateRange(from, future, 0, false, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !dr.End.Equal(today) {
+		t.Errorf("End = %v, want today %v", dr.End, today)
+	}
+	if dr.Days() != 4 {
+		t.Errorf("Days() = %d, want 4", dr.Days())
 	}
 }
 

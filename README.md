@@ -44,7 +44,8 @@ gh history --from 2024-01-01 --to 2024-12-31
 ```
 
 With no date flags, the last 90 days are used. Date range options are mutually
-exclusive, and a year that has not started yet is rejected.
+exclusive, and a year that has not started yet is rejected. A start date before
+2008 is rejected, and an end date after today is treated as today.
 
 ### Output formats
 
