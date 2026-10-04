@@ -519,8 +519,9 @@ func buildHeatmapData(stats models.Statistics) (payload, alt string, fromCalenda
 	// emits the whole week containing end. Extending past end would render a
 	// trailing all-zero column.
 	for !current.After(end) {
-		weekLabel := current.Format("Jan 02")
-		weekLabels = append(weekLabels, weekLabel)
+		// The full date, not "Jan 02": Plotly merges identical category labels,
+		// and a Monday's month and day recur in later years of a long range.
+		weekLabels = append(weekLabels, current.Format(ghutil.DateFormat))
 		for d := range 7 {
 			day := current.AddDate(0, 0, d)
 			z[d] = append(z[d], dateMap[day.Format(ghutil.DateFormat)])
