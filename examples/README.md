@@ -13,13 +13,15 @@ One report in each of the four formats, all for the same account and period:
 ## How they were generated
 
 ```bash
-gh history ivuorinen --last-month --format markdown > report.md
-GH_FORCE_TTY=100 gh history ivuorinen --last-month --format text > report.txt
-gh history ivuorinen --last-month --format json > report.json
-BROWSER=true gh history ivuorinen --last-month --format html -o report.html
+gh history ivuorinen --from 2026-09-01 --to 2026-09-30 --format markdown > report.md
+GH_FORCE_TTY=100 gh history ivuorinen --from 2026-09-01 --to 2026-09-30 --format text > report.txt
+gh history ivuorinen --from 2026-09-01 --to 2026-09-30 --format json > report.json
+BROWSER=true gh history ivuorinen --from 2026-09-01 --to 2026-09-30 --format html -o report.html
 ```
 
-`BROWSER=true` stops the HTML run from opening a browser.
+`BROWSER=true` stops the HTML run from opening a browser. GitHub's figures for a
+past month can change after the fact (the commit count for this month did), so a
+re-run will not necessarily match these files exactly.
 
 ## Private repositories are renamed
 
