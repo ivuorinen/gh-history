@@ -31,7 +31,3 @@ Anyone using `git log` to find when the floor changed, or reading the release ch
 ## Fix
 
 The commit is published on main, so do not rewrite it. If 1.25.0 was the intent, set `go 1.25.0` in go.mod in a new commit and update CLAUDE.md. If 1.26.5 was the intent, no code change: note the correction in the next release's notes. Going forward, check the subject against `git diff --cached go.mod` before committing a toolchain change.
-
-## Resolution
-
-README Environment table lists GH_HOST, token vars, GH_CONFIG_DIR/XDG_CONFIG_HOME, BROWSER, GH_FORCE_TTY, TZ.
