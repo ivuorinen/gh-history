@@ -12,7 +12,9 @@ import (
 
 func TestFormatText(t *testing.T) {
 	var buf bytes.Buffer
-	FormatTextTo(&buf, false, 80, testutil.SampleStats())
+	if err := FormatTextTo(&buf, false, 80, testutil.SampleStats()); err != nil {
+		t.Fatal(err)
+	}
 	out := buf.String()
 
 	if !strings.Contains(out, "testuser") {
