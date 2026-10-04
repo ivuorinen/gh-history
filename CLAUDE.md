@@ -11,12 +11,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 make build              # Build for current platform
 make test               # Run full test suite
-make lint               # go vet + staticcheck
+make lint               # gofmt check + go vet + staticcheck
 make test-race          # Tests with race detector
 make test-cov           # Tests with coverage
 make build-all          # Cross-compile all platforms
 make clean              # Remove build artifacts
-make all                # lint + test + build
+make all                # lint + test-race + build (the CI gates)
 go test ./internal/analysis/...  # Run tests for one package
 go run . [username]     # Run locally
 ```

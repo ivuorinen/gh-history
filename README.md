@@ -155,7 +155,7 @@ github.com shows. Set `TZ` to report against a different one.
 ```bash
 make build          # Build for current platform
 make test           # Run tests
-make lint           # Run go vet + staticcheck
+make lint           # Run gofmt check, go vet + staticcheck
 make test-race      # Run tests with race detector
 make test-cov       # Run tests with coverage
 make build-all      # Cross-compile for all platforms
@@ -173,7 +173,7 @@ make release        # Tag and push a new CalVer release (requires clean main bra
 ## Contributing
 
 ```bash
-make all            # Runs lint, test, and build
+make all            # Runs lint, race-enabled tests, and build: the same gates as CI
 ```
 
 ## License

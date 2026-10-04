@@ -23,11 +23,16 @@ test-race:
 test-cov:
 	go test -cover ./...
 
-# Vet + staticcheck (install staticcheck with: go install honnef.co/go/tools/cmd/staticcheck@latest)
+# gofmt check + vet + staticcheck (install staticcheck with: go install honnef.co/go/tools/cmd/staticcheck@latest)
 # The probe and the run are separate: `cmd && tool || echo` reports success when
 # the tool exists and FAILS, which silently swallows every finding.
+# The gofmt check mirrors CI's, so a clean `make all` means a clean CI run.
 .PHONY: lint
 lint:
+	@unformatted=$$(gofmt -l .); \
+	if [ -n "$$unformatted" ]; then \
+		echo "gofmt reported unformatted files:"; echo "$$unformatted"; exit 1; \
+	fi
 	go vet ./...
 	@if command -v staticcheck >/dev/null 2>&1; then \
 		staticcheck ./...; \
@@ -91,4 +96,4 @@ release:
 	@echo "Tag $(TAG) pushed. GitHub Actions will build and sign the release."
 
 .PHONY: all
-all: lint test build
+all: lint test-race build
