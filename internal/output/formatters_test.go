@@ -150,7 +150,7 @@ func TestGenerateHTML_HeatmapPrefersCalendar(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(html, "Contribution Heatmap (public events)") {
+	if !strings.Contains(html, "Contribution Heatmap (events)") {
 		t.Error("expected the heatmap to fall back to event dates and say so")
 	}
 }

@@ -9,9 +9,12 @@ A GitHub CLI extension that analyzes user activity and generates statistics and 
 - **Multiple Formats** — Text, JSON, Markdown, and interactive HTML reports with Plotly charts
 - **Flexible Date Ranges** — Query any timeframe with year, month, and custom date range options
 
-Commit counts and streaks come from GitHub's contribution calendar, so they
-include private repositories. The per-repository breakdown covers public
-activity only.
+Commit counts come from GitHub's own contribution totals and streaks from its
+contribution calendar. Everything else (pull requests, issues, reviews, comments
+and the per-repository breakdown) covers every contribution your token can see.
+When you report on yourself with a token that has access, that includes private
+repositories: their names appear in every format, and their pull request and
+issue titles in JSON. Check a report before publishing it.
 
 ## Installation
 
@@ -77,9 +80,11 @@ detail the human-readable formats deliberately omit.
 | Per-repository commit counts, private repos included     | —                      | `commits_by_repo`     |
 | The event list, with titles, numbers and review states   | —                      | `events`              |
 
-`contribution_totals` and `commits_by_repo` come straight from GitHub and count
-private-repository activity, so they are normally higher than the event-derived
-figures under `summary`, which can only see public events.
+`contribution_totals` and `commits_by_repo` are GitHub's own counters. The
+event-derived figures under `summary` are counted from the contributions the
+token can list. Reporting on yourself with full access, the two agree. They
+diverge when the token cannot see some of the user's repositories, or when a
+collection hits the pagination limit (the CLI warns when that happens).
 
 `--format html` always writes to a file and opens it in your default browser. With
 no `--output` the file is `<username>-report.html` in the current directory; with

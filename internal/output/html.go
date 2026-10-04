@@ -407,12 +407,13 @@ func buildHTML(stats models.Statistics) (string, error) {
 	if heatmapData != "" {
 		data.HasHeatmap = true
 		data.HeatmapJSON = template.JS(heatmapData)
-		// Name the source: the calendar includes private repositories, event
-		// dates do not, and the two give visibly different pictures.
+		// Name the source: the calendar counts commits and contributions the
+		// token cannot list, event dates do not, and the two give visibly
+		// different pictures.
 		if fromCalendar {
 			data.HeatmapTitle = "Contribution Heatmap (all repositories)"
 		} else {
-			data.HeatmapTitle = "Contribution Heatmap (public events)"
+			data.HeatmapTitle = "Contribution Heatmap (events)"
 		}
 		data.HeatmapAlt = summary
 	}
@@ -455,12 +456,12 @@ func buildHTML(stats models.Statistics) (string, error) {
 }
 
 // buildHeatmapData returns the heatmap JSON, a text alternative, and whether the
-// data came from the contribution calendar (rather than public event dates).
+// data came from the contribution calendar (rather than event dates).
 func buildHeatmapData(stats models.Statistics) (payload, alt string, fromCalendar bool, err error) {
-	// Prefer the contribution calendar (which includes private repositories)
-	// over public event dates. analysis.Calculate makes the same choice for
-	// streaks; a different source here would make the heatmap contradict the
-	// streak figures in the same report.
+	// Prefer the contribution calendar (which also counts commits) over event
+	// dates. analysis.Calculate makes the same choice for streaks; a different
+	// source here would make the heatmap contradict the streak figures in the
+	// same report.
 	dateMap := stats.EventsByDate
 	fromCalendar = stats.Calendar != nil && len(stats.Calendar.Days) > 0
 	if fromCalendar {
@@ -533,7 +534,7 @@ func buildHeatmapData(stats models.Statistics) (payload, alt string, fromCalenda
 	if err != nil {
 		return "", "", fromCalendar, err
 	}
-	source := "public events"
+	source := "events"
 	if fromCalendar {
 		source = "all repositories"
 	}
