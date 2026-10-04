@@ -13,8 +13,9 @@ Commit counts come from GitHub's own contribution totals and streaks from its
 contribution calendar. Everything else (pull requests, issues, reviews, comments
 and the per-repository breakdown) covers every contribution your token can see.
 When you report on yourself with a token that has access, that includes private
-repositories: their names appear in every format, and their pull request and
-issue titles in JSON. Check a report before publishing it.
+repositories: their names can appear in any format (text, Markdown and HTML list
+the top 15 repositories, JSON lists all of them), and their pull request and
+issue titles appear in JSON. Check a report before publishing it.
 
 ## Installation
 
