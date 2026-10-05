@@ -6,12 +6,15 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ivuorinen/gh-history/internal/models"
 	"github.com/ivuorinen/gh-history/internal/testutil"
 )
 
 func TestFormatText(t *testing.T) {
 	var buf bytes.Buffer
-	FormatTextTo(&buf, false, 80, testutil.SampleStats())
+	if err := FormatTextTo(&buf, false, 80, testutil.SampleStats()); err != nil {
+		t.Fatal(err)
+	}
 	out := buf.String()
 
 	if !strings.Contains(out, "testuser") {
@@ -149,7 +152,34 @@ func TestGenerateHTML_HeatmapPrefersCalendar(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(html, "Contribution Heatmap (public events)") {
+	if !strings.Contains(html, "Contribution Heatmap (events)") {
 		t.Error("expected the heatmap to fall back to event dates and say so")
+	}
+}
+
+// Mondays 2024-01-01 and 2029-01-01 both read "Jan 01"; Plotly merges identical
+// category labels, so week labels must carry the year.
+func TestBuildHeatmapData_WeekLabelsUniqueAcrossYears(t *testing.T) {
+	stats := models.Statistics{EventsByDate: map[string]int{
+		"2024-01-01": 1,
+		"2029-01-01": 1,
+	}}
+	payload, _, _, err := buildHeatmapData(stats)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got struct{ X []string }
+	if err := json.Unmarshal([]byte(payload), &got); err != nil {
+		t.Fatal(err)
+	}
+	seen := map[string]bool{}
+	for _, x := range got.X {
+		if seen[x] {
+			t.Fatalf("duplicate week label %q", x)
+		}
+		seen[x] = true
+	}
+	if got.X[0] != "2024-01-01" {
+		t.Errorf("first week label = %q, want 2024-01-01", got.X[0])
 	}
 }

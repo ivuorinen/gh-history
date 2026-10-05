@@ -31,9 +31,9 @@ func (c *Calculator) Calculate(events []models.Event) models.Statistics {
 	}
 
 	// No early return for an empty event slice: CalendarDays and
-	// TotalCommitContributions are independent of the public event list (they
-	// include private-repository activity), so bailing out here would zero the
-	// report for users whose contributions are all private.
+	// TotalCommitContributions are independent of the event list (they include
+	// commits and contributions the token cannot list), so bailing out here
+	// would zero the report for a user whose activity the token cannot see.
 	for _, event := range events {
 		cat := CategorizeEvent(event.Type)
 		stats.EventsByCategory[cat]++
@@ -50,9 +50,10 @@ func (c *Calculator) Calculate(events []models.Event) models.Statistics {
 		trackDetailedStats(&stats, event)
 	}
 
-	// Filter calendar days to the requested date range.
-	// GitHub's contributionCalendar returns week-aligned data that can include
-	// days outside the range, which would inflate active day counts and streaks.
+	// Filter calendar days to the requested date range. GitHub returns exactly
+	// the days from `from` through the day `to` falls on, so a caller that sends
+	// a later `to` gets extra days that would inflate active days and streaks.
+	// The API client sends the matching boundary; this keeps the guarantee here.
 	filteredDays := make([]models.ContributionDay, 0, len(c.CalendarDays))
 	for _, d := range c.CalendarDays {
 		if !d.Date.Before(c.DateRange.Start) && !d.Date.After(c.DateRange.End) {

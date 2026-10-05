@@ -19,113 +19,62 @@ type BarChartEntry struct {
 	Percent float64
 }
 
-// BuildCategoryBars computes bar chart entries for the given categories, ordered as provided.
-// barWidth controls the total character width of the bar. Zero-count categories are omitted.
-func BuildCategoryBars(stats models.Statistics, barWidth int, categories []models.Category) []BarChartEntry {
-	total := stats.TotalEvents
+// buildBars is the one bar-chart algorithm behind every Build*Bars function.
+// labels[i] names counts[i]; zero counts are omitted. Percentages are of total
+// (all events), bar lengths are relative to the largest count shown.
+func buildBars(total, barWidth int, labels []string, counts []int) []BarChartEntry {
 	if total == 0 {
 		total = 1
 	}
-
-	maxCount := 0
-	for _, cat := range categories {
-		if c := stats.EventsByCategory[cat]; c > maxCount {
-			maxCount = c
-		}
-	}
-	if maxCount == 0 {
-		maxCount = 1
+	maxCount := 1
+	for _, c := range counts {
+		maxCount = max(maxCount, c)
 	}
 
 	var entries []BarChartEntry
-	for _, cat := range categories {
-		count := stats.EventsByCategory[cat]
+	for i, count := range counts {
 		if count == 0 {
 			continue
 		}
-		pct := ghutil.SafeDiv(count, total) * 100
 		filled := int(ghutil.SafeDiv(count, maxCount) * float64(barWidth))
-		bar := strings.Repeat("\u2588", filled) + strings.Repeat("\u2591", barWidth-filled)
 		entries = append(entries, BarChartEntry{
-			Label:   analysis.CategoryLabels[cat],
+			Label:   labels[i],
 			Count:   count,
-			Bar:     bar,
-			Percent: pct,
+			Bar:     strings.Repeat("█", filled) + strings.Repeat("░", barWidth-filled),
+			Percent: ghutil.SafeDiv(count, total) * 100,
 		})
 	}
 	return entries
+}
+
+// BuildCategoryBars computes bar chart entries for the given categories, ordered as provided.
+// barWidth controls the total character width of the bar. Zero-count categories are omitted.
+func BuildCategoryBars(stats models.Statistics, barWidth int, categories []models.Category) []BarChartEntry {
+	labels := make([]string, len(categories))
+	counts := make([]int, len(categories))
+	for i, cat := range categories {
+		labels[i], counts[i] = analysis.CategoryLabels[cat], stats.EventsByCategory[cat]
+	}
+	return buildBars(stats.TotalEvents, barWidth, labels, counts)
 }
 
 // BuildWeekdayBars computes bar chart entries for activity by day of week (0=Monday–6=Sunday).
 // Zero-count days are omitted.
 func BuildWeekdayBars(stats models.Statistics, barWidth int) []BarChartEntry {
-	total := stats.TotalEvents
-	if total == 0 {
-		total = 1
+	counts := make([]int, 7)
+	for day := range counts {
+		counts[day] = stats.EventsByWeekday[day]
 	}
-
-	maxCount := 0
-	for day := range 7 {
-		if c := stats.EventsByWeekday[day]; c > maxCount {
-			maxCount = c
-		}
-	}
-	if maxCount == 0 {
-		maxCount = 1
-	}
-
-	var entries []BarChartEntry
-	for day := range 7 {
-		count := stats.EventsByWeekday[day]
-		if count == 0 {
-			continue
-		}
-		pct := ghutil.SafeDiv(count, total) * 100
-		filled := int(ghutil.SafeDiv(count, maxCount) * float64(barWidth))
-		bar := strings.Repeat("\u2588", filled) + strings.Repeat("\u2591", barWidth-filled)
-		entries = append(entries, BarChartEntry{
-			Label:   weekdayLabels[day],
-			Count:   count,
-			Bar:     bar,
-			Percent: pct,
-		})
-	}
-	return entries
+	return buildBars(stats.TotalEvents, barWidth, weekdayLabels, counts)
 }
 
 // BuildHourlyBars computes bar chart entries for activity by hour (0–23 UTC).
 // Zero-count hours are omitted.
 func BuildHourlyBars(stats models.Statistics, barWidth int) []BarChartEntry {
-	total := stats.TotalEvents
-	if total == 0 {
-		total = 1
+	labels := make([]string, 24)
+	counts := make([]int, 24)
+	for hour := range counts {
+		labels[hour], counts[hour] = fmt.Sprintf("%02d", hour), stats.EventsByHour[hour]
 	}
-
-	maxCount := 0
-	for hour := range 24 {
-		if c := stats.EventsByHour[hour]; c > maxCount {
-			maxCount = c
-		}
-	}
-	if maxCount == 0 {
-		maxCount = 1
-	}
-
-	var entries []BarChartEntry
-	for hour := range 24 {
-		count := stats.EventsByHour[hour]
-		if count == 0 {
-			continue
-		}
-		pct := ghutil.SafeDiv(count, total) * 100
-		filled := int(ghutil.SafeDiv(count, maxCount) * float64(barWidth))
-		bar := strings.Repeat("\u2588", filled) + strings.Repeat("\u2591", barWidth-filled)
-		entries = append(entries, BarChartEntry{
-			Label:   fmt.Sprintf("%02d", hour),
-			Count:   count,
-			Bar:     bar,
-			Percent: pct,
-		})
-	}
-	return entries
+	return buildBars(stats.TotalEvents, barWidth, labels, counts)
 }

@@ -57,9 +57,9 @@ func TestCalculateEmpty(t *testing.T) {
 	}
 }
 
-// A user whose activity is entirely in private repositories has calendar days
-// and a commit total but no public events. Those inputs must still reach the
-// report rather than being skipped along with the empty event list.
+// A user whose activity is entirely in repositories the token cannot see has
+// calendar days and a commit total but no events. Those inputs must still
+// reach the report rather than being skipped along with the empty event list.
 func TestCalculate_NoEventsStillUsesCalendarAndCommitTotal(t *testing.T) {
 	dr := testutil.SampleDateRange()
 	calc := &Calculator{
@@ -273,7 +273,7 @@ func TestCalculate_CalendarDaysFilteredToRange(t *testing.T) {
 		Start: time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
 		End:   time.Date(2025, 12, 31, 0, 0, 0, 0, time.UTC),
 	}
-	// Simulate week-aligned calendar data that extends outside the range
+	// Simulate calendar data from a query window wider than the range
 	calendarDays := []models.ContributionDay{
 		{Date: time.Date(2024, 12, 29, 0, 0, 0, 0, time.UTC), ContributionCount: 1}, // outside range
 		{Date: time.Date(2024, 12, 30, 0, 0, 0, 0, time.UTC), ContributionCount: 1}, // outside range

@@ -227,7 +227,7 @@ func TestFetchContributions(t *testing.T) {
 		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
 	}
 
-	result, err := c.FetchContributions("user", dr)
+	result, err := c.FetchContributions("user", dr, dr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -369,7 +369,7 @@ func TestFetchContributions_WiresQueriedDetail(t *testing.T) {
 		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
 	}
-	result, err := newTestClient(mock).FetchContributions("user", dr)
+	result, err := newTestClient(mock).FetchContributions("user", dr, dr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -480,7 +480,7 @@ func TestFetchContributions_PaginationErrorIsReturned(t *testing.T) {
 		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
 	}
-	_, err := newTestClient(mock).FetchContributions("user", dr)
+	_, err := newTestClient(mock).FetchContributions("user", dr, dr)
 	if err == nil {
 		t.Fatal("a failed pagination page must not be reported as a complete result")
 	}
@@ -534,7 +534,7 @@ func TestFetchContributions_PageLimitReportsTruncation(t *testing.T) {
 		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
 	}
-	result, err := newTestClient(mock).FetchContributions("user", dr)
+	result, err := newTestClient(mock).FetchContributions("user", dr, dr)
 	if err != nil {
 		t.Fatalf("truncation must not abort the fetch, got: %v", err)
 	}
@@ -569,7 +569,7 @@ func TestFetchContributions_RealErrorStillAborts(t *testing.T) {
 		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
 	}
-	if _, err := newTestClient(mock).FetchContributions("user", dr); err == nil {
+	if _, err := newTestClient(mock).FetchContributions("user", dr, dr); err == nil {
 		t.Fatal("a transport failure must still abort the fetch")
 	}
 }
@@ -582,11 +582,7 @@ func TestFetchIssueComments_FiltersToRange(t *testing.T) {
 	mock := &mockGQLClient{
 		doFunc: func(query string, variables map[string]any, response any) error {
 			resp := response.(*issueCommentsResponse)
-			resp.User.IssueComments.Nodes = []struct {
-				CreatedAt  time.Time
-				UpdatedAt  time.Time
-				Repository struct{ NameWithOwner string }
-			}{
+			resp.User.IssueComments.Nodes = []issueCommentNode{
 				// Edited recently, created after the range → excluded.
 				{CreatedAt: afterRange, UpdatedAt: afterRange,
 					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo1"}},
@@ -621,6 +617,34 @@ func TestFetchIssueComments_FiltersToRange(t *testing.T) {
 	}
 }
 
+// Two comments in one repository in the same second must stay two events; the
+// old time+repo ID made them collide and dedup dropped one.
+func TestFetchIssueComments_SameSecondCommentsHaveDistinctIDs(t *testing.T) {
+	at := time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC)
+	repo := struct{ NameWithOwner string }{NameWithOwner: "user/repo"}
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			resp := response.(*issueCommentsResponse)
+			resp.User.IssueComments.Nodes = []issueCommentNode{
+				{ID: "IC_a", CreatedAt: at, UpdatedAt: at, Repository: repo},
+				{ID: "IC_b", CreatedAt: at, UpdatedAt: at, Repository: repo},
+			}
+			return nil
+		},
+	}
+	dr := daterange.DateRange{
+		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+	}
+	events, err := newTestClient(mock).FetchIssueComments("user", dr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(events) != 2 || events[0].ID == events[1].ID {
+		t.Errorf("expected two distinct comment events, got %+v", events)
+	}
+}
+
 func TestFetchIssueComments_StopsOnceUpdatedAtPredatesRange(t *testing.T) {
 	// updatedAt descending: the first node older than the range start proves no
 	// later node can be in range (createdAt <= updatedAt), so the walk stops
@@ -633,11 +657,7 @@ func TestFetchIssueComments_StopsOnceUpdatedAtPredatesRange(t *testing.T) {
 		doFunc: func(query string, variables map[string]any, response any) error {
 			calls++
 			resp := response.(*issueCommentsResponse)
-			resp.User.IssueComments.Nodes = []struct {
-				CreatedAt  time.Time
-				UpdatedAt  time.Time
-				Repository struct{ NameWithOwner string }
-			}{
+			resp.User.IssueComments.Nodes = []issueCommentNode{
 				{CreatedAt: old, UpdatedAt: old,
 					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo"}},
 			}
@@ -674,11 +694,7 @@ func TestFetchIssueComments_ReturnsPartialResultsOnError(t *testing.T) {
 				return fmt.Errorf("network blip")
 			}
 			resp := response.(*issueCommentsResponse)
-			resp.User.IssueComments.Nodes = []struct {
-				CreatedAt  time.Time
-				UpdatedAt  time.Time
-				Repository struct{ NameWithOwner string }
-			}{
+			resp.User.IssueComments.Nodes = []issueCommentNode{
 				{CreatedAt: inRange, UpdatedAt: inRange,
 					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo"}},
 			}
@@ -765,7 +781,7 @@ func TestFetchContributionsPagination(t *testing.T) {
 		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
 	}
 
-	result, err := c.FetchContributions("user", dr)
+	result, err := c.FetchContributions("user", dr, dr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -785,6 +801,86 @@ func TestFetchContributionsPagination(t *testing.T) {
 	}
 }
 
+// GitHub counts the whole day `to` falls on, so `to` must be the last second of
+// End. Sending the next midnight added a day to every total.
+func TestFetchContributions_ToIsLastSecondOfEnd(t *testing.T) {
+	var gotFrom, gotTo any
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			gotFrom, gotTo = variables["from"], variables["to"]
+			return nil
+		},
+	}
+	day := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
+	dr := daterange.DateRange{Start: day, End: day}
+	if _, err := newTestClient(mock).FetchContributions("user", dr, dr); err != nil {
+		t.Fatal(err)
+	}
+	if gotFrom != "2025-01-01T00:00:00Z" {
+		t.Errorf("from = %v, want 2025-01-01T00:00:00Z", gotFrom)
+	}
+	if gotTo != "2025-01-01T23:59:59Z" {
+		t.Errorf("to = %v, want 2025-01-01T23:59:59Z", gotTo)
+	}
+}
+
+// A PR opened in one year chunk and merged in the next is a contribution of the
+// first chunk only, so its merge must be matched against the report range.
+func TestFetchContributions_CloseMatchedAgainstReportRange(t *testing.T) {
+	mergedAt := time.Date(2024, 1, 5, 9, 0, 0, 0, time.UTC)
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			resp := response.(*contributionsResponse)
+			resp.User.ContributionsCollection.PullRequestContributions.Nodes = []prContributionNode{{
+				OccurredAt: time.Date(2023, 12, 20, 9, 0, 0, 0, time.UTC),
+				PullRequest: struct {
+					Number     int
+					Title      string
+					State      string
+					CreatedAt  time.Time
+					ClosedAt   *time.Time
+					MergedAt   *time.Time
+					Repository struct{ NameWithOwner string }
+				}{
+					Number: 9, State: "MERGED", ClosedAt: &mergedAt, MergedAt: &mergedAt,
+					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo"},
+				},
+			}}
+			return nil
+		},
+	}
+	chunk := daterange.DateRange{
+		Start: time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
+		End:   time.Date(2023, 12, 31, 0, 0, 0, 0, time.UTC),
+	}
+	report := daterange.DateRange{Start: chunk.Start, End: time.Date(2024, 12, 31, 0, 0, 0, 0, time.UTC)}
+
+	result, err := newTestClient(mock).FetchContributions("user", chunk, report)
+	if err != nil {
+		t.Fatal(err)
+	}
+	merged := false
+	for _, e := range result.Events {
+		if e.Action == models.ActionClosed && e.Merged {
+			merged = true
+		}
+	}
+	if !merged {
+		t.Error("a merge in the next chunk of the report range must produce a merged event")
+	}
+
+	// The same PR reported on 2023 alone: the merge is outside the range.
+	result, err = newTestClient(mock).FetchContributions("user", chunk, chunk)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, e := range result.Events {
+		if e.Action == models.ActionClosed {
+			t.Error("a merge after the report range must not be counted")
+		}
+	}
+}
+
 func TestFetchContributionsGraphQLError(t *testing.T) {
 	mock := &mockGQLClient{
 		doFunc: func(query string, variables map[string]any, response any) error {
@@ -798,7 +894,7 @@ func TestFetchContributionsGraphQLError(t *testing.T) {
 		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
 	}
 
-	_, err := c.FetchContributions("user", dr)
+	_, err := c.FetchContributions("user", dr, dr)
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}

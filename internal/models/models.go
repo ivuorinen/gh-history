@@ -69,8 +69,9 @@ func (s StreakInfo) ActivityRate() float64 {
 }
 
 // ContributionTotals holds GitHub's own contribution counts for the period.
-// Unlike the event-derived counters these include private repositories, so they
-// are generally higher than what the public event list can account for.
+// The event-derived counters are computed from the contributions the token can
+// list, so the two agree unless the token cannot see some repositories or a
+// collection was truncated. Commits exist only here: no event carries them.
 type ContributionTotals struct {
 	Commits      int
 	Issues       int
@@ -108,6 +109,10 @@ type Statistics struct {
 
 // TopRepos returns the top n repositories by event count. A non-positive n
 // returns nothing rather than panicking on the slice bound.
+//
+// Ties break on the repository name: the slice is built from map iteration, so
+// without a tie-break the order, and which tied repositories make the cut,
+// changed between identical runs.
 func (s Statistics) TopRepos(n int) []RepoCount {
 	if n <= 0 {
 		return nil
@@ -117,7 +122,10 @@ func (s Statistics) TopRepos(n int) []RepoCount {
 		repos = append(repos, RepoCount{Repo: repo, Count: count})
 	}
 	sort.Slice(repos, func(i, j int) bool {
-		return repos[i].Count > repos[j].Count
+		if repos[i].Count != repos[j].Count {
+			return repos[i].Count > repos[j].Count
+		}
+		return repos[i].Repo < repos[j].Repo
 	})
 	if len(repos) > n {
 		repos = repos[:n]
@@ -160,9 +168,9 @@ type ContributionCalendar struct {
 	// TotalContributions is the sum over Days, which are filtered to the
 	// requested range.
 	TotalContributions int
-	// ReportedTotal is GitHub's own figure for the query window. That window is
-	// week-aligned and so can be wider than the requested range, which is why
-	// it is reported separately rather than replacing TotalContributions.
+	// ReportedTotal is GitHub's own figure, summed over the query windows. It
+	// equals TotalContributions when the windows match the requested range, and
+	// is kept separate so a disagreement shows up instead of being hidden.
 	ReportedTotal int
 	Days          []ContributionDay
 }

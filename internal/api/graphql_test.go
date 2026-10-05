@@ -245,6 +245,70 @@ func TestGraphQLClientDo_OmitsEmptyTimeZone(t *testing.T) {
 	}
 }
 
+// noRetryDelay makes retries immediate for the duration of a test.
+func noRetryDelay(t *testing.T) {
+	t.Helper()
+	saved := retryDelays
+	retryDelays = []time.Duration{0, 0}
+	t.Cleanup(func() { retryDelays = saved })
+}
+
+// One gateway error must not discard a multi-request report: the read is
+// repeated and the second answer used.
+func TestGraphQLClientDo_RetriesTransientGatewayError(t *testing.T) {
+	noRetryDelay(t)
+	calls := 0
+	c := testClient(t, func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		if calls == 1 {
+			w.WriteHeader(http.StatusBadGateway)
+			return
+		}
+		_, _ = w.Write([]byte(`{"data":{"viewer":{"login":"octocat"}}}`))
+	})
+	var resp struct{ Viewer struct{ Login string } }
+	if err := c.Do("q", nil, &resp); err != nil {
+		t.Fatalf("a single 502 must be retried, got %v", err)
+	}
+	if resp.Viewer.Login != "octocat" || calls != 2 {
+		t.Errorf("login=%q calls=%d, want octocat after 2 calls", resp.Viewer.Login, calls)
+	}
+}
+
+// Retries are bounded, and the last error is returned.
+func TestGraphQLClientDo_GivesUpAfterRetries(t *testing.T) {
+	noRetryDelay(t)
+	calls := 0
+	c := testClient(t, func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		w.WriteHeader(http.StatusServiceUnavailable)
+	})
+	err := c.Do("q", nil, &struct{}{})
+	var httpErr *HTTPError
+	if !errors.As(err, &httpErr) || httpErr.StatusCode != http.StatusServiceUnavailable {
+		t.Fatalf("expected the final 503, got %v", err)
+	}
+	if calls != 1+len(retryDelays) {
+		t.Errorf("calls = %d, want %d", calls, 1+len(retryDelays))
+	}
+}
+
+// A client error gives the same answer every time, so it is not retried.
+func TestGraphQLClientDo_DoesNotRetryClientError(t *testing.T) {
+	noRetryDelay(t)
+	calls := 0
+	c := testClient(t, func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		w.WriteHeader(http.StatusUnauthorized)
+	})
+	if err := c.Do("q", nil, &struct{}{}); err == nil {
+		t.Fatal("expected the 401 to be returned")
+	}
+	if calls != 1 {
+		t.Errorf("a 401 must not be retried, got %d calls", calls)
+	}
+}
+
 func TestLocalTimeZone(t *testing.T) {
 	t.Run("TZ is used", func(t *testing.T) {
 		t.Setenv("TZ", "Europe/Berlin")

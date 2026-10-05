@@ -73,7 +73,10 @@ jobs:
           go-version-file: go.mod
 
       # Reachability-aware: only fails on vulnerabilities this code can actually
-      # reach, unlike a plain dependency-version scan. Pinned for the same
-      # reason as staticcheck above.
+      # reach, unlike a plain dependency-version scan. Pinned, and bumped by
+      # Renovate, the same way as staticcheck above.
       - name: govulncheck
-        run: go run golang.org/x/vuln/cmd/govulncheck@v1.6.0 ./...
+        env:
+          # renovate: datasource=go depName=golang.org/x/vuln
+          GOVULNCHECK_VERSION: v1.6.0
+        run: go run golang.org/x/vuln/cmd/govulncheck@"$GOVULNCHECK_VERSION" ./...

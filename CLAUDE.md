@@ -11,12 +11,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 make build              # Build for current platform
 make test               # Run full test suite
-make lint               # go vet + staticcheck
+make lint               # gofmt check + go vet + staticcheck
 make test-race          # Tests with race detector
 make test-cov           # Tests with coverage
 make build-all          # Cross-compile all platforms
 make clean              # Remove build artifacts
-make all                # lint + test + build
+make all                # lint + test-race + build (the CI gates)
 go test ./internal/analysis/...  # Run tests for one package
 go run . [username]     # Run locally
 ```
@@ -33,8 +33,8 @@ loop, and keep `TestParseFlags`'s "flags AFTER the positional username" case.
 Source lives in `internal/` with seven packages:
 
 - **api/** — GitHub GraphQL client over `net/http` (`graphQLClient`). Host and token are resolved in `main` (`resolveHost`/`resolveToken`) via `--hostname`/`GH_HOST` and the token env vars or `gh auth token`. Pagination via cursor-based GraphQL.
-- **analysis/** — `Calculator` processes events into a `Statistics` struct. Streak calculation, event categorization (8 categories), activity rate computation.
-- **daterange/** — Date range types and parsing. Supports `--year`, `--last-month`, `--last-90-days`, `--from`/`--to`. Current/future years cap end date to today.
+- **analysis/** — `Calculator` processes events into a `Statistics` struct. Streak calculation, event categorization (6 categories; see `models.Category`), activity rate computation.
+- **daterange/** — Date range types and parsing. Supports `--year`, `--last-month`, `--last-90-days`, `--from`/`--to`. The current year and a `--to` after today are capped to today; a future `--year` and a start before 2008 are rejected.
 - **ghutil/** — Shared utilities: date format constants, pagination limits, user normalization.
 - **models/** — Core data types: `Event`, `Statistics`, `Streaks`, `Category`, `ContributionDay`.
 - **output/** — Formatters (text via the in-tree `table`, JSON, Markdown, HTML) and Plotly chart generation. Terminal detection lives in `terminalOut`. HTML report embeds charts inline.
@@ -57,6 +57,11 @@ Source lives in `internal/` with seven packages:
   measured on a one-day query: 1 review without the header, 2 with the local zone.
   `api.LocalTimeZone` recovers the IANA name from `TZ` or the `/etc/localtime` symlink,
   because Go's `time.Local` only reports "Local". Keep it, and keep its tests.
+- **`contributionsCollection`'s `to` is inclusive by day.** GitHub counts the whole day
+  `to` falls on, so `FetchContributions` sends the last second of `End`
+  (`EndDateTime() - 1s`). Sending the next midnight added a day to every total —
+  measured: 41 commits reported for a one-day range whose day held 25. Keep
+  `TestFetchContributions_ToIsLastSecondOfEnd`.
 - Markdown and JSON print verbatim; only `text` adapts to the terminal.
 
 ## Build & Release

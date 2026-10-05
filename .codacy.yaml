@@ -1,0 +1,11 @@
+---
+engines:
+  revive:
+    exclude_paths:
+      - "**/*_test.go"
+  lizard:
+    exclude_paths:
+      - "**/*_test.go"
+  markdownlint:
+    exclude_paths:
+      - "examples/report.md"

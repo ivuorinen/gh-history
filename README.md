@@ -9,9 +9,13 @@ A GitHub CLI extension that analyzes user activity and generates statistics and 
 - **Multiple Formats** — Text, JSON, Markdown, and interactive HTML reports with Plotly charts
 - **Flexible Date Ranges** — Query any timeframe with year, month, and custom date range options
 
-Commit counts and streaks come from GitHub's contribution calendar, so they
-include private repositories. The per-repository breakdown covers public
-activity only.
+Commit counts come from GitHub's own contribution totals and streaks from its
+contribution calendar. Everything else (pull requests, issues, reviews, comments
+and the per-repository breakdown) covers every contribution your token can see.
+When you report on yourself with a token that has access, that includes private
+repositories: their names can appear in any format (text, Markdown and HTML list
+the top 15 repositories, JSON lists all of them), and their pull request and
+issue titles appear in JSON. Check a report before publishing it.
 
 ## Installation
 
@@ -44,7 +48,8 @@ gh history --from 2024-01-01 --to 2024-12-31
 ```
 
 With no date flags, the last 90 days are used. Date range options are mutually
-exclusive, and a year that has not started yet is rejected.
+exclusive, and a year that has not started yet is rejected. A start date before
+2008 is rejected, and an end date after today is treated as today.
 
 ### Output formats
 
@@ -57,7 +62,10 @@ gh history octocat --format json -o stats.json
 ```
 
 Markdown and JSON are written verbatim, so they pipe and redirect cleanly; only
-`text` adapts its layout to the terminal.
+`text` adapts its layout to the terminal. `--format text -o FILE` writes the
+non-terminal, tab-separated layout.
+
+[`examples/`](examples/) has one report in each format for the same month.
 
 The four formats agree on every shared statistic — the summary never differs
 between them. **JSON is the full offering**: on top of that summary it carries
@@ -75,9 +83,12 @@ detail the human-readable formats deliberately omit.
 | Per-repository commit counts, private repos included     | —                      | `commits_by_repo`     |
 | The event list, with titles, numbers and review states   | —                      | `events`              |
 
-`contribution_totals` and `commits_by_repo` come straight from GitHub and count
-private-repository activity, so they are normally higher than the event-derived
-figures under `summary`, which can only see public events.
+`contribution_totals` and `commits_by_repo` are GitHub's own counters, and
+`summary.commits` is the same commit total. The other figures under `summary`
+are counted from the contributions the token can list. Reporting on yourself
+with full access, the two agree. They diverge when the token cannot see some of
+the user's repositories, or when a collection hits the pagination limit (the
+CLI warns when that happens).
 
 `--format html` always writes to a file and opens it in your default browser. With
 no `--output` the file is `<username>-report.html` in the current directory; with
@@ -131,12 +142,24 @@ instead, so a github.com token is never sent to an internal instance.
 Contribution counts are bucketed into days by your local time zone, matching what
 github.com shows. Set `TZ` to report against a different one.
 
+## Environment
+
+| Variable                                         | Effect                                                                 |
+|--------------------------------------------------|------------------------------------------------------------------------|
+| `GH_HOST`                                        | Host to query when `--hostname` is not given                           |
+| `GH_TOKEN`, `GITHUB_TOKEN`                       | Token for github.com and `*.ghe.com`, before `gh auth token`           |
+| `GH_ENTERPRISE_TOKEN`, `GITHUB_ENTERPRISE_TOKEN` | Token for a GitHub Enterprise Server host                              |
+| `GH_CONFIG_DIR`, `XDG_CONFIG_HOME`               | Where `hosts.yml` is read from (default `~/.config/gh`)                |
+| `BROWSER`                                        | Command that opens the HTML report instead of the platform opener      |
+| `GH_FORCE_TTY`                                   | Force the terminal `text` layout; a value of `100` or `80%` sets width |
+| `TZ`                                             | Time zone that contribution days are bucketed by                       |
+
 ## Development
 
 ```bash
 make build          # Build for current platform
 make test           # Run tests
-make lint           # Run go vet + staticcheck
+make lint           # Run gofmt check, go vet + staticcheck
 make test-race      # Run tests with race detector
 make test-cov       # Run tests with coverage
 make build-all      # Cross-compile for all platforms
@@ -154,7 +177,7 @@ make release        # Tag and push a new CalVer release (requires clean main bra
 ## Contributing
 
 ```bash
-make all            # Runs lint, test, and build
+make all            # Runs lint, race-enabled tests, and build: the same gates as CI
 ```
 
 ## License

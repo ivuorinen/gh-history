@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "go build ./... && go vet ./... && go test ./..."
+            "command": ".claude/hooks/verify.sh"
           }
         ]
       }

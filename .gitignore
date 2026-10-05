@@ -3,6 +3,8 @@ gh-history
 
 # Generated reports
 *.html
+# ...except the committed, sanitized example
+!examples/report.html
 
 # Environment
 .env
@@ -24,4 +26,7 @@ dist/
 
 # Claude
 .claude/settings.local.json
+
+# Codacy local analysis (config, results, tool caches); Cloud reads .codacy.yaml
+.codacy/
 

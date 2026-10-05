@@ -5,6 +5,17 @@ import (
 	"time"
 )
 
+// Ties must resolve the same way every run; map iteration order is random.
+func TestTopRepos_TiesBreakOnName(t *testing.T) {
+	s := Statistics{EventsByRepo: map[string]int{"u/c": 2, "u/a": 2, "u/b": 2, "u/z": 5}}
+	for range 20 {
+		got := s.TopRepos(3)
+		if got[0].Repo != "u/z" || got[1].Repo != "u/a" || got[2].Repo != "u/b" {
+			t.Fatalf("TopRepos(3) = %+v, want u/z, u/a, u/b", got)
+		}
+	}
+}
+
 func TestTopRepos(t *testing.T) {
 	tests := []struct {
 		name      string

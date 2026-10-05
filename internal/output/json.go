@@ -31,9 +31,11 @@ func FormatJSON(stats models.Statistics) ([]byte, error) {
 			"issues_closed": stats.IssuesClosed,
 			"reviews":       stats.ReviewsCount,
 		},
-		// GitHub's own counts for the period. These include private
-		// repositories, so they are generally higher than the event-derived
-		// figures in "summary", which can only see public activity.
+		// GitHub's own counters for the period. The event-derived "summary"
+		// fields (everything but commits, which is this commits figure) are
+		// counted from the contributions the token can list; they agree with
+		// these unless the token cannot see some repositories or a collection
+		// was truncated.
 		"contribution_totals": map[string]int{
 			"commits":       stats.Totals.Commits,
 			"issues":        stats.Totals.Issues,

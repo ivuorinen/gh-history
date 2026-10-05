@@ -12,12 +12,11 @@ import (
 	"github.com/ivuorinen/gh-history/internal/models"
 )
 
-// RequestTimeout bounds every individual API request. Without it go-gh builds
-// an http.Client with a zero Timeout, which never gives up on a stalled
-// connection.
+// RequestTimeout bounds every individual API request. http.Client's zero
+// Timeout never gives up on a stalled connection, which would hang the CLI.
 const RequestTimeout = 30 * time.Second
 
-// gqlDoer abstracts go-gh's GraphQLClient.Do for testability.
+// gqlDoer abstracts graphQLClient.Do so tests can substitute canned responses.
 type gqlDoer interface {
 	Do(query string, variables map[string]any, response any) error
 }
@@ -106,7 +105,7 @@ type ContributionResult struct {
 	// CommitsByRepo is GitHub's per-repository commit breakdown, private repos
 	// included. Callers querying multiple windows must merge by repository.
 	CommitsByRepo []models.RepoCount
-	// CalendarTotal is GitHub's reported total for the (week-aligned) window.
+	// CalendarTotal is GitHub's reported calendar total for the query window.
 	CalendarTotal int
 	// Truncated names the sub-collections that hit the pagination limit. When
 	// non-empty the result is usable but incomplete, and the caller must say so.
@@ -406,9 +405,18 @@ type paginateReposResponse struct {
 
 // FetchContributions fetches PRs, issues, reviews, and calendar data via GraphQL contributionsCollection.
 // The date range must be at most 1 year; callers should split larger ranges into yearly chunks.
-func (c *Client) FetchContributions(username string, dr daterange.DateRange) (ContributionResult, error) {
+//
+// report is the whole range the caller is reporting on, of which dr is one
+// chunk. A PR or issue is a contribution only in the chunk where it was opened,
+// so its close is matched against report rather than dr: otherwise one opened
+// late in a chunk and closed in the next is never counted as closed or merged.
+func (c *Client) FetchContributions(username string, dr, report daterange.DateRange) (ContributionResult, error) {
 	from := dr.Start.Format(time.RFC3339)
-	to := dr.EndDateTime().Format(time.RFC3339)
+	// GitHub treats `to` as inclusive at day granularity: sending the next
+	// midnight counts the whole following day in every total and node list
+	// (measured: 41 commits for a one-day range whose day held 25). The last
+	// second of End is the boundary that matches the range.
+	to := dr.EndDateTime().Add(-time.Second).Format(time.RFC3339)
 
 	vars := map[string]any{
 		"login": username,
@@ -487,7 +495,7 @@ func (c *Client) FetchContributions(username string, dr daterange.DateRange) (Co
 
 		if (n.PullRequest.State == "CLOSED" || n.PullRequest.State == "MERGED") && n.PullRequest.ClosedAt != nil {
 			closedAt := *n.PullRequest.ClosedAt
-			if !closedAt.Before(dr.Start) && closedAt.Before(dr.EndDateTime()) {
+			if !closedAt.Before(report.Start) && closedAt.Before(report.EndDateTime()) {
 				events = append(events, models.Event{
 					ID:               fmt.Sprintf("gql-pr-closed-%d-%s", n.PullRequest.Number, repo),
 					Type:             "PullRequestEvent",
@@ -518,7 +526,7 @@ func (c *Client) FetchContributions(username string, dr daterange.DateRange) (Co
 
 		if n.Issue.State == "CLOSED" && n.Issue.ClosedAt != nil {
 			closedAt := *n.Issue.ClosedAt
-			if !closedAt.Before(dr.Start) && closedAt.Before(dr.EndDateTime()) {
+			if !closedAt.Before(report.Start) && closedAt.Before(report.EndDateTime()) {
 				events = append(events, models.Event{
 					ID:               fmt.Sprintf("gql-issue-closed-%d-%s", n.Issue.Number, repo),
 					Type:             "IssuesEvent",
@@ -684,6 +692,7 @@ query($login: String!, $after: String) {
   user(login: $login) {
     issueComments(first: 100, after: $after, orderBy: {field: UPDATED_AT, direction: DESC}) {
       nodes {
+        id
         createdAt
         updatedAt
         repository { nameWithOwner }
@@ -693,14 +702,20 @@ query($login: String!, $after: String) {
   }
 }`
 
+// issueCommentNode is one comment. ID is GitHub's node id, the only field that
+// is unique per comment: creation time and repository collide for two comments
+// posted in the same second.
+type issueCommentNode struct {
+	ID         string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	Repository struct{ NameWithOwner string }
+}
+
 type issueCommentsResponse struct {
 	User struct {
 		IssueComments struct {
-			Nodes []struct {
-				CreatedAt  time.Time
-				UpdatedAt  time.Time
-				Repository struct{ NameWithOwner string }
-			}
+			Nodes    []issueCommentNode
 			PageInfo pageInfo
 		}
 	}
@@ -742,7 +757,7 @@ func (c *Client) FetchIssueComments(username string, dr daterange.DateRange) ([]
 			}
 			repo := n.Repository.NameWithOwner
 			events = append(events, models.Event{
-				ID:        fmt.Sprintf("gql-comment-%s-%s", n.CreatedAt.Format(time.RFC3339), repo),
+				ID:        "gql-comment-" + n.ID,
 				Type:      "IssueCommentEvent",
 				Repo:      repo,
 				CreatedAt: n.CreatedAt,
