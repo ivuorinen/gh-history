@@ -11,6 +11,14 @@ on:
 
 permissions: {}
 
+# Go and every tool come from mise.toml (Go through go.mod), so CI runs the same
+# versions and the same tasks as `mise run all` locally. mise itself is pinned:
+# an unpinned tool changes CI behaviour without a commit. Renovate bumps it via
+# the customManagers:githubActionsVersions preset, and the tools via mise.toml.
+env:
+  # renovate: datasource=github-releases depName=jdx/mise
+  MISE_VERSION: v2026.10.1
+
 jobs:
   test:
     name: Build, vet and test
@@ -24,37 +32,18 @@ jobs:
           # token does not need to stay in the git config afterwards.
           persist-credentials: false
 
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+      - uses: jdx/mise-action@08ae2a091c038e1e05ec6f5115dc5c69d5a2a6b8 # v5.1.2
         with:
-          go-version-file: go.mod
+          version: ${{ env.MISE_VERSION }}
 
-      - name: gofmt
-        run: |
-          unformatted=$(gofmt -l .)
-          if [ -n "$unformatted" ]; then
-            echo "::error::gofmt reported unformatted files:"
-            echo "$unformatted"
-            exit 1
-          fi
-
-      - name: go vet
-        run: go vet ./...
-
-      # Pinned, not @latest: an unpinned tool changes CI behaviour without a
-      # commit, and this is the linter the build gates on. Renovate bumps the
-      # version below via the customManagers:githubActionsVersions preset, so
-      # the pin still moves with a commit and a PR.
-      - name: staticcheck
-        env:
-          # renovate: datasource=github-releases depName=dominikh/go-tools
-          STATICCHECK_VERSION: 2026.2.1
-        run: go run honnef.co/go/tools/cmd/staticcheck@"$STATICCHECK_VERSION" ./...
+      - name: Lint (gofmt, go vet, staticcheck)
+        run: mise run lint
 
       - name: Test with race detector
-        run: go test -race ./...
+        run: mise run test-race
 
       - name: Build
-        run: go build ./...
+        run: mise run build
 
   govulncheck:
     name: Vulnerability scan
@@ -68,15 +57,9 @@ jobs:
           # token does not need to stay in the git config afterwards.
           persist-credentials: false
 
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+      - uses: jdx/mise-action@08ae2a091c038e1e05ec6f5115dc5c69d5a2a6b8 # v5.1.2
         with:
-          go-version-file: go.mod
+          version: ${{ env.MISE_VERSION }}
 
-      # Reachability-aware: only fails on vulnerabilities this code can actually
-      # reach, unlike a plain dependency-version scan. Pinned, and bumped by
-      # Renovate, the same way as staticcheck above.
       - name: govulncheck
-        env:
-          # renovate: datasource=go depName=golang.org/x/vuln
-          GOVULNCHECK_VERSION: v1.8.0
-        run: go run golang.org/x/vuln/cmd/govulncheck@"$GOVULNCHECK_VERSION" ./...
+        run: mise run vuln

@@ -28,7 +28,8 @@ Or build from source:
 ```bash
 git clone https://github.com/ivuorinen/gh-history.git
 cd gh-history
-make build
+mise install
+mise run build
 ```
 
 ## Usage
@@ -156,14 +157,20 @@ github.com shows. Set `TZ` to report against a different one.
 
 ## Development
 
+Tasks and tool versions live in `mise.toml`; Go's version comes from `go.mod`. Install [mise](https://mise.jdx.dev/), then:
+
 ```bash
-make build          # Build for current platform
-make test           # Run tests
-make lint           # Run gofmt check, go vet + staticcheck
-make test-race      # Run tests with race detector
-make test-cov       # Run tests with coverage
-make build-all      # Cross-compile for all platforms
-make clean          # Remove build artifacts
+mise install            # Install Go, staticcheck, govulncheck and gh
+mise run build          # Build for current platform
+mise run test           # Run tests
+mise run lint           # Run gofmt check, go vet + staticcheck
+mise run vuln           # Run govulncheck
+mise run test-race      # Run tests with race detector
+mise run test-cov       # Run tests with coverage
+mise run build-all      # Cross-compile for all platforms
+mise run clean          # Remove build artifacts
+mise run update         # Update Go modules and mise tools to their latest versions
+mise tasks              # List every task
 ```
 
 ## Releasing
@@ -171,13 +178,13 @@ make clean          # Remove build artifacts
 Releases use [CalVer](https://calver.org/) tags and are built automatically by GitHub Actions with [GoReleaser](https://goreleaser.com/). Binaries are signed with [cosign](https://github.com/sigstore/cosign).
 
 ```bash
-make release        # Tag and push a new CalVer release (requires clean main branch)
+mise run release        # Tag and push a new CalVer release (requires clean main branch)
 ```
 
 ## Contributing
 
 ```bash
-make all            # Runs lint, race-enabled tests, and build: the same gates as CI
+mise run all            # Runs lint, race-enabled tests, govulncheck and build: the same gates as CI
 ```
 
 ## License

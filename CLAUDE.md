@@ -9,14 +9,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Commands
 
 ```bash
-make build              # Build for current platform
-make test               # Run full test suite
-make lint               # gofmt check + go vet + staticcheck
-make test-race          # Tests with race detector
-make test-cov           # Tests with coverage
-make build-all          # Cross-compile all platforms
-make clean              # Remove build artifacts
-make all                # lint + test-race + build (the CI gates)
+mise install             # Install Go (from go.mod), staticcheck, govulncheck, gh
+mise run build           # Build for current platform
+mise run test            # Run full test suite
+mise run lint            # gofmt check + go vet + staticcheck
+mise run vuln            # govulncheck
+mise run test-race       # Tests with race detector
+mise run test-cov        # Tests with coverage
+mise run build-all       # Cross-compile all platforms
+mise run clean           # Remove build artifacts
+mise run update          # go get -u, go mod tidy, bump mise.toml tools
+mise run all             # lint + test-race + vuln + build (the CI gates)
 go test ./internal/analysis/...  # Run tests for one package
 go run . [username]     # Run locally
 ```
@@ -42,8 +45,9 @@ Source lives in `internal/` with seven packages:
 
 ## Code Conventions
 
-- **Go 1.26.5+** required (the `go` directive in `go.mod` is the single source of truth;
-  every CI step reads it via `go-version-file`, so bump it there and nowhere else)
+- **Go 1.26.5+** required (`go.mod` is the single source of truth: mise reads its
+  `toolchain` line through `idiomatic_version_file_enable_tools`, and the release job
+  reads it via `go-version-file`, so bump it there and nowhere else)
 - Standard `go vet` and `gofmt` formatting
 - All functions return errors explicitly — no panics in library code
 - `internal/` package layout — nothing exported outside the module
@@ -66,11 +70,14 @@ Source lives in `internal/` with seven packages:
 
 ## Build & Release
 
-- **Makefile** — primary build interface (`make build`, `make test`, `make release`)
+- **`mise.toml`** — primary build interface: tasks and pinned tool versions
+- **`mise.toml` tool versions** — Renovate's mise manager bumps them
+- **staticcheck and govulncheck** — `go:` backend, built with the go.mod toolchain
+- **`.github/workflows/ci.yml`** — `jdx/mise-action`, then the same `mise run` tasks
 - **`.goreleaser.yaml`** — GoReleaser v2 config: CGO_ENABLED=0, trimpath, cosign-signed checksums
 - **`.github/workflows/release.yml`** — triggered on CalVer tags (`20*`), runs GoReleaser
 - **`.github/workflows/codeql.yml`** — CodeQL analysis on push/PR to main
-- `make release` — tags with `gh calver next`, pushes tag, GitHub Actions builds release
+- `mise run release` — tags with `gh calver next`, pushes tag, GitHub Actions builds release
 
 ## Testing
 
