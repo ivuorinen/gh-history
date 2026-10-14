@@ -17,7 +17,7 @@ idiomatic_version_file_enable_tools = ["go"]
 # staticcheck's module version 0.8.2 is release 2026.2.2.
 [tools]
 "go:honnef.co/go/tools/cmd/staticcheck" = "0.8.2"
-"go:golang.org/x/vuln/cmd/govulncheck" = "1.8.0"
+"go:golang.org/x/vuln/cmd/govulncheck" = "1.9.0"
 gh = "2.102.0"
 
 [tasks.build]
