@@ -70,10 +70,10 @@ Source lives in `internal/` with seven packages:
 
 ## Build & Release
 
-- **`mise.toml`** — primary build interface: tasks (`mise run build`, `mise run release`)
-  and pinned tool versions, which Renovate bumps. CI (`ci.yml`) installs tools with
-  `jdx/mise-action` and runs the same tasks. staticcheck and govulncheck use the `go:`
-  backend (built with the go.mod toolchain), not prebuilt binaries.
+- **`mise.toml`** — primary build interface: tasks and pinned tool versions
+- **`mise.toml` tool versions** — Renovate's mise manager bumps them
+- **staticcheck and govulncheck** — `go:` backend, built with the go.mod toolchain
+- **`.github/workflows/ci.yml`** — `jdx/mise-action`, then the same `mise run` tasks
 - **`.goreleaser.yaml`** — GoReleaser v2 config: CGO_ENABLED=0, trimpath, cosign-signed checksums
 - **`.github/workflows/release.yml`** — triggered on CalVer tags (`20*`), runs GoReleaser
 - **`.github/workflows/codeql.yml`** — CodeQL analysis on push/PR to main
