@@ -47,7 +47,7 @@ jobs:
       - name: staticcheck
         env:
           # renovate: datasource=github-releases depName=dominikh/go-tools
-          STATICCHECK_VERSION: 2026.2.1
+          STATICCHECK_VERSION: 2026.2.2
         run: go run honnef.co/go/tools/cmd/staticcheck@"$STATICCHECK_VERSION" ./...
 
       - name: Test with race detector
