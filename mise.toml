@@ -82,6 +82,13 @@ run = "gh extension remove history"
 description = "Remove build artifacts"
 run = "rm -rf gh-history dist/"
 
+# --local keeps `mise upgrade` to this file; without it, it also rewrites the
+# global mise config. Go itself is not bumped here: its version is the go.mod
+# toolchain line, which Renovate moves.
+[tasks.update]
+description = "Update Go modules and mise tools to their latest versions"
+run = ["go get -u -t ./...", "go mod tidy", "mise upgrade --bump --local"]
+
 [tasks.release]
 description = "Tag and push a CalVer release (requires a clean main branch)"
 run = '''

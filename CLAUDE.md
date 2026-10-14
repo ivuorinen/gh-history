@@ -18,6 +18,7 @@ mise run test-race       # Tests with race detector
 mise run test-cov        # Tests with coverage
 mise run build-all       # Cross-compile all platforms
 mise run clean           # Remove build artifacts
+mise run update          # go get -u, go mod tidy, bump mise.toml tools
 mise run all             # lint + test-race + vuln + build (the CI gates)
 go test ./internal/analysis/...  # Run tests for one package
 go run . [username]     # Run locally
