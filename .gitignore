@@ -30,3 +30,7 @@ dist/
 # Codacy local analysis (config, results, tool caches); Cloud reads .codacy.yaml
 .codacy/
 
+# mise lockfile, written locally when the global `lockfile` setting is on;
+# nothing in this repo or Renovate maintains it
+mise.lock
+
