@@ -2,7 +2,7 @@ module github.com/ivuorinen/gh-history
 
 go 1.26.5
 
-toolchain go1.27.3
+toolchain go1.27.4
 
 require golang.org/x/term v0.47.0
 
