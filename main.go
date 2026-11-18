@@ -180,13 +180,6 @@ func fetchEvents(cfg *config, client contributionFetcher, dr daterange.DateRange
 		if err != nil {
 			return fetchResult{}, fmt.Errorf("fetching contributions: %w", err)
 		}
-		// Incomplete but usable: warn regardless of verbosity rather than
-		// reporting understated figures as if they were complete.
-		for _, what := range result.Truncated {
-			fmt.Fprintf(os.Stderr,
-				"Warning: %s for %s to %s hit the pagination limit; counts are understated\n",
-				what, chunk.Start.Format(ghutil.DateFormat), chunk.End.Format(ghutil.DateFormat))
-		}
 		allEvents = append(allEvents, result.Events...)
 		allCalendarDays = append(allCalendarDays, result.CalendarDays...)
 

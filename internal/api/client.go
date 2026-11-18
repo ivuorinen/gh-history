@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/ivuorinen/gh-history/internal/daterange"
-	"github.com/ivuorinen/gh-history/internal/ghutil"
 	"github.com/ivuorinen/gh-history/internal/models"
 )
 
@@ -107,9 +106,6 @@ type ContributionResult struct {
 	CommitsByRepo []models.RepoCount
 	// CalendarTotal is GitHub's reported calendar total for the query window.
 	CalendarTotal int
-	// Truncated names the sub-collections that hit the pagination limit. When
-	// non-empty the result is usable but incomplete, and the caller must say so.
-	Truncated []string
 }
 
 type contributionsResponse struct {
@@ -431,49 +427,31 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 
 	cc := resp.User.ContributionsCollection
 
-	// Collect all nodes, paginating each sub-collection as needed. A pagination
-	// failure aborts the fetch: silently returning a partial page would
-	// understate every statistic derived from it while looking like a complete
-	// result.
-	//
-	// Hitting the page limit is different. The data is genuinely incomplete, but
-	// discarding it would leave a user with more nodes than the limit allows
-	// unable to get any report at all. Keep what was fetched and record which
-	// collections were cut, so the caller can say so out loud.
-	var truncated []string
-	keep := func(what string, err error) error {
-		switch {
-		case err == nil:
-			return nil
-		case errors.Is(err, ErrTruncated):
-			truncated = append(truncated, what)
-			return nil
-		default:
-			return fmt.Errorf("%s: %w", what, err)
-		}
-	}
-
-	allPRs, prErr := c.paginatePRs(username, from, to, cc.PullRequestContributions.PageInfo)
-	if err := keep("pull request contributions", prErr); err != nil {
-		return ContributionResult{}, err
+	// Collect all nodes, paginating each sub-collection to its last page. A
+	// pagination failure aborts the fetch: silently returning a partial page
+	// would understate every statistic derived from it while looking like a
+	// complete result.
+	allPRs, err := c.paginatePRs(username, from, to, cc.PullRequestContributions.PageInfo)
+	if err != nil {
+		return ContributionResult{}, fmt.Errorf("pull request contributions: %w", err)
 	}
 	allPRs = append(cc.PullRequestContributions.Nodes, allPRs...)
 
-	allIssues, issueErr := c.paginateIssues(username, from, to, cc.IssueContributions.PageInfo)
-	if err := keep("issue contributions", issueErr); err != nil {
-		return ContributionResult{}, err
+	allIssues, err := c.paginateIssues(username, from, to, cc.IssueContributions.PageInfo)
+	if err != nil {
+		return ContributionResult{}, fmt.Errorf("issue contributions: %w", err)
 	}
 	allIssues = append(cc.IssueContributions.Nodes, allIssues...)
 
-	allReviews, reviewErr := c.paginateReviews(username, from, to, cc.PullRequestReviewContributions.PageInfo)
-	if err := keep("review contributions", reviewErr); err != nil {
-		return ContributionResult{}, err
+	allReviews, err := c.paginateReviews(username, from, to, cc.PullRequestReviewContributions.PageInfo)
+	if err != nil {
+		return ContributionResult{}, fmt.Errorf("review contributions: %w", err)
 	}
 	allReviews = append(cc.PullRequestReviewContributions.Nodes, allReviews...)
 
-	allRepos, repoErr := c.paginateRepos(username, from, to, cc.RepositoryContributions.PageInfo)
-	if err := keep("repository contributions", repoErr); err != nil {
-		return ContributionResult{}, err
+	allRepos, err := c.paginateRepos(username, from, to, cc.RepositoryContributions.PageInfo)
+	if err != nil {
+		return ContributionResult{}, fmt.Errorf("repository contributions: %w", err)
 	}
 	allRepos = append(cc.RepositoryContributions.Nodes, allRepos...)
 
@@ -604,40 +582,36 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 		},
 		CommitsByRepo: commitsByRepo,
 		CalendarTotal: cc.ContributionCalendar.TotalContributions,
-		Truncated:     truncated,
 	}, nil
 }
 
-// ErrTruncated reports that a collection had more pages than MaxPaginationPages
-// allows, so the returned data is incomplete.
-var ErrTruncated = errors.New("results truncated: more pages available than the pagination limit allows")
-
 // paginateGQL is a generic paginator for GraphQL contribution sub-collections.
-// It fetches up to MaxPaginationPages additional pages using the provided query.
-// doPage executes the query and returns the new nodes and pageInfo.
+// It fetches every page after pi, until GitHub reports no next page, the way
+// `gh api --paginate` does. doPage executes the query and returns the new nodes
+// and pageInfo.
 //
-// Both a page failure and hitting the page limit are returned as errors: a
-// partial result reported as complete silently understates every statistic
-// derived from it.
+// There is deliberately no page limit. GitHub ends the walk itself, and
+// contributionsCollection spans at most a year. A 10-page limit cut a year's
+// reviews at 1,100 while GitHub returned all 2,594 across 26 pages.
+//
+// A page failure is returned as an error: a partial result reported as
+// complete silently understates every statistic derived from it.
 func paginateGQL[T any](
 	login, from, to string,
 	pi pageInfo,
 	doPage func(vars map[string]any) ([]T, pageInfo, error),
 ) ([]T, error) {
 	var all []T
-	for i := 0; i < ghutil.MaxPaginationPages && pi.HasNextPage && pi.EndCursor != nil; i++ {
+	for page := 1; pi.HasNextPage && pi.EndCursor != nil; page++ {
 		vars := map[string]any{
 			"login": login, "from": from, "to": to, "after": *pi.EndCursor,
 		}
 		nodes, nextPI, err := doPage(vars)
 		if err != nil {
-			return all, fmt.Errorf("page %d: %w", i+1, err)
+			return all, fmt.Errorf("page %d: %w", page, err)
 		}
 		all = append(all, nodes...)
 		pi = nextPI
-	}
-	if pi.HasNextPage && pi.EndCursor != nil {
-		return all, fmt.Errorf("%w (limit %d pages)", ErrTruncated, ghutil.MaxPaginationPages)
 	}
 	return all, nil
 }
@@ -723,15 +697,19 @@ type issueCommentsResponse struct {
 
 // FetchIssueComments fetches issue comments via GraphQL, filtered to the given
 // date range. It returns any events gathered so far alongside an error, so a
-// caller can keep partial data; an ErrTruncated error means the page limit was
-// reached before the walk provably passed the start of the range.
+// caller can keep partial data.
+//
+// The walk runs until it provably passes the start of the range or the
+// comments run out, however many pages that takes: a range is reached only
+// after every comment updated since it. A 10-page limit stopped the walk at
+// 1,000 comments, so older ranges came back short or empty.
 func (c *Client) FetchIssueComments(username string, dr daterange.DateRange) ([]models.Event, error) {
 	var events []models.Event
 	startDT := dr.Start
 	endDT := dr.EndDateTime()
 
 	var cursor *string
-	for range ghutil.MaxPaginationPages {
+	for {
 		vars := map[string]any{
 			"login": username,
 		}
@@ -775,8 +753,4 @@ func (c *Client) FetchIssueComments(username string, dr daterange.DateRange) ([]
 		}
 		cursor = pi.EndCursor
 	}
-
-	// Ran out of page budget without reaching comments older than the range.
-	c.logf("  GraphQL comments: %d (truncated)\n", len(events))
-	return events, fmt.Errorf("issue comments: %w (limit %d pages)", ErrTruncated, ghutil.MaxPaginationPages)
 }

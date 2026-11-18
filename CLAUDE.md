@@ -38,7 +38,7 @@ Source lives in `internal/` with seven packages:
 - **api/** — GitHub GraphQL client over `net/http` (`graphQLClient`). Host and token are resolved in `main` (`resolveHost`/`resolveToken`) via `--hostname`/`GH_HOST` and the token env vars or `gh auth token`. Pagination via cursor-based GraphQL.
 - **analysis/** — `Calculator` processes events into a `Statistics` struct. Streak calculation, event categorization (6 categories; see `models.Category`), activity rate computation.
 - **daterange/** — Date range types and parsing. Supports `--year`, `--last-month`, `--last-90-days`, `--from`/`--to`. The current year and a `--to` after today are capped to today; a future `--year` and a start before 2008 are rejected.
-- **ghutil/** — Shared utilities: date format constants, pagination limits, user normalization.
+- **ghutil/** — Shared utilities: the date format constant, `TruncateToDay`, `SafeDiv`.
 - **models/** — Core data types: `Event`, `Statistics`, `Streaks`, `Category`, `ContributionDay`.
 - **output/** — Formatters (text via the in-tree `table`, JSON, Markdown, HTML) and Plotly chart generation. Terminal detection lives in `terminalOut`. HTML report embeds charts inline.
 - **testutil/** — Test helpers and sample data fixtures.
@@ -66,6 +66,12 @@ Source lives in `internal/` with seven packages:
   (`EndDateTime() - 1s`). Sending the next midnight added a day to every total —
   measured: 41 commits reported for a one-day range whose day held 25. Keep
   `TestFetchContributions_ToIsLastSecondOfEnd`.
+- **Pagination has no page limit.** `paginateGQL` and `FetchIssueComments` follow
+  `hasNextPage` to the end, as `gh api --paginate` does. A 10-page limit capped every
+  collection at 1,100 nodes (a year's reviews read 1,100 where GitHub returned 2,594
+  across 26 pages) and stopped the comment walk at 1,000 comments, so a range older
+  than the 1,000 most recently updated came back short or empty. Keep the two
+  `FollowsEveryPage` tests.
 - Markdown and JSON print verbatim, ending in exactly one newline whether they go to
   stdout or `--output`; only `text` adapts to the terminal.
 
