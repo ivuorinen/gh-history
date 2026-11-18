@@ -73,10 +73,10 @@ Source lives in `internal/` with seven packages:
   updatedAt`, so nothing after it can be in range. A 10-page limit capped every
   collection at 1,100 nodes (a year's reviews read 1,100 where GitHub returned 2,594
   across 26 pages) and stopped the comment walk at 1,000 comments, so a range older
-  than the 1,000 most recently updated came back short or empty. Without a limit, a
-  cursor GitHub returns twice is what ends a walk that would never stop, so both
-  walks treat it as an error. Keep the `FollowsEveryPage` and `RepeatedCursorIsAnError`
-  tests.
+  than the 1,000 most recently updated came back short or empty. With the limit gone,
+  a response that repeats a cursor would loop the walk, so both walks treat a cursor
+  that comes back a second time as an error. Keep the `FollowsEveryPage` and
+  `RepeatedCursorIsAnError` tests.
 - Markdown and JSON print verbatim, ending in exactly one newline whether they go to
   stdout or `--output`; only `text` adapts to the terminal.
 
