@@ -558,6 +558,7 @@ func TestWriteToFileOrStdout_EndsWithOneNewline(t *testing.T) {
 	}{
 		{"no trailing newline", `{"a": 1}`, "{\"a\": 1}\n"},
 		{"one trailing newline", "# Report\n", "# Report\n"},
+		{"empty", "", "\n"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name+" to a file", func(t *testing.T) {
@@ -576,6 +577,7 @@ func TestWriteToFileOrStdout_EndsWithOneNewline(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+			defer r.Close()
 			stdout := os.Stdout
 			os.Stdout = w
 			writeToFileOrStdout([]byte(tt.in), "")
