@@ -88,4 +88,3 @@
 | 13 | ivuorinen/config-checker | 14 |
 | 14 | ivuorinen/base-configs-commitlint | 13 |
 | 15 | ivuorinen/base-configs-prettier | 13 |
-

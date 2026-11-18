@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -542,6 +543,51 @@ func TestWriteOutput_TextHonoursOutputFile(t *testing.T) {
 	}
 	if !strings.Contains(string(data), "GitHub Activity Report: octocat") {
 		t.Errorf("unexpected file content:\n%s", data)
+	}
+}
+
+// A report ends with exactly one newline wherever it goes. --output wrote JSON
+// with none, while stdout's Println gave Markdown, which already ends in one, a
+// second.
+func TestWriteToFileOrStdout_EndsWithOneNewline(t *testing.T) {
+	tests := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{"no trailing newline", `{"a": 1}`, "{\"a\": 1}\n"},
+		{"one trailing newline", "# Report\n", "# Report\n"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name+" to a file", func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "report")
+			writeToFileOrStdout([]byte(tt.in), path)
+			got, err := os.ReadFile(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(got) != tt.want {
+				t.Errorf("file = %q, want %q", got, tt.want)
+			}
+		})
+		t.Run(tt.name+" to stdout", func(t *testing.T) {
+			r, w, err := os.Pipe()
+			if err != nil {
+				t.Fatal(err)
+			}
+			stdout := os.Stdout
+			os.Stdout = w
+			writeToFileOrStdout([]byte(tt.in), "")
+			os.Stdout = stdout
+			w.Close()
+			got, err := io.ReadAll(r)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(got) != tt.want {
+				t.Errorf("stdout = %q, want %q", got, tt.want)
+			}
+		})
 	}
 }
 

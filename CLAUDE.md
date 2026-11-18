@@ -66,7 +66,8 @@ Source lives in `internal/` with seven packages:
   (`EndDateTime() - 1s`). Sending the next midnight added a day to every total —
   measured: 41 commits reported for a one-day range whose day held 25. Keep
   `TestFetchContributions_ToIsLastSecondOfEnd`.
-- Markdown and JSON print verbatim; only `text` adapts to the terminal.
+- Markdown and JSON print verbatim, ending in exactly one newline whether they go to
+  stdout or `--output`; only `text` adapts to the terminal.
 
 ## Build & Release
 
