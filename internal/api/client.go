@@ -592,7 +592,9 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 //
 // There is deliberately no page limit. GitHub ends the walk itself, and
 // contributionsCollection spans at most a year. A 10-page limit cut a year's
-// reviews at 1,100 while GitHub returned all 2,594 across 26 pages.
+// reviews at 1,100 while GitHub returned all 2,594 across 26 pages. What the
+// limit also did was stop a walk whose pages never end, so a cursor GitHub
+// returns a second time is now an error instead of a request.
 //
 // A page failure is returned as an error: a partial result reported as
 // complete silently understates every statistic derived from it.
@@ -602,7 +604,12 @@ func paginateGQL[T any](
 	doPage func(vars map[string]any) ([]T, pageInfo, error),
 ) ([]T, error) {
 	var all []T
+	requested := map[string]bool{}
 	for page := 1; pi.HasNextPage && pi.EndCursor != nil; page++ {
+		if requested[*pi.EndCursor] {
+			return all, fmt.Errorf("page %d: cursor %q repeated", page, *pi.EndCursor)
+		}
+		requested[*pi.EndCursor] = true
 		vars := map[string]any{
 			"login": login, "from": from, "to": to, "after": *pi.EndCursor,
 		}
@@ -702,13 +709,15 @@ type issueCommentsResponse struct {
 // The walk runs until it provably passes the start of the range or the
 // comments run out, however many pages that takes: a range is reached only
 // after every comment updated since it. A 10-page limit stopped the walk at
-// 1,000 comments, so older ranges came back short or empty.
+// 1,000 comments, so older ranges came back short or empty. A cursor GitHub
+// returns a second time ends the walk with an error, as in paginateGQL.
 func (c *Client) FetchIssueComments(username string, dr daterange.DateRange) ([]models.Event, error) {
 	var events []models.Event
 	startDT := dr.Start
 	endDT := dr.EndDateTime()
 
 	var cursor *string
+	requested := map[string]bool{}
 	for {
 		vars := map[string]any{
 			"login": username,
@@ -751,6 +760,10 @@ func (c *Client) FetchIssueComments(username string, dr daterange.DateRange) ([]
 			c.logf("  GraphQL comments: %d\n", len(events))
 			return events, nil
 		}
+		if requested[*pi.EndCursor] {
+			return events, fmt.Errorf("issue comments: cursor %q repeated", *pi.EndCursor)
+		}
+		requested[*pi.EndCursor] = true
 		cursor = pi.EndCursor
 	}
 }

@@ -515,6 +515,10 @@ func TestFetchContributions_FollowsEveryPage(t *testing.T) {
 			if !strings.Contains(query, "pullRequestContributions(first: 100, after: $after)") {
 				return nil
 			}
+			// Each request must continue from the cursor the previous page returned.
+			if want := fmt.Sprintf("c%d", page); variables["after"] != want {
+				return fmt.Errorf("request %d sent after=%v, want %q", page+1, variables["after"], want)
+			}
 			page++
 			cursor := fmt.Sprintf("c%d", page)
 			resp := response.(*paginatePRsResponse)
@@ -536,6 +540,48 @@ func TestFetchContributions_FollowsEveryPage(t *testing.T) {
 	}
 	if len(result.Events) != 16 {
 		t.Errorf("got %d PR events, want 16: the first page plus all 15 that follow", len(result.Events))
+	}
+}
+
+// With no page limit, a cursor that comes back again is what stops a walk that
+// would otherwise never end. The mock fails on its fourth request, so a
+// missing check surfaces as a call count rather than a hung test.
+func TestFetchContributions_RepeatedCursorIsAnError(t *testing.T) {
+	cursor := "A"
+	calls := 0
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			if strings.Contains(query, "pullRequestContributions(first: 100)") {
+				resp := response.(*contributionsResponse)
+				resp.User.ContributionsCollection.PullRequestContributions.PageInfo = pageInfo{
+					EndCursor: &cursor, HasNextPage: true,
+				}
+				return nil
+			}
+			if !strings.Contains(query, "pullRequestContributions(first: 100, after: $after)") {
+				return nil
+			}
+			calls++
+			if calls > 3 {
+				return fmt.Errorf("request %d: the walk did not stop", calls)
+			}
+			resp := response.(*paginatePRsResponse)
+			resp.User.ContributionsCollection.PullRequestContributions.PageInfo = pageInfo{
+				EndCursor: &cursor, HasNextPage: true,
+			}
+			return nil
+		},
+	}
+
+	dr := daterange.DateRange{
+		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+	}
+	if _, err := newTestClient(mock).FetchContributions("user", dr, dr); err == nil {
+		t.Fatal("a page that repeats its cursor must not be reported as complete")
+	}
+	if calls != 1 {
+		t.Errorf("sent %d follow-up requests, want 1: the repeated cursor must not be requested again", calls)
 	}
 }
 
@@ -621,6 +667,11 @@ func TestFetchIssueComments_StopsOnceUpdatedAtPredatesRange(t *testing.T) {
 	mock := &mockGQLClient{
 		doFunc: func(query string, variables map[string]any, response any) error {
 			calls++
+			// No page limit backs the date stop up any more: fail at once if it
+			// lets a second request through.
+			if calls > 1 {
+				return fmt.Errorf("request %d: the walk did not stop at the range start", calls)
+			}
 			resp := response.(*issueCommentsResponse)
 			resp.User.IssueComments.Nodes = []issueCommentNode{
 				{CreatedAt: old, UpdatedAt: old,
@@ -692,6 +743,12 @@ func TestFetchIssueComments_FollowsEveryPage(t *testing.T) {
 	mock := &mockGQLClient{
 		doFunc: func(query string, variables map[string]any, response any) error {
 			calls++
+			// The first request starts at the top; each later one continues from
+			// the cursor the previous page returned.
+			after, sent := variables["after"]
+			if want := fmt.Sprintf("c%d", calls-1); (calls == 1 && sent) || (calls > 1 && after != want) {
+				return fmt.Errorf("request %d sent after=%v (sent: %t)", calls, after, sent)
+			}
 			cursor := fmt.Sprintf("c%d", calls)
 			resp := response.(*issueCommentsResponse)
 			resp.User.IssueComments.Nodes = []issueCommentNode{
@@ -713,6 +770,46 @@ func TestFetchIssueComments_FollowsEveryPage(t *testing.T) {
 	}
 	if len(events) != 12 {
 		t.Errorf("got %d comments, want 12: one from every page", len(events))
+	}
+}
+
+// A cursor that comes back again ends the comment walk with an error, keeping
+// what was fetched. The mock fails on its fourth request, so a missing check
+// surfaces as a call count rather than a hung test.
+func TestFetchIssueComments_RepeatedCursorIsAnError(t *testing.T) {
+	inRange := time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC)
+	cursor := "A"
+	calls := 0
+
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			calls++
+			if calls > 3 {
+				return fmt.Errorf("request %d: the walk did not stop", calls)
+			}
+			resp := response.(*issueCommentsResponse)
+			resp.User.IssueComments.Nodes = []issueCommentNode{
+				{ID: fmt.Sprintf("IC_%d", calls), CreatedAt: inRange, UpdatedAt: inRange,
+					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo"}},
+			}
+			resp.User.IssueComments.PageInfo = pageInfo{EndCursor: &cursor, HasNextPage: true}
+			return nil
+		},
+	}
+
+	dr := daterange.DateRange{
+		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+	}
+	events, err := newTestClient(mock).FetchIssueComments("user", dr)
+	if err == nil {
+		t.Fatal("a page that repeats its cursor must be reported, not treated as the end")
+	}
+	if calls != 2 {
+		t.Errorf("sent %d requests, want 2: the repeated cursor must not be requested again", calls)
+	}
+	if len(events) != 2 {
+		t.Errorf("the comments fetched before the repeat must be kept, got %d", len(events))
 	}
 }
 

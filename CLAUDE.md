@@ -66,12 +66,17 @@ Source lives in `internal/` with seven packages:
   (`EndDateTime() - 1s`). Sending the next midnight added a day to every total —
   measured: 41 commits reported for a one-day range whose day held 25. Keep
   `TestFetchContributions_ToIsLastSecondOfEnd`.
-- **Pagination has no page limit.** `paginateGQL` and `FetchIssueComments` follow
-  `hasNextPage` to the end, as `gh api --paginate` does. A 10-page limit capped every
+- **Pagination has no page limit.** `paginateGQL` follows `hasNextPage` to the last
+  page, as `gh api --paginate` does. `FetchIssueComments` does too, but also stops
+  early, with `hasNextPage` still true, at the first comment whose `updatedAt`
+  predates the range start: the walk is newest-updated first and `createdAt <=
+  updatedAt`, so nothing after it can be in range. A 10-page limit capped every
   collection at 1,100 nodes (a year's reviews read 1,100 where GitHub returned 2,594
   across 26 pages) and stopped the comment walk at 1,000 comments, so a range older
-  than the 1,000 most recently updated came back short or empty. Keep the two
-  `FollowsEveryPage` tests.
+  than the 1,000 most recently updated came back short or empty. Without a limit, a
+  cursor GitHub returns twice is what ends a walk that would never stop, so both
+  walks treat it as an error. Keep the `FollowsEveryPage` and `RepeatedCursorIsAnError`
+  tests.
 - Markdown and JSON print verbatim, ending in exactly one newline whether they go to
   stdout or `--output`; only `text` adapts to the terminal.
 
