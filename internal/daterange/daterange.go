@@ -31,10 +31,36 @@ func (dr DateRange) Location() *time.Location {
 	return dr.Loc
 }
 
-// StartTime returns the instant the range starts: midnight on Start in the
-// range's zone.
+// StartTime returns the instant the range starts: the first instant of Start
+// in the range's zone.
 func (dr DateRange) StartTime() time.Time {
-	return time.Date(dr.Start.Year(), dr.Start.Month(), dr.Start.Day(), 0, 0, 0, 0, dr.Location())
+	return dayStart(dr.Start.Year(), dr.Start.Month(), dr.Start.Day(), dr.Location())
+}
+
+// dayStart returns the first instant of the date y-m-d in loc.
+//
+// That is midnight except where a clock change moves midnight, and there
+// time.Date does not guarantee which instant it returns. Go's choice depends on
+// the zone's side of UTC: measured over 2000-2030, a missing midnight west of
+// UTC (Havana, São Paulo, Asunción) came back as 23:00 the day before, and a
+// repeated midnight east of UTC (Amman, Gaza) as the second 00:00. Either is
+// an hour off, and every boundary of a range is one of these instants.
+func dayStart(y int, m time.Month, d int, loc *time.Location) time.Time {
+	t := time.Date(y, m, d, 0, 0, 0, 0, loc)
+	if t.Day() != d {
+		// Midnight fell in a spring-forward gap: the day starts as the gap ends.
+		_, end := t.ZoneBounds()
+		return end
+	}
+	if start, _ := t.ZoneBounds(); start.Equal(t) {
+		// t opens the zone a fall-back switched to. If the instant before is
+		// still the same day, midnight came first under the previous offset.
+		if before := t.Add(-time.Nanosecond).In(loc); before.Day() == d {
+			_, offset := before.Zone()
+			return time.Date(y, m, d, 0, 0, 0, 0, time.FixedZone("", offset)).In(loc)
+		}
+	}
+	return t
 }
 
 // New creates a DateRange of the dates start through end, as days in loc,
@@ -99,10 +125,14 @@ func (dr DateRange) Days() int {
 	return int(dr.End.Sub(dr.Start).Hours()/24) + 1
 }
 
-// EndDateTime returns the instant the range ends: midnight after End in the
-// range's zone. Callers should use < (not <=) when comparing against it.
+// EndDateTime returns the instant the range ends: the first instant of the day
+// after End in the range's zone. Callers should use < (not <=) when comparing
+// against it.
 func (dr DateRange) EndDateTime() time.Time {
-	return time.Date(dr.End.Year(), dr.End.Month(), dr.End.Day()+1, 0, 0, 0, 0, dr.Location())
+	// End is a midnight-UTC date, so AddDate steps exactly one calendar day and
+	// carries over month and year ends before dayStart compares the day.
+	next := dr.End.AddDate(0, 0, 1)
+	return dayStart(next.Year(), next.Month(), next.Day(), dr.Location())
 }
 
 // ParseDateRange parses CLI flags into a DateRange of days in loc. The dates

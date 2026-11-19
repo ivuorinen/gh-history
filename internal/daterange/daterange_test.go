@@ -205,6 +205,36 @@ func TestDateRange_BoundariesFollowZone(t *testing.T) {
 	}
 }
 
+// A day starts at its first instant even where its midnight is missing or
+// repeated, which time.Date does not guarantee: west of UTC it answered a
+// missing midnight with 23:00 the day before, and east of UTC a repeated
+// midnight with the second 00:00, an hour off either way. StartTime on the day
+// and EndDateTime on the day before must both give that first instant.
+func TestDateRange_BoundariesAtFirstInstantOfDay(t *testing.T) {
+	for _, tc := range []struct {
+		name, zone string
+		day        time.Time
+		want       time.Time // the first instant of day, in UTC
+	}{
+		{"missing midnight, west of UTC", "America/Sao_Paulo", d(2018, 11, 4), time.Date(2018, 11, 4, 3, 0, 0, 0, time.UTC)},
+		{"repeated midnight, west of UTC", "America/Havana", d(2023, 11, 5), time.Date(2023, 11, 5, 4, 0, 0, 0, time.UTC)},
+		{"repeated midnight, east of UTC", "Asia/Amman", d(2000, 9, 29), time.Date(2000, 9, 28, 21, 0, 0, 0, time.UTC)},
+		{"ordinary midnight", "Europe/Helsinki", d(2024, 3, 31), time.Date(2024, 3, 30, 22, 0, 0, 0, time.UTC)},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			loc := loadZone(t, tc.zone)
+			starting := DateRange{Start: tc.day, End: tc.day, Loc: loc}
+			if got := starting.StartTime(); !got.Equal(tc.want) {
+				t.Errorf("StartTime() = %v, want %v", got, tc.want.In(loc))
+			}
+			ending := DateRange{Start: tc.day.AddDate(0, 0, -1), End: tc.day.AddDate(0, 0, -1), Loc: loc}
+			if got := ending.EndDateTime(); !got.Equal(tc.want) {
+				t.Errorf("EndDateTime() = %v, want %v", got, tc.want.In(loc))
+			}
+		})
+	}
+}
+
 // Every constructor records the zone, and "today" is today in it. UTC+14 and
 // UTC-11 are 25 hours apart, so their dates differ at every moment: reading
 // today in UTC, or in the machine's zone, would give both the same End.
