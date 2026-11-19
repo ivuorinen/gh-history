@@ -48,6 +48,10 @@ type Event struct {
 	Description      string    // Repository description, for CreateEvent
 	ReviewState      string    // APPROVED, CHANGES_REQUESTED, COMMENTED, …
 	SubjectCreatedAt time.Time // When the PR or issue itself was created
+	// SubjectState is the PR's or issue's state when it was fetched (OPEN,
+	// CLOSED, or MERGED for a PR), not when the event happened. The merge and
+	// close rates count opened items by it.
+	SubjectState string
 }
 
 // Date returns the event date (without time).
@@ -107,6 +111,12 @@ type Statistics struct {
 	IssuesOpened    int
 	IssuesClosed    int
 	ReviewsCount    int
+	// PROpenedMerged and IssuesOpenedClosed count, among the PRs and issues
+	// opened in the range, those merged or closed by fetch time. They are the
+	// rates' numerators: PRMerged and IssuesClosed also count items opened
+	// before the range, so dividing them by the opened counts can exceed 100%.
+	PROpenedMerged     int
+	IssuesOpenedClosed int
 
 	// Detail surfaced by the JSON format only.
 	Events        []Event            // The events the statistics were computed from
@@ -143,14 +153,18 @@ func (s Statistics) TopRepos(n int) []RepoCount {
 	return repos
 }
 
-// PRMergeRate returns the pull request merge rate as a percentage.
+// PRMergeRate returns the percentage of PRs opened in the range that were merged
+// by fetch time. It divides PROpenedMerged, not PRMerged: PRMerged also counts
+// merges of PRs opened before the range, which put the rate above 100%.
 func (s Statistics) PRMergeRate() float64 {
-	return ghutil.SafeDiv(s.PRMerged, s.PROpened) * 100
+	return ghutil.SafeDiv(s.PROpenedMerged, s.PROpened) * 100
 }
 
-// IssueCloseRate returns the issue close rate as a percentage.
+// IssueCloseRate returns the percentage of issues opened in the range that were
+// closed by fetch time, for the same reason dividing IssuesOpenedClosed rather
+// than IssuesClosed.
 func (s Statistics) IssueCloseRate() float64 {
-	return ghutil.SafeDiv(s.IssuesClosed, s.IssuesOpened) * 100
+	return ghutil.SafeDiv(s.IssuesOpenedClosed, s.IssuesOpened) * 100
 }
 
 // RepoCount pairs a repository name with its event count.

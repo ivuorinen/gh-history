@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 	"testing"
@@ -489,6 +490,67 @@ func TestFetchContributions_WiresRepoVisibility(t *testing.T) {
 	}
 	if !slices.Equal(result.CommitsByRepo, wantCommits) {
 		t.Errorf("CommitsByRepo = %+v, want %+v", result.CommitsByRepo, wantCommits)
+	}
+}
+
+// The state GitHub reports for a PR or issue reaches both its opened and its
+// closed event, so the merge and close rates can count opened items by state.
+func TestFetchContributions_WiresSubjectState(t *testing.T) {
+	at := time.Date(2024, 1, 10, 10, 0, 0, 0, time.UTC)
+	closed := time.Date(2024, 1, 12, 10, 0, 0, 0, time.UTC)
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			cc := &response.(*contributionsResponse).User.ContributionsCollection
+			for i, state := range []string{"OPEN", "MERGED"} {
+				var pr prContributionNode
+				pr.OccurredAt = at
+				pr.PullRequest.Number = i + 1
+				pr.PullRequest.State = state
+				pr.PullRequest.Repository = repoRef{NameWithOwner: "user/repo"}
+				if state == "MERGED" {
+					pr.PullRequest.ClosedAt = &closed
+					pr.PullRequest.MergedAt = &closed
+				}
+				cc.PullRequestContributions.Nodes = append(cc.PullRequestContributions.Nodes, pr)
+			}
+			for i, state := range []string{"OPEN", "CLOSED"} {
+				var issue issueContributionNode
+				issue.OccurredAt = at
+				issue.Issue.Number = i + 1
+				issue.Issue.State = state
+				issue.Issue.Repository = repoRef{NameWithOwner: "user/repo"}
+				if state == "CLOSED" {
+					issue.Issue.ClosedAt = &closed
+				}
+				cc.IssueContributions.Nodes = append(cc.IssueContributions.Nodes, issue)
+			}
+			return nil
+		},
+	}
+
+	dr := daterange.DateRange{
+		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+	}
+	result, err := newTestClient(mock).FetchContributions("user", dr, dr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	got := map[string]string{}
+	for _, e := range result.Events {
+		got[fmt.Sprintf("%s %s #%d", e.Type, e.Action, e.Number)] = e.SubjectState
+	}
+	want := map[string]string{
+		"PullRequestEvent opened #1": "OPEN",
+		"PullRequestEvent opened #2": "MERGED",
+		"PullRequestEvent closed #2": "MERGED",
+		"IssuesEvent opened #1":      "OPEN",
+		"IssuesEvent opened #2":      "CLOSED",
+		"IssuesEvent closed #2":      "CLOSED",
+	}
+	if !maps.Equal(got, want) {
+		t.Errorf("SubjectState by event = %v, want %v", got, want)
 	}
 }
 

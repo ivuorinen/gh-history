@@ -121,21 +121,24 @@ func TestTopRepos(t *testing.T) {
 	}
 }
 
+// The merge rate is the share of PRs opened in the range that are merged.
+// PRMerged counts PRs merged in the range, including ones opened before it, so
+// it must not be the numerator: 5 merged against 2 opened read 250%.
 func TestPRMergeRate(t *testing.T) {
 	tests := []struct {
-		name           string
-		merged, opened int
-		want           float64
+		name                         string
+		openedMerged, opened, merged int
+		want                         float64
 	}{
-		{"half", 5, 10, 50},
-		{"all", 10, 10, 100},
-		{"none merged", 0, 10, 0},
-		{"no PRs opened does not divide by zero", 0, 0, 0},
-		{"merged without opened in range", 3, 0, 0},
+		{"half of the opened PRs merged", 5, 10, 5, 50},
+		{"all", 10, 10, 10, 100},
+		{"none merged", 0, 10, 0, 0},
+		{"no PRs opened does not divide by zero", 0, 0, 3, 0},
+		{"merges of older PRs do not inflate the rate", 1, 2, 5, 50},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			s := Statistics{PRMerged: tc.merged, PROpened: tc.opened}
+			s := Statistics{PROpenedMerged: tc.openedMerged, PROpened: tc.opened, PRMerged: tc.merged}
 			if got := s.PRMergeRate(); got != tc.want {
 				t.Errorf("PRMergeRate() = %.1f, want %.1f", got, tc.want)
 			}
@@ -143,19 +146,21 @@ func TestPRMergeRate(t *testing.T) {
 	}
 }
 
+// The close rate is the share of issues opened in the range that are closed;
+// closes of issues opened earlier must not inflate it.
 func TestIssueCloseRate(t *testing.T) {
 	tests := []struct {
-		name           string
-		closed, opened int
-		want           float64
+		name                         string
+		openedClosed, opened, closed int
+		want                         float64
 	}{
-		{"half", 5, 10, 50},
-		{"none opened does not divide by zero", 0, 0, 0},
-		{"closed without opened in range", 4, 0, 0},
+		{"half of the opened issues closed", 5, 10, 5, 50},
+		{"none opened does not divide by zero", 0, 0, 4, 0},
+		{"closes of older issues do not inflate the rate", 1, 4, 6, 25},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			s := Statistics{IssuesClosed: tc.closed, IssuesOpened: tc.opened}
+			s := Statistics{IssuesOpenedClosed: tc.openedClosed, IssuesOpened: tc.opened, IssuesClosed: tc.closed}
 			if got := s.IssueCloseRate(); got != tc.want {
 				t.Errorf("IssueCloseRate() = %.1f, want %.1f", got, tc.want)
 			}

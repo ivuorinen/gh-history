@@ -21,15 +21,19 @@ func FormatJSON(stats models.Statistics) ([]byte, error) {
 			"start": stats.DateRange.Start.Format(ghutil.DateFormat),
 			"end":   stats.DateRange.End.Format(ghutil.DateFormat),
 		},
-		"summary": map[string]int{
-			"total_events":  stats.TotalEvents,
-			"commits":       stats.CommitCount,
-			"prs_opened":    stats.PROpened,
-			"prs_merged":    stats.PRMerged,
-			"prs_closed":    stats.PRClosed,
-			"issues_opened": stats.IssuesOpened,
-			"issues_closed": stats.IssuesClosed,
-			"reviews":       stats.ReviewsCount,
+		// The rates are unrounded percentages, like streaks.activity_rate; the
+		// other formats print them to one decimal.
+		"summary": map[string]any{
+			"total_events":     stats.TotalEvents,
+			"commits":          stats.CommitCount,
+			"prs_opened":       stats.PROpened,
+			"prs_merged":       stats.PRMerged,
+			"prs_closed":       stats.PRClosed,
+			"pr_merge_rate":    stats.PRMergeRate(),
+			"issues_opened":    stats.IssuesOpened,
+			"issues_closed":    stats.IssuesClosed,
+			"issue_close_rate": stats.IssueCloseRate(),
+			"reviews":          stats.ReviewsCount,
 		},
 		// GitHub's own counters for the period. The event-derived "summary"
 		// fields (everything but commits, which is this commits figure) are
@@ -149,6 +153,9 @@ func jsonEvents(events []models.Event) []map[string]any {
 		}
 		if !e.SubjectCreatedAt.IsZero() {
 			m["subject_created_at"] = e.SubjectCreatedAt.UTC().Format(time.RFC3339)
+		}
+		if e.SubjectState != "" {
+			m["subject_state"] = e.SubjectState
 		}
 		out = append(out, m)
 	}

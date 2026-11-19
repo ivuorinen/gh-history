@@ -107,6 +107,9 @@ func trackDetailedStats(stats *models.Statistics, event models.Event) {
 		switch event.Action {
 		case models.ActionOpened:
 			stats.PROpened++
+			if event.SubjectState == "MERGED" {
+				stats.PROpenedMerged++
+			}
 		case models.ActionClosed:
 			// Merged and closed-without-merge are mutually exclusive.
 			if event.Merged {
@@ -119,6 +122,9 @@ func trackDetailedStats(stats *models.Statistics, event models.Event) {
 		switch event.Action {
 		case models.ActionOpened:
 			stats.IssuesOpened++
+			if event.SubjectState == "CLOSED" {
+				stats.IssuesOpenedClosed++
+			}
 		case models.ActionClosed:
 			stats.IssuesClosed++
 		}

@@ -291,6 +291,36 @@ func TestCalculate_RecordsRepoVisibility(t *testing.T) {
 	}
 }
 
+// Opened PRs and issues are counted again by the state GitHub reported for them,
+// which is what the merge and close rates divide. Closed events (which include
+// items opened before the range) and opened items still open must not count.
+func TestCalculate_CountsOpenedItemsByState(t *testing.T) {
+	at := time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC)
+	ev := func(id, typ, action, state string, merged bool) models.Event {
+		return models.Event{ID: id, Type: typ, Action: action, SubjectState: state,
+			Merged: merged, Repo: "u/r", CreatedAt: at}
+	}
+	calc := &Calculator{DateRange: testutil.SampleDateRange()}
+	stats := calc.Calculate([]models.Event{
+		ev("p1", "PullRequestEvent", models.ActionOpened, "MERGED", false),
+		ev("p2", "PullRequestEvent", models.ActionOpened, "OPEN", false),
+		ev("p3", "PullRequestEvent", models.ActionOpened, "CLOSED", false),
+		ev("p4", "PullRequestEvent", models.ActionClosed, "MERGED", true), // opened before the range
+		ev("i1", "IssuesEvent", models.ActionOpened, "CLOSED", false),
+		ev("i2", "IssuesEvent", models.ActionOpened, "OPEN", false),
+		ev("i3", "IssuesEvent", models.ActionClosed, "CLOSED", false), // opened before the range
+	})
+
+	if stats.PROpened != 3 || stats.PROpenedMerged != 1 || stats.PRMerged != 1 {
+		t.Errorf("PROpened/PROpenedMerged/PRMerged = %d/%d/%d, want 3/1/1",
+			stats.PROpened, stats.PROpenedMerged, stats.PRMerged)
+	}
+	if stats.IssuesOpened != 2 || stats.IssuesOpenedClosed != 1 || stats.IssuesClosed != 1 {
+		t.Errorf("IssuesOpened/IssuesOpenedClosed/IssuesClosed = %d/%d/%d, want 2/1/1",
+			stats.IssuesOpened, stats.IssuesOpenedClosed, stats.IssuesClosed)
+	}
+}
+
 func TestCalculate_CalendarDaysFilteredToRange(t *testing.T) {
 	dr := daterange.DateRange{
 		Start: time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),

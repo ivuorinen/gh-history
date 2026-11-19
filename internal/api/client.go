@@ -482,6 +482,7 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 			Number:           n.PullRequest.Number,
 			Title:            n.PullRequest.Title,
 			SubjectCreatedAt: n.PullRequest.CreatedAt,
+			SubjectState:     n.PullRequest.State,
 		})
 
 		if (n.PullRequest.State == "CLOSED" || n.PullRequest.State == "MERGED") && n.PullRequest.ClosedAt != nil {
@@ -498,6 +499,7 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 					Number:           n.PullRequest.Number,
 					Title:            n.PullRequest.Title,
 					SubjectCreatedAt: n.PullRequest.CreatedAt,
+					SubjectState:     n.PullRequest.State,
 				})
 			}
 		}
@@ -516,6 +518,7 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 			Number:           n.Issue.Number,
 			Title:            n.Issue.Title,
 			SubjectCreatedAt: n.Issue.CreatedAt,
+			SubjectState:     n.Issue.State,
 		})
 
 		if n.Issue.State == "CLOSED" && n.Issue.ClosedAt != nil {
@@ -531,6 +534,7 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 					Number:           n.Issue.Number,
 					Title:            n.Issue.Title,
 					SubjectCreatedAt: n.Issue.CreatedAt,
+					SubjectState:     n.Issue.State,
 				})
 			}
 		}

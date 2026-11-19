@@ -96,6 +96,13 @@ each `top_repos` and `commits_by_repo` entry and `repo_private` on each event.
 The flag is GitHub's `isPrivate`, so an internal repository on GitHub Enterprise
 shows as private.
 
+The summary's PR merge rate and issue close rate are the share of the PRs and
+issues opened in the period that were merged or closed by the time the report
+ran. Merges and closes of items opened earlier count under "PRs Merged" and
+"Issues Closed", but not in the rates, which therefore never exceed 100%. JSON
+carries each PR's and issue's state at that time as `subject_state` on its
+events.
+
 `--format html` always writes to a file and opens it in your default browser. With
 no `--output` the file is `<username>-report.html` in the current directory; with
 `--output` a `.html` suffix is appended if missing. It is the only format that
