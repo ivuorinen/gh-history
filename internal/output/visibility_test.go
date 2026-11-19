@@ -111,3 +111,28 @@ func TestFormatJSON_MarksRepoVisibilityAndID(t *testing.T) {
 		}
 	}
 }
+
+// An ID the report does not have still appears, as 0, never as a missing key:
+// id and repo_id are always present, unlike the event fields that are omitted
+// when they do not apply, so a consumer can read them without a presence check.
+func TestFormatJSON_MissingRepoIDIsZero(t *testing.T) {
+	at := time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC)
+	out := decodeJSON(t, models.Statistics{
+		Username:      "testuser",
+		DateRange:     testutil.SampleDateRange(),
+		EventsByRepo:  map[string]int{"u/no-id": 1},
+		CommitsByRepo: []models.RepoCount{{Repo: "u/no-id", Count: 1}},
+		Events:        []models.Event{{ID: "1", Type: "IssueCommentEvent", Repo: "u/no-id", CreatedAt: at}},
+	})
+
+	for _, key := range []string{"top_repos", "commits_by_repo"} {
+		entry := out[key].([]any)[0].(map[string]any)
+		if got, ok := entry["id"]; !ok || got != float64(0) {
+			t.Errorf("%s[0].id = %v (present: %v), want 0", key, got, ok)
+		}
+	}
+	event := out["events"].([]any)[0].(map[string]any)
+	if got, ok := event["repo_id"]; !ok || got != float64(0) {
+		t.Errorf("events[0].repo_id = %v (present: %v), want 0", got, ok)
+	}
+}
