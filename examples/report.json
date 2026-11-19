@@ -258,6 +258,11 @@
     },
     {
       "count": 1,
+      "private": true,
+      "repo": "example-org/private-repo-4"
+    },
+    {
+      "count": 1,
       "private": false,
       "repo": "ivuorinen/a"
     },
@@ -295,11 +300,6 @@
       "count": 1,
       "private": false,
       "repo": "ivuorinen/sysvinit-service-generator"
-    },
-    {
-      "count": 1,
-      "private": true,
-      "repo": "example-org/private-repo-4"
     }
   ],
   "contribution_totals": {
@@ -5984,13 +5984,13 @@
     },
     {
       "count": 18,
-      "private": false,
-      "repo": "ivuorinen/tree-sitter-shellspec"
+      "private": true,
+      "repo": "ivuorinen/private-repo-1"
     },
     {
       "count": 18,
-      "private": true,
-      "repo": "ivuorinen/private-repo-1"
+      "private": false,
+      "repo": "ivuorinen/tree-sitter-shellspec"
     },
     {
       "count": 16,
@@ -6089,13 +6089,13 @@
     },
     {
       "count": 5,
-      "private": true,
-      "repo": "ivuorinen/private-repo-2"
+      "private": false,
+      "repo": "ivuorinen/phpenv.fish"
     },
     {
       "count": 5,
-      "private": false,
-      "repo": "ivuorinen/phpenv.fish"
+      "private": true,
+      "repo": "ivuorinen/private-repo-2"
     },
     {
       "count": 5,
@@ -6189,6 +6189,11 @@
     },
     {
       "count": 1,
+      "private": true,
+      "repo": "example-org/private-repo-4"
+    },
+    {
+      "count": 1,
       "private": false,
       "repo": "ivuorinen/coderabbit"
     },
@@ -6199,18 +6204,13 @@
     },
     {
       "count": 1,
-      "private": true,
-      "repo": "ivuorinen/private-repo-4"
-    },
-    {
-      "count": 1,
       "private": false,
       "repo": "ivuorinen/markdowndocs"
     },
     {
       "count": 1,
       "private": true,
-      "repo": "example-org/private-repo-4"
+      "repo": "ivuorinen/private-repo-4"
     }
   ],
   "username": "ivuorinen"

@@ -81,8 +81,8 @@
 | 4 | ivuorinen/actions | public | 26 |
 | 5 | ivuorinen/a | public | 21 |
 | 6 | ivuorinen/base-configs | public | 20 |
-| 7 | ivuorinen/tree-sitter-shellspec | public | 18 |
-| 8 | ivuorinen/private-repo-1 | private | 18 |
+| 7 | ivuorinen/private-repo-1 | private | 18 |
+| 8 | ivuorinen/tree-sitter-shellspec | public | 18 |
 | 9 | ivuorinen/base-configs-stylelint | public | 16 |
 | 10 | example-org/private-repo-2 | private | 15 |
 | 11 | ivuorinen/base-configs-browserslist | public | 15 |

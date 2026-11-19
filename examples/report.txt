@@ -71,8 +71,8 @@ Top Repositories
 4.   ivuorinen/actions                        public   26 events
 5.   ivuorinen/a                              public   21 events
 6.   ivuorinen/base-configs                   public   20 events
-7.   ivuorinen/tree-sitter-shellspec          public   18 events
-8.   ivuorinen/private-repo-1                 private  18 events
+7.   ivuorinen/private-repo-1                 private  18 events
+8.   ivuorinen/tree-sitter-shellspec          public   18 events
 9.   ivuorinen/base-configs-stylelint         public   16 events
 10.  example-org/private-repo-2               private  15 events
 11.  ivuorinen/base-configs-browserslist      public   15 events
