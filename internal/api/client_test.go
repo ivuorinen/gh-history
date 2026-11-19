@@ -47,7 +47,32 @@ func TestGetAuthenticatedUserGraphQL(t *testing.T) {
 	}
 }
 
-func TestCheckUserExistsGraphQL(t *testing.T) {
+// GitHub matches logins case-insensitively and answers with the account's own
+// spelling. That spelling is what the report must carry, not the caller's.
+func TestLookupUser_ReturnsCanonicalLogin(t *testing.T) {
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			if !strings.EqualFold(variables["login"].(string), "octocat") {
+				return &GraphQLError{Errors: []GraphQLErrorItem{{Type: "NOT_FOUND"}}}
+			}
+			resp := response.(*struct {
+				User *struct{ Login string }
+			})
+			resp.User = &struct{ Login string }{Login: "octocat"}
+			return nil
+		},
+	}
+
+	login, exists, err := newTestClient(mock).LookupUser("OCTOCAT")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !exists || login != "octocat" {
+		t.Errorf("LookupUser(%q) = (%q, %v), want (%q, true)", "OCTOCAT", login, exists, "octocat")
+	}
+}
+
+func TestLookupUserGraphQL(t *testing.T) {
 	mock := &mockGQLClient{
 		doFunc: func(query string, variables map[string]any, response any) error {
 			login := variables["login"].(string)
@@ -72,7 +97,7 @@ func TestCheckUserExistsGraphQL(t *testing.T) {
 
 	c := newTestClient(mock)
 
-	exists, err := c.CheckUserExists("testuser")
+	_, exists, err := c.LookupUser("testuser")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,7 +105,7 @@ func TestCheckUserExistsGraphQL(t *testing.T) {
 		t.Error("expected user to exist")
 	}
 
-	exists, err = c.CheckUserExists("nobody")
+	_, exists, err = c.LookupUser("nobody")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,7 +114,7 @@ func TestCheckUserExistsGraphQL(t *testing.T) {
 	}
 }
 
-func TestCheckUserExistsGraphQLError(t *testing.T) {
+func TestLookupUserGraphQLError(t *testing.T) {
 	mock := &mockGQLClient{
 		doFunc: func(query string, variables map[string]any, response any) error {
 			return fmt.Errorf("network timeout")
@@ -97,7 +122,7 @@ func TestCheckUserExistsGraphQLError(t *testing.T) {
 	}
 
 	c := newTestClient(mock)
-	_, err := c.CheckUserExists("testuser")
+	_, _, err := c.LookupUser("testuser")
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
@@ -589,7 +614,7 @@ func TestFetchIssueComments_WiresRepoVisibility(t *testing.T) {
 	}
 }
 
-func TestCheckUserExists_NotFoundUsesStructuredError(t *testing.T) {
+func TestLookupUser_NotFoundUsesStructuredError(t *testing.T) {
 	mock := &mockGQLClient{
 		doFunc: func(query string, variables map[string]any, response any) error {
 			return &GraphQLError{
@@ -600,7 +625,7 @@ func TestCheckUserExists_NotFoundUsesStructuredError(t *testing.T) {
 			}
 		},
 	}
-	exists, err := newTestClient(mock).CheckUserExists("nobody")
+	_, exists, err := newTestClient(mock).LookupUser("nobody")
 	if err != nil {
 		t.Fatalf("NOT_FOUND should not be an error, got %v", err)
 	}
@@ -609,7 +634,7 @@ func TestCheckUserExists_NotFoundUsesStructuredError(t *testing.T) {
 	}
 }
 
-func TestCheckUserExists_NotFoundIndependentOfWording(t *testing.T) {
+func TestLookupUser_NotFoundIndependentOfWording(t *testing.T) {
 	// Detection must survive GitHub rewording its message.
 	mock := &mockGQLClient{
 		doFunc: func(query string, variables map[string]any, response any) error {
@@ -621,7 +646,7 @@ func TestCheckUserExists_NotFoundIndependentOfWording(t *testing.T) {
 			}
 		},
 	}
-	exists, err := newTestClient(mock).CheckUserExists("nobody")
+	_, exists, err := newTestClient(mock).LookupUser("nobody")
 	if err != nil {
 		t.Fatalf("expected nil error, got %v", err)
 	}
@@ -630,7 +655,7 @@ func TestCheckUserExists_NotFoundIndependentOfWording(t *testing.T) {
 	}
 }
 
-func TestCheckUserExists_OtherGraphQLErrorIsReturned(t *testing.T) {
+func TestLookupUser_OtherGraphQLErrorIsReturned(t *testing.T) {
 	mock := &mockGQLClient{
 		doFunc: func(query string, variables map[string]any, response any) error {
 			return &GraphQLError{
@@ -638,7 +663,7 @@ func TestCheckUserExists_OtherGraphQLErrorIsReturned(t *testing.T) {
 			}
 		},
 	}
-	if _, err := newTestClient(mock).CheckUserExists("someone"); err == nil {
+	if _, _, err := newTestClient(mock).LookupUser("someone"); err == nil {
 		t.Fatal("expected a non-NOT_FOUND GraphQL error to be returned")
 	}
 }

@@ -164,7 +164,7 @@ func TestGraphQLClientDo_DecodesNestedCamelCaseAndTimes(t *testing.T) {
 }
 
 // A missing user comes back as HTTP 200 with an errors array, which is what
-// CheckUserExists depends on.
+// LookupUser depends on.
 func TestGraphQLClientDo_GraphQLErrorsBecomeGraphQLError(t *testing.T) {
 	c := testClient(t, func(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte(`{"data":{"user":null},"errors":[{"type":"NOT_FOUND","message":"Could not resolve to a User","path":["user"]}]}`))

@@ -60,20 +60,26 @@ func (c *Client) GetAuthenticatedUser() (string, error) {
 	return resp.Viewer.Login, nil
 }
 
-// CheckUserExists checks if a GitHub user exists.
-func (c *Client) CheckUserExists(username string) (bool, error) {
+// LookupUser reports whether a GitHub user exists and returns the account's own
+// spelling of its login. GitHub matches logins case-insensitively, so the
+// returned login can differ from username in case; callers report under the
+// returned one, or a report for "OCTOCAT" is labelled with the caller's typing.
+func (c *Client) LookupUser(username string) (login string, exists bool, err error) {
 	var resp struct {
 		User *struct{ Login string }
 	}
-	err := c.gqlClient.Do(`query($login: String!) { user(login: $login) { login } }`,
+	err = c.gqlClient.Do(`query($login: String!) { user(login: $login) { login } }`,
 		map[string]any{"login": username}, &resp)
 	if err != nil {
 		if isNotFound(err) {
-			return false, nil
+			return "", false, nil
 		}
-		return false, fmt.Errorf("GraphQL user check: %w", err)
+		return "", false, fmt.Errorf("GraphQL user check: %w", err)
 	}
-	return resp.User != nil, nil
+	if resp.User == nil {
+		return "", false, nil
+	}
+	return resp.User.Login, true, nil
 }
 
 // isNotFound reports whether err is GitHub's structured NOT_FOUND response.

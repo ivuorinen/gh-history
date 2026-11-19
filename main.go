@@ -340,13 +340,15 @@ func handleMain(args []string) {
 	}
 	client.Verbose = cfg.verbose
 
-	exists, err := client.CheckUserExists(username)
+	login, exists, err := client.LookupUser(username)
 	if err != nil {
 		fatal("checking user: %v", err)
 	}
 	if !exists {
 		fatal("user %q not found", username)
 	}
+	// Report under the account's own spelling of its login, not the argument's.
+	username = login
 
 	result, err := fetchEvents(cfg, client, dr, username)
 	if err != nil {
