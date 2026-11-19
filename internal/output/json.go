@@ -11,9 +11,10 @@ import (
 // FormatJSON returns the statistics as a JSON byte slice.
 //
 // JSON is the full offering: it carries everything the tool knows, including
-// detail the human-readable formats deliberately omit (the event list, GitHub's
-// own private-inclusive totals, and the per-repository commit breakdown). The
-// shared summary still matches the other formats exactly — JSON only adds.
+// detail the human-readable formats deliberately omit (the event list, every
+// repository rather than the top 15, GitHub's own private-inclusive totals, and
+// the per-repository commit breakdown). The shared summary still matches the
+// other formats exactly — JSON only adds.
 func FormatJSON(stats models.Statistics) ([]byte, error) {
 	data := map[string]any{
 		"username": stats.Username,
@@ -49,13 +50,15 @@ func FormatJSON(stats models.Statistics) ([]byte, error) {
 		},
 		"events_by_category": stats.EventsByCategory,
 		"events_by_type":     stats.EventsByType,
-		"events_by_repo":     stats.EventsByRepo,
-		"top_repos":          repoCounts(stats.TopRepos(15)),
 		"events_by_date":     stats.EventsByDate,
 		"events_by_weekday":  stats.EventsByWeekday,
 		"events_by_hour":     stats.EventsByHour,
 		"commits_by_repo":    repoCounts(stats.CommitsByRepo),
 		"events":             jsonEvents(stats.Events),
+		// Every repository, where the other formats show the top 15: a cut list
+		// cannot tell a consumer whether a missing repository had no events or
+		// fell below the cut, and lists cut per period undercount when added up.
+		"top_repos": repoCounts(stats.TopRepos(len(stats.EventsByRepo))),
 	}
 
 	// The contribution calendar includes private-repository activity, so it is

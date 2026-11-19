@@ -75,9 +75,8 @@ detail the human-readable formats deliberately omit.
 |                                                          | text / markdown / html | json                  |
 |----------------------------------------------------------|------------------------|-----------------------|
 | Summary (events, commits, PRs, issues, reviews, streaks) | yes                    | yes                   |
-| Top 15 repositories, marked public or private            | yes                    | yes                   |
+| Repositories by event count, marked public or private    | top 15                 | all, `top_repos`      |
 | Category, weekday and hour distributions                 | yes                    | yes                   |
-| Full per-repository event counts                         | —                      | `events_by_repo`      |
 | Per-day event counts                                     | heatmap only           | `events_by_date`      |
 | Contribution calendar, per day                           | heatmap only           | `calendar`            |
 | GitHub's own totals, private repos included              | —                      | `contribution_totals` |
