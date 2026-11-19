@@ -25,6 +25,7 @@ func (c *Calculator) Calculate(events []models.Event) models.Statistics {
 		EventsByCategory: make(map[models.Category]int),
 		EventsByType:     make(map[string]int),
 		EventsByRepo:     make(map[string]int),
+		RepoPrivate:      make(map[string]bool),
 		EventsByDate:     make(map[string]int),
 		EventsByWeekday:  make(map[int]int),
 		EventsByHour:     make(map[int]int),
@@ -39,6 +40,7 @@ func (c *Calculator) Calculate(events []models.Event) models.Statistics {
 		stats.EventsByCategory[cat]++
 		stats.EventsByType[event.Type]++
 		stats.EventsByRepo[event.Repo]++
+		stats.RepoPrivate[event.Repo] = event.RepoPrivate
 		stats.EventsByDate[event.Date().Format(ghutil.DateFormat)]++
 
 		// Convert Go weekday (0=Sunday) to Python-style (0=Monday)
@@ -78,6 +80,11 @@ func (c *Calculator) Calculate(events []models.Event) models.Statistics {
 	stats.Events = events
 	stats.Totals = c.Totals
 	stats.CommitsByRepo = c.CommitsByRepo
+	// A repository can have commits and no listed event, so the commit counts
+	// are a visibility source of their own.
+	for _, rc := range c.CommitsByRepo {
+		stats.RepoPrivate[rc.Repo] = rc.Private
+	}
 
 	// Build calendar on stats
 	if len(filteredDays) > 0 {

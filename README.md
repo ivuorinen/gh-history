@@ -75,7 +75,7 @@ detail the human-readable formats deliberately omit.
 |                                                          | text / markdown / html | json                  |
 |----------------------------------------------------------|------------------------|-----------------------|
 | Summary (events, commits, PRs, issues, reviews, streaks) | yes                    | yes                   |
-| Top 15 repositories                                      | yes                    | yes                   |
+| Top 15 repositories, marked public or private            | yes                    | yes                   |
 | Category, weekday and hour distributions                 | yes                    | yes                   |
 | Full per-repository event counts                         | —                      | `events_by_repo`      |
 | Per-day event counts                                     | heatmap only           | `events_by_date`      |
@@ -89,6 +89,12 @@ detail the human-readable formats deliberately omit.
 are counted from the contributions the token can list. Reporting on yourself
 with full access, the two agree. They diverge when the token cannot see some of
 the user's repositories.
+
+Every repository is marked public or private. Text, Markdown and HTML show it as
+a Visibility column in the top-repositories table; JSON carries `private` on
+each `top_repos` and `commits_by_repo` entry and `repo_private` on each event.
+The flag is GitHub's `isPrivate`, so an internal repository on GitHub Enterprise
+shows as private.
 
 `--format html` always writes to a file and opens it in your default browser. With
 no `--output` the file is `<username>-report.html` in the current directory; with

@@ -168,7 +168,7 @@ func fetchEvents(cfg *config, client contributionFetcher, dr daterange.DateRange
 	var allCalendarDays []models.ContributionDay
 	var totals models.ContributionTotals
 	var calendarTotal int
-	commitsByRepo := map[string]int{}
+	commitsByRepo := map[string]models.RepoCount{}
 
 	logVerbose(cfg.verbose, "Fetching %s to %s...",
 		dr.Start.Format(ghutil.DateFormat), dr.End.Format(ghutil.DateFormat))
@@ -192,7 +192,10 @@ func fetchEvents(cfg *config, client contributionFetcher, dr daterange.DateRange
 		totals.Repositories += result.Totals.Repositories
 		calendarTotal += result.CalendarTotal
 		for _, rc := range result.CommitsByRepo {
-			commitsByRepo[rc.Repo] += rc.Count
+			acc := commitsByRepo[rc.Repo]
+			acc.Repo, acc.Private = rc.Repo, rc.Private
+			acc.Count += rc.Count
+			commitsByRepo[rc.Repo] = acc
 		}
 	}
 
@@ -230,10 +233,12 @@ func fetchEvents(cfg *config, client contributionFetcher, dr daterange.DateRange
 // sortedRepoCounts converts the accumulated per-repository counts into a slice
 // ordered by count descending, breaking ties on the repository name so the
 // output does not vary between runs on Go's randomized map iteration order.
-func sortedRepoCounts(counts map[string]int) []models.RepoCount {
+// The map holds whole RepoCounts, not bare counts, so a repository's visibility
+// survives the merge across year chunks.
+func sortedRepoCounts(counts map[string]models.RepoCount) []models.RepoCount {
 	out := make([]models.RepoCount, 0, len(counts))
-	for repo, count := range counts {
-		out = append(out, models.RepoCount{Repo: repo, Count: count})
+	for _, rc := range counts {
+		out = append(out, rc)
 	}
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].Count != out[j].Count {

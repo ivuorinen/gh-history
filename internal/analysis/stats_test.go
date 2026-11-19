@@ -1,6 +1,7 @@
 package analysis
 
 import (
+	"maps"
 	"testing"
 	"time"
 
@@ -265,6 +266,28 @@ func TestCalculate_CommitCountFromGraphQLTotal(t *testing.T) {
 
 	if stats.CommitCount != 500 {
 		t.Errorf("expected CommitCount 500 (from GraphQL), got %d", stats.CommitCount)
+	}
+}
+
+// The calculator records each repository's visibility from the events and from
+// the per-repository commit counts. A repository with commits but no listed
+// event still needs its visibility, or the commit table cannot mark it.
+func TestCalculate_RecordsRepoVisibility(t *testing.T) {
+	at := time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC)
+	calc := &Calculator{
+		DateRange: testutil.SampleDateRange(),
+		CommitsByRepo: []models.RepoCount{
+			{Repo: "u/commits-only", Count: 2, Private: true},
+		},
+	}
+	stats := calc.Calculate([]models.Event{
+		{ID: "1", Type: "IssueCommentEvent", Repo: "u/priv", RepoPrivate: true, CreatedAt: at},
+		{ID: "2", Type: "IssueCommentEvent", Repo: "u/pub", CreatedAt: at},
+	})
+
+	want := map[string]bool{"u/priv": true, "u/pub": false, "u/commits-only": true}
+	if !maps.Equal(stats.RepoPrivate, want) {
+		t.Errorf("RepoPrivate = %v, want %v", stats.RepoPrivate, want)
 	}
 }
 

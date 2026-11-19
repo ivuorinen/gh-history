@@ -121,7 +121,7 @@ func TestGraphQLClientDo_DecodesNestedCamelCaseAndTimes(t *testing.T) {
 		_, _ = w.Write([]byte(`{"data":{"user":{"contributionsCollection":{
 			"totalCommitContributions": 7,
 			"contributionCalendar":{"totalContributions":9,"weeks":[{"contributionDays":[{"date":"2024-01-02","contributionCount":3}]}]},
-			"pullRequestContributions":{"nodes":[{"occurredAt":"2024-01-10T10:00:00Z","pullRequest":{"number":42,"title":"T","state":"OPEN","createdAt":"2024-01-09T08:00:00Z","repository":{"nameWithOwner":"a/b"}}}],"pageInfo":{"endCursor":"c1","hasNextPage":true}}
+			"pullRequestContributions":{"nodes":[{"occurredAt":"2024-01-10T10:00:00Z","pullRequest":{"number":42,"title":"T","state":"OPEN","createdAt":"2024-01-09T08:00:00Z","repository":{"nameWithOwner":"a/b","isPrivate":true}}}],"pageInfo":{"endCursor":"c1","hasNextPage":true}}
 		}}}}`))
 	})
 
@@ -153,6 +153,9 @@ func TestGraphQLClientDo_DecodesNestedCamelCaseAndTimes(t *testing.T) {
 	}
 	if nodes[0].PullRequest.Number != 42 || nodes[0].PullRequest.Repository.NameWithOwner != "a/b" {
 		t.Errorf("pr = %+v", nodes[0].PullRequest)
+	}
+	if !nodes[0].PullRequest.Repository.IsPrivate {
+		t.Errorf("repository.isPrivate not decoded: %+v", nodes[0].PullRequest.Repository)
 	}
 	pi := cc.PullRequestContributions.PageInfo
 	if pi.EndCursor == nil || *pi.EndCursor != "c1" || !pi.HasNextPage {

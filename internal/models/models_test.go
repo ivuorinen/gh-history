@@ -1,6 +1,7 @@
 package models
 
 import (
+	"slices"
 	"testing"
 	"time"
 )
@@ -13,6 +14,24 @@ func TestTopRepos_TiesBreakOnName(t *testing.T) {
 		if got[0].Repo != "u/z" || got[1].Repo != "u/a" || got[2].Repo != "u/b" {
 			t.Fatalf("TopRepos(3) = %+v, want u/z, u/a, u/b", got)
 		}
+	}
+}
+
+// Top repositories carry the visibility recorded for them, so every format's
+// repository table can mark the private ones. A repository with no recorded
+// visibility reads as public.
+func TestTopRepos_CarriesVisibility(t *testing.T) {
+	s := Statistics{
+		EventsByRepo: map[string]int{"u/priv": 3, "u/pub": 2, "u/unknown": 1},
+		RepoPrivate:  map[string]bool{"u/priv": true, "u/pub": false},
+	}
+	want := []RepoCount{
+		{Repo: "u/priv", Count: 3, Private: true},
+		{Repo: "u/pub", Count: 2},
+		{Repo: "u/unknown", Count: 1},
+	}
+	if got := s.TopRepos(3); !slices.Equal(got, want) {
+		t.Errorf("TopRepos(3) = %+v, want %+v", got, want)
 	}
 }
 
