@@ -193,7 +193,9 @@ func fetchEvents(cfg *config, client contributionFetcher, dr daterange.DateRange
 		calendarTotal += result.CalendarTotal
 		for _, rc := range result.CommitsByRepo {
 			acc := commitsByRepo[rc.Repo]
-			acc.Repo, acc.Private = rc.Repo, rc.Private
+			acc.Repo = rc.Repo
+			// Private if any chunk saw it private, the rule Calculate applies.
+			acc.Private = acc.Private || rc.Private
 			acc.Count += rc.Count
 			commitsByRepo[rc.Repo] = acc
 		}

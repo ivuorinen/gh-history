@@ -291,6 +291,41 @@ func TestCalculate_RecordsRepoVisibility(t *testing.T) {
 	}
 }
 
+// GitHub reports visibility as it is when each query runs, so a repository that
+// changes visibility mid-run is observed both ways. Whichever source wrote last
+// used to win: a later public event overrode an earlier private one, and the
+// commit counts overrode every event. One private observation now makes the
+// repository private in RepoPrivate and in CommitsByRepo alike.
+func TestCalculate_AnyPrivateObservationWins(t *testing.T) {
+	at := time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC)
+	calc := &Calculator{
+		DateRange: testutil.SampleDateRange(),
+		CommitsByRepo: []models.RepoCount{
+			{Repo: "u/event-private", Count: 1},
+			{Repo: "u/commits-private", Count: 1, Private: true},
+		},
+	}
+	stats := calc.Calculate([]models.Event{
+		{ID: "1", Type: "IssueCommentEvent", Repo: "u/first-private", RepoPrivate: true, CreatedAt: at},
+		{ID: "2", Type: "IssueCommentEvent", Repo: "u/first-private", CreatedAt: at},
+		{ID: "3", Type: "IssueCommentEvent", Repo: "u/event-private", RepoPrivate: true, CreatedAt: at},
+		{ID: "4", Type: "IssueCommentEvent", Repo: "u/commits-private", CreatedAt: at},
+	})
+
+	want := map[string]bool{"u/first-private": true, "u/event-private": true, "u/commits-private": true}
+	if !maps.Equal(stats.RepoPrivate, want) {
+		t.Errorf("RepoPrivate = %v, want %v", stats.RepoPrivate, want)
+	}
+	for _, rc := range stats.CommitsByRepo {
+		if !rc.Private {
+			t.Errorf("CommitsByRepo marks %s public; the run observed it private", rc.Repo)
+		}
+	}
+	if calc.CommitsByRepo[0].Private {
+		t.Error("Calculate rewrote the caller's CommitsByRepo instead of a copy")
+	}
+}
+
 // Opened PRs and issues are counted again by the state GitHub reported for them,
 // which is what the merge and close rates divide. Closed events (which include
 // items opened before the range) and opened items still open must not count.
