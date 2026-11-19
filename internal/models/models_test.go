@@ -121,9 +121,10 @@ func TestTopRepos(t *testing.T) {
 	}
 }
 
-// The merge rate is the share of PRs opened in the range that are merged.
-// PRMerged counts PRs merged in the range, including ones opened before it, so
-// it must not be the numerator: 5 merged against 2 opened read 250%.
+// The merge rate is the share of PRs opened in the range that are merged,
+// counted from the opened PRs themselves. PRMerged is not its numerator, so no
+// combination of counts reads above 100%; with PRMerged, 5 merged against 2
+// opened would read 250%.
 func TestPRMergeRate(t *testing.T) {
 	tests := []struct {
 		name                         string
@@ -134,7 +135,7 @@ func TestPRMergeRate(t *testing.T) {
 		{"all", 10, 10, 10, 100},
 		{"none merged", 0, 10, 0, 0},
 		{"no PRs opened does not divide by zero", 0, 0, 3, 0},
-		{"merges of older PRs do not inflate the rate", 1, 2, 5, 50},
+		{"PRMerged is not the numerator", 1, 2, 5, 50},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -146,8 +147,8 @@ func TestPRMergeRate(t *testing.T) {
 	}
 }
 
-// The close rate is the share of issues opened in the range that are closed;
-// closes of issues opened earlier must not inflate it.
+// The close rate is the share of issues opened in the range that are closed,
+// counted from the opened issues themselves; IssuesClosed is not its numerator.
 func TestIssueCloseRate(t *testing.T) {
 	tests := []struct {
 		name                         string
@@ -156,7 +157,7 @@ func TestIssueCloseRate(t *testing.T) {
 	}{
 		{"half of the opened issues closed", 5, 10, 5, 50},
 		{"none opened does not divide by zero", 0, 0, 4, 0},
-		{"closes of older issues do not inflate the rate", 1, 4, 6, 25},
+		{"IssuesClosed is not the numerator", 1, 4, 6, 25},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {

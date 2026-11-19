@@ -113,8 +113,10 @@ type Statistics struct {
 	ReviewsCount    int
 	// PROpenedMerged and IssuesOpenedClosed count, among the PRs and issues
 	// opened in the range, those merged or closed by fetch time. They are the
-	// rates' numerators: PRMerged and IssuesClosed also count items opened
-	// before the range, so dividing them by the opened counts can exceed 100%.
+	// rates' numerators because they count the opened items themselves, so a
+	// rate cannot exceed 100% whatever events Calculate is given. PRMerged and
+	// IssuesClosed count close events inside the range instead, which leaves
+	// out an item merged or closed after the range ends.
 	PROpenedMerged     int
 	IssuesOpenedClosed int
 
@@ -154,8 +156,7 @@ func (s Statistics) TopRepos(n int) []RepoCount {
 }
 
 // PRMergeRate returns the percentage of PRs opened in the range that were merged
-// by fetch time. It divides PROpenedMerged, not PRMerged: PRMerged also counts
-// merges of PRs opened before the range, which put the rate above 100%.
+// by fetch time. It divides PROpenedMerged, not PRMerged: see PROpenedMerged.
 func (s Statistics) PRMergeRate() float64 {
 	return ghutil.SafeDiv(s.PROpenedMerged, s.PROpened) * 100
 }

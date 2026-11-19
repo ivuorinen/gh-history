@@ -7,8 +7,9 @@ import (
 	"github.com/ivuorinen/gh-history/internal/models"
 )
 
-// rateStats has 3 of 4 opened PRs merged and 1 of 4 opened issues closed, plus
-// merges and closes of older items that must not move either rate.
+// rateStats has 3 of 4 opened PRs merged and 1 of 4 opened issues closed. Its
+// PRMerged and IssuesClosed differ from both, so a rate computed from them
+// shows up as a wrong value.
 func rateStats() models.Statistics {
 	return models.Statistics{
 		PROpened: 4, PROpenedMerged: 3, PRMerged: 7,

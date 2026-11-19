@@ -327,8 +327,9 @@ func TestCalculate_AnyPrivateObservationWins(t *testing.T) {
 }
 
 // Opened PRs and issues are counted again by the state GitHub reported for them,
-// which is what the merge and close rates divide. Closed events (which include
-// items opened before the range) and opened items still open must not count.
+// which is what the merge and close rates divide. A close event does not count
+// there, even one with a merged state, and neither does an opened item still
+// open.
 func TestCalculate_CountsOpenedItemsByState(t *testing.T) {
 	at := time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC)
 	ev := func(id, typ, action, state string, merged bool) models.Event {
@@ -340,10 +341,10 @@ func TestCalculate_CountsOpenedItemsByState(t *testing.T) {
 		ev("p1", "PullRequestEvent", models.ActionOpened, "MERGED", false),
 		ev("p2", "PullRequestEvent", models.ActionOpened, "OPEN", false),
 		ev("p3", "PullRequestEvent", models.ActionOpened, "CLOSED", false),
-		ev("p4", "PullRequestEvent", models.ActionClosed, "MERGED", true), // opened before the range
+		ev("p4", "PullRequestEvent", models.ActionClosed, "MERGED", true), // counts under PRMerged only
 		ev("i1", "IssuesEvent", models.ActionOpened, "CLOSED", false),
 		ev("i2", "IssuesEvent", models.ActionOpened, "OPEN", false),
-		ev("i3", "IssuesEvent", models.ActionClosed, "CLOSED", false), // opened before the range
+		ev("i3", "IssuesEvent", models.ActionClosed, "CLOSED", false), // counts under IssuesClosed only
 	})
 
 	if stats.PROpened != 3 || stats.PROpenedMerged != 1 || stats.PRMerged != 1 {
