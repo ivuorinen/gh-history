@@ -88,8 +88,7 @@ detail the human-readable formats deliberately omit.
 `summary.commits` is the same commit total. The other figures under `summary`
 are counted from the contributions the token can list. Reporting on yourself
 with full access, the two agree. They diverge when the token cannot see some of
-the user's repositories, or when a collection hits the pagination limit (the
-CLI warns when that happens).
+the user's repositories.
 
 `--format html` always writes to a file and opens it in your default browser. With
 no `--output` the file is `<username>-report.html` in the current directory; with

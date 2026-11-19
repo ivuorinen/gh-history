@@ -7,9 +7,6 @@ import (
 // DateFormat is the standard date layout used throughout the application.
 const DateFormat = time.DateOnly
 
-// MaxPaginationPages is the maximum number of pages to fetch in pagination loops.
-const MaxPaginationPages = 10
-
 // TruncateToDay returns the start of t's UTC day.
 //
 // t is converted to UTC first: reading Year/Month/Day off a non-UTC time yields

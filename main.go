@@ -180,13 +180,6 @@ func fetchEvents(cfg *config, client contributionFetcher, dr daterange.DateRange
 		if err != nil {
 			return fetchResult{}, fmt.Errorf("fetching contributions: %w", err)
 		}
-		// Incomplete but usable: warn regardless of verbosity rather than
-		// reporting understated figures as if they were complete.
-		for _, what := range result.Truncated {
-			fmt.Fprintf(os.Stderr,
-				"Warning: %s for %s to %s hit the pagination limit; counts are understated\n",
-				what, chunk.Start.Format(ghutil.DateFormat), chunk.End.Format(ghutil.DateFormat))
-		}
 		allEvents = append(allEvents, result.Events...)
 		allCalendarDays = append(allCalendarDays, result.CalendarDays...)
 
@@ -251,8 +244,14 @@ func sortedRepoCounts(counts map[string]int) []models.RepoCount {
 	return out
 }
 
-// writeToFileOrStdout writes data to a file, or to stdout when no file is given.
+// writeToFileOrStdout writes data to a file, or to stdout when no file is given,
+// ending it with exactly one newline either way. JSON comes without one and
+// Markdown with one, so neither os.WriteFile nor fmt.Println alone gets both
+// right: the same report differed between --output and a redirect.
 func writeToFileOrStdout(data []byte, outputFile string) {
+	if !bytes.HasSuffix(data, []byte("\n")) {
+		data = append(data, '\n')
+	}
 	if outputFile != "" {
 		if err := os.WriteFile(outputFile, data, 0o644); err != nil {
 			fatal("writing file: %v", err)
@@ -260,7 +259,9 @@ func writeToFileOrStdout(data []byte, outputFile string) {
 		fmt.Fprintf(os.Stderr, "Saved to: %s\n", outputFile)
 		return
 	}
-	fmt.Println(string(data))
+	if _, err := os.Stdout.Write(data); err != nil {
+		fatal("writing output: %v", err)
+	}
 }
 
 func writeOutput(cfg *config, stats models.Statistics) {

@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -529,19 +531,66 @@ func TestFetchEvents_AggregatesChunks(t *testing.T) {
 
 // --output was silently dropped for the text format.
 func TestWriteOutput_TextHonoursOutputFile(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "report.txt")
+	dir := t.TempDir()
 	stats := models.Statistics{
 		Username:  "octocat",
 		DateRange: daterange.DateRange{Start: d(2024, 1, 1), End: d(2024, 1, 31)},
 	}
-	writeOutput(&config{format: "text", outputFile: path}, stats)
+	writeOutput(&config{format: "text", outputFile: filepath.Join(dir, "report.txt")}, stats)
 
-	data, err := os.ReadFile(path)
+	data, err := fs.ReadFile(os.DirFS(dir), "report.txt")
 	if err != nil {
 		t.Fatalf("text report was not written to --output: %v", err)
 	}
 	if !strings.Contains(string(data), "GitHub Activity Report: octocat") {
 		t.Errorf("unexpected file content:\n%s", data)
+	}
+}
+
+// A report ends with exactly one newline wherever it goes. --output wrote JSON
+// with none, while stdout's Println gave Markdown, which already ends in one, a
+// second.
+func TestWriteToFileOrStdout_EndsWithOneNewline(t *testing.T) {
+	tests := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{"no trailing newline", `{"a": 1}`, "{\"a\": 1}\n"},
+		{"one trailing newline", "# Report\n", "# Report\n"},
+		{"empty", "", "\n"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name+" to a file", func(t *testing.T) {
+			dir := t.TempDir()
+			writeToFileOrStdout([]byte(tt.in), filepath.Join(dir, "report"))
+			got, err := fs.ReadFile(os.DirFS(dir), "report")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(got) != tt.want {
+				t.Errorf("file = %q, want %q", got, tt.want)
+			}
+		})
+		t.Run(tt.name+" to stdout", func(t *testing.T) {
+			r, w, err := os.Pipe()
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer r.Close()
+			stdout := os.Stdout
+			os.Stdout = w
+			writeToFileOrStdout([]byte(tt.in), "")
+			os.Stdout = stdout
+			w.Close()
+			got, err := io.ReadAll(r)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(got) != tt.want {
+				t.Errorf("stdout = %q, want %q", got, tt.want)
+			}
+		})
 	}
 }
 
