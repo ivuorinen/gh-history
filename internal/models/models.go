@@ -55,9 +55,9 @@ type Event struct {
 	SubjectState string
 }
 
-// Date returns the event date (without time).
-func (e Event) Date() time.Time {
-	return ghutil.TruncateToDay(e.CreatedAt)
+// Date returns the day the event falls on in loc, the report's zone.
+func (e Event) Date(loc *time.Location) time.Time {
+	return ghutil.TruncateToDay(e.CreatedAt, loc)
 }
 
 // StreakInfo holds information about activity streaks.

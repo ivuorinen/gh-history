@@ -21,6 +21,7 @@ type htmlReportData struct {
 	Username  string
 	DateStart string
 	DateEnd   string
+	TimeZone  string
 	Cards     []SummaryRow
 
 	HasCategories  bool
@@ -165,7 +166,7 @@ var reportTemplate = template.Must(template.New("report").Parse(`<!DOCTYPE html>
         <header>
             <h1>GitHub Activity Report</h1>
             <div class="date-range">
-                {{.Username}} &middot; {{.DateStart}} to {{.DateEnd}}
+                {{.Username}} &middot; {{.DateStart}} to {{.DateEnd}} &middot; Time zone: {{.TimeZone}}
             </div>
         </header>
 
@@ -246,7 +247,7 @@ var reportTemplate = template.Must(template.New("report").Parse(`<!DOCTYPE html>
                         paper_bgcolor: 'rgba(0,0,0,0)',
                         plot_bgcolor: 'rgba(0,0,0,0)',
                         font: {color: '#c9d1d9'},
-                        xaxis: {title: 'Hour (UTC)', dtick: 2},
+                        xaxis: {title: 'Hour ({{.TimeZone}})', dtick: 2},
                         yaxis: {title: 'Events'},
                         margin: {t: 20, b: 40, l: 50, r: 20}
                     }, {responsive: true});
@@ -347,6 +348,7 @@ func buildHTML(stats models.Statistics) (string, error) {
 		Username:  stats.Username,
 		DateStart: stats.DateRange.Start.Format(ghutil.DateFormat),
 		DateEnd:   stats.DateRange.End.Format(ghutil.DateFormat),
+		TimeZone:  stats.DateRange.Location().String(),
 	}
 
 	// Cards — same source as every other format, so no statistic is
@@ -398,7 +400,7 @@ func buildHTML(stats models.Statistics) (string, error) {
 		return "", err
 	}
 	data.HourlyJSON = template.JS(hourlyJSON)
-	data.HourlyAlt = barsAlt("Activity by hour UTC", BuildHourlyBars(stats, 1))
+	data.HourlyAlt = barsAlt("Activity by hour ("+data.TimeZone+")", BuildHourlyBars(stats, 1))
 
 	// Heatmap
 	heatmapData, summary, fromCalendar, err := buildHeatmapData(stats)

@@ -10,27 +10,56 @@ import (
 // FirstGitHubYear is the year GitHub launched; no activity can predate it.
 const FirstGitHubYear = 2008
 
-// DateRange represents a date range for querying GitHub activity.
+// DateRange represents a date range for querying GitHub activity: the days
+// Start through End, inclusive, as days in Loc.
+//
+// Start and End are dates, held as midnight UTC like every date in a report.
+// Loc decides where those days begin and end as instants, which StartTime and
+// EndDateTime give: GitHub's from/to and every filter on an instant cut there.
+// One zone per range keeps every figure in a report on the same days.
 type DateRange struct {
 	Start time.Time
 	End   time.Time
+	Loc   *time.Location // nil is UTC
 }
 
-// New creates a DateRange, validating that start is not after end.
-func New(start, end time.Time) (DateRange, error) {
-	start = ghutil.TruncateToDay(start)
-	end = ghutil.TruncateToDay(end)
+// Location returns the zone the range's days are days in.
+func (dr DateRange) Location() *time.Location {
+	if dr.Loc == nil {
+		return time.UTC
+	}
+	return dr.Loc
+}
+
+// StartTime returns the instant the range starts: midnight on Start in the
+// range's zone.
+func (dr DateRange) StartTime() time.Time {
+	return time.Date(dr.Start.Year(), dr.Start.Month(), dr.Start.Day(), 0, 0, 0, 0, dr.Location())
+}
+
+// New creates a DateRange of the dates start through end, as days in loc,
+// validating that start is not after end. start and end are dates: their UTC
+// day is taken.
+func New(start, end time.Time, loc *time.Location) (DateRange, error) {
+	start = ghutil.TruncateToDay(start, time.UTC)
+	end = ghutil.TruncateToDay(end, time.UTC)
 	if start.After(end) {
 		return DateRange{}, fmt.Errorf("start date %s is after end date %s", start.Format(ghutil.DateFormat), end.Format(ghutil.DateFormat))
 	}
-	return DateRange{Start: start, End: end}, nil
+	return DateRange{Start: start, End: end, Loc: loc}, nil
+}
+
+// Today returns today's date in loc. Every "today" a range is built or judged
+// against comes from here, so a range ends on the day it is in its own zone.
+func Today(loc *time.Location) time.Time {
+	return ghutil.TruncateToDay(time.Now(), loc)
 }
 
 // Year creates a DateRange spanning the given year.
 // If the year is in progress, the end date is capped to today. A year that has
 // not started yet is an error: capping its end to today would otherwise yield a
 // range whose start is after its end.
-func Year(year int) (DateRange, error) {
+func Year(year int, loc *time.Location) (DateRange, error) {
 	// GitHub did not exist before 2008, and an unbounded lower end is not just
 	// useless: the range is split into one-year GraphQL chunks, so --year 1
 	// would issue two thousand requests before returning anything.
@@ -39,30 +68,30 @@ func Year(year int) (DateRange, error) {
 	}
 	start := time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC)
 	end := time.Date(year, 12, 31, 0, 0, 0, 0, time.UTC)
-	today := ghutil.TruncateToDay(time.Now().UTC())
+	today := Today(loc)
 	if start.After(today) {
 		return DateRange{}, fmt.Errorf("year %d has not started yet", year)
 	}
 	if end.After(today) {
 		end = today
 	}
-	return New(start, end)
+	return New(start, end, loc)
 }
 
 // LastMonth creates a DateRange for the previous calendar month.
-func LastMonth() DateRange {
-	now := time.Now().UTC()
-	firstOfThisMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
+func LastMonth(loc *time.Location) DateRange {
+	today := Today(loc)
+	firstOfThisMonth := time.Date(today.Year(), today.Month(), 1, 0, 0, 0, 0, time.UTC)
 	lastOfPrevMonth := firstOfThisMonth.AddDate(0, 0, -1)
 	firstOfPrevMonth := time.Date(lastOfPrevMonth.Year(), lastOfPrevMonth.Month(), 1, 0, 0, 0, 0, time.UTC)
-	return DateRange{Start: firstOfPrevMonth, End: lastOfPrevMonth}
+	return DateRange{Start: firstOfPrevMonth, End: lastOfPrevMonth, Loc: loc}
 }
 
 // LastNDays creates a DateRange for the last n days (inclusive of today).
-func LastNDays(n int) DateRange {
-	today := ghutil.TruncateToDay(time.Now().UTC())
+func LastNDays(n int, loc *time.Location) DateRange {
+	today := Today(loc)
 	start := today.AddDate(0, 0, -(n - 1))
-	return DateRange{Start: start, End: today}
+	return DateRange{Start: start, End: today, Loc: loc}
 }
 
 // Days returns the total number of days in the range (inclusive).
@@ -70,14 +99,15 @@ func (dr DateRange) Days() int {
 	return int(dr.End.Sub(dr.Start).Hours()/24) + 1
 }
 
-// EndDateTime returns the start of the day after End in UTC.
-// Callers should use < (not <=) when comparing against this value.
+// EndDateTime returns the instant the range ends: midnight after End in the
+// range's zone. Callers should use < (not <=) when comparing against it.
 func (dr DateRange) EndDateTime() time.Time {
-	return time.Date(dr.End.Year(), dr.End.Month(), dr.End.Day()+1, 0, 0, 0, 0, time.UTC)
+	return time.Date(dr.End.Year(), dr.End.Month(), dr.End.Day()+1, 0, 0, 0, 0, dr.Location())
 }
 
-// ParseDateRange parses CLI flags into a DateRange.
-func ParseDateRange(fromDate, toDate string, year int, lastMonth, last90 bool) (DateRange, error) {
+// ParseDateRange parses CLI flags into a DateRange of days in loc. The dates
+// given are days in loc, and "today", which caps the end, is today there.
+func ParseDateRange(fromDate, toDate string, year int, lastMonth, last90 bool, loc *time.Location) (DateRange, error) {
 	options := 0
 	if fromDate != "" || toDate != "" {
 		options++
@@ -96,20 +126,20 @@ func ParseDateRange(fromDate, toDate string, year int, lastMonth, last90 bool) (
 	}
 
 	if year != 0 {
-		return Year(year)
+		return Year(year, loc)
 	}
 	if lastMonth {
-		return LastMonth(), nil
+		return LastMonth(loc), nil
 	}
 	if last90 {
-		return LastNDays(90), nil
+		return LastNDays(90, loc), nil
 	}
 
 	if fromDate == "" && toDate == "" {
-		return LastNDays(90), nil
+		return LastNDays(90, loc), nil
 	}
 
-	today := ghutil.TruncateToDay(time.Now().UTC())
+	today := Today(loc)
 	var start, end time.Time
 
 	start, err := parseDateInput("start", fromDate)
@@ -135,7 +165,7 @@ func ParseDateRange(fromDate, toDate string, year int, lastMonth, last90 bool) (
 		end = today
 	}
 
-	return New(start, end)
+	return New(start, end, loc)
 }
 
 func parseDateInput(label, s string) (time.Time, error) {

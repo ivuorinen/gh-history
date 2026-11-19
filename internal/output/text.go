@@ -54,6 +54,7 @@ func FormatTextTo(out io.Writer, isTTY bool, width int, stats models.Statistics)
 	// Header
 	fmt.Fprintf(w, "GitHub Activity Report: %s\n", stats.Username)
 	fmt.Fprintf(w, "%s to %s\n", stats.DateRange.Start.Format(ghutil.DateFormat), stats.DateRange.End.Format(ghutil.DateFormat))
+	fmt.Fprintf(w, "Time zone: %s\n", stats.DateRange.Location())
 	fmt.Fprintln(w, strings.Repeat("-", 60))
 
 	// Summary table
@@ -89,7 +90,7 @@ func FormatTextTo(out io.Writer, isTTY bool, width int, stats models.Statistics)
 
 	// Hourly distribution
 	if hourlyEntries := BuildHourlyBars(stats, 20); len(hourlyEntries) > 0 {
-		fmt.Fprintln(w, "\nActivity by Hour (UTC)")
+		fmt.Fprintf(w, "\nActivity by Hour (%s)\n", stats.DateRange.Location())
 		fmt.Fprintln(w, strings.Repeat("-", 50))
 		for _, entry := range hourlyEntries {
 			fmt.Fprintf(w, "  %s %6s  %s  %5.1f%%\n", padRight(18, entry.Label), fmtInt(entry.Count), entry.Bar, entry.Percent)

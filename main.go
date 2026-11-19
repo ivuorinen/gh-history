@@ -12,6 +12,11 @@ import (
 	"sort"
 	"strings"
 	"time"
+	// The zone database, for machines without one: Windows has none unless Go
+	// is installed, and minimal containers often lack it, so --time-zone would
+	// fail there for every zone but UTC. It is used only when the system's own
+	// database is missing.
+	_ "time/tzdata"
 
 	"github.com/ivuorinen/gh-history/internal/analysis"
 	"github.com/ivuorinen/gh-history/internal/api"
@@ -35,6 +40,7 @@ type config struct {
 	verbose     bool
 	showVersion bool
 	hostname    string
+	timeZone    string   // from --time-zone; resolveTimeZone turns it into the zone
 	username    string   // from --username
 	positional  []string // non-flag arguments, the first of which is a username
 }
@@ -102,6 +108,7 @@ func parseFlags(args []string) *config {
 	fs.StringVar(&cfg.username, "username", "", "GitHub username to report on")
 	fs.StringVar(&cfg.username, "u", "", "GitHub username to report on")
 	fs.StringVar(&cfg.hostname, "hostname", "", "GitHub host (for GitHub Enterprise; defaults to GH_HOST or github.com)")
+	fs.StringVar(&cfg.timeZone, "time-zone", "", "IANA time zone days are counted in, such as Europe/Berlin (defaults to TZ, then UTC)")
 	fs.BoolVar(&cfg.verbose, "verbose", false, "Verbose output")
 	fs.BoolVar(&cfg.verbose, "v", false, "Verbose output")
 	fs.BoolVar(&cfg.showVersion, "version", false, "Show version")
@@ -124,14 +131,14 @@ func parseFlags(args []string) *config {
 
 const usageHint = "Usage: gh history <username> [options]\nOr authenticate with: gh auth login"
 
-func resolveUser(cfg *config) string {
+func resolveUser(cfg *config, loc *time.Location) string {
 	if s := cfg.subject(); s != "" {
 		return s
 	}
 	// Report what actually failed. Collapsing a network error, an expired token
 	// and a missing token into one "username required" message sends users to
 	// re-authenticate credentials that may be working fine.
-	client, err := newAPIClient(cfg)
+	client, err := newAPIClient(cfg, loc)
 	if err != nil {
 		fatal("no username given and the GitHub client could not be created: %v\n%s", err, usageHint)
 	}
@@ -331,14 +338,22 @@ func handleMain(args []string) {
 		fatal("%v", err)
 	}
 
-	username := resolveUser(cfg)
+	loc, warning, err := resolveTimeZone(cfg.timeZone, os.Getenv("TZ"))
+	if err != nil {
+		fatal("%v", err)
+	}
+	if warning != "" {
+		fmt.Fprintln(os.Stderr, "Warning: "+warning)
+	}
 
-	dr, err := daterange.ParseDateRange(cfg.fromDate, cfg.toDate, cfg.year, cfg.lastMonth, cfg.last90)
+	username := resolveUser(cfg, loc)
+
+	dr, err := daterange.ParseDateRange(cfg.fromDate, cfg.toDate, cfg.year, cfg.lastMonth, cfg.last90, loc)
 	if err != nil {
 		fatal("%v", err)
 	}
 
-	client, err := newAPIClient(cfg)
+	client, err := newAPIClient(cfg, loc)
 	if err != nil {
 		fatal("%v", err)
 	}
@@ -412,15 +427,54 @@ func browserCommand(path, launcher, goos string) (string, []string, error) {
 	}
 }
 
-// newAPIClient creates an API client for the configured host.
-func newAPIClient(cfg *config) (*api.Client, error) {
+// newAPIClient creates an API client for the configured host, sending loc as
+// the zone GitHub counts days in.
+func newAPIClient(cfg *config, loc *time.Location) (*api.Client, error) {
 	host := resolveHost(cfg.hostname)
 	token := resolveToken(host)
 	logVerbose(cfg.verbose, "Using host: %s", host)
 	if token == "" {
 		logVerbose(cfg.verbose, "No token found; requests will be unauthenticated")
 	}
-	return api.NewClient(host, token)
+	return api.NewClient(host, token, loc.String())
+}
+
+// resolveTimeZone picks the zone the report counts days in: the --time-zone
+// flag, then TZ when it names an IANA zone, then UTC. It never reads the
+// machine's /etc/localtime, so the same command counts the same days on every
+// machine, and a CI runner agrees with a laptop.
+//
+// A bad --time-zone is an error, since that zone was asked for. A TZ that is
+// not an IANA name (the POSIX form "CET-1CEST,M3.5.0", say) falls back to UTC
+// with a warning for the caller to print: GitHub would not understand it, and
+// TZ is set for every program, not for this one.
+func resolveTimeZone(flagZone, envTZ string) (*time.Location, string, error) {
+	if flagZone != "" {
+		loc, err := loadZone(flagZone)
+		if err != nil {
+			return nil, "", fmt.Errorf("--time-zone %q is not an IANA time zone name, such as Europe/Berlin or UTC", flagZone)
+		}
+		return loc, "", nil
+	}
+	// POSIX lets TZ start with a colon before the zone name.
+	if tz := strings.TrimPrefix(envTZ, ":"); tz != "" {
+		loc, err := loadZone(tz)
+		if err != nil {
+			return time.UTC, fmt.Sprintf("TZ %q is not an IANA time zone name; counting days in UTC", envTZ), nil
+		}
+		return loc, "", nil
+	}
+	return time.UTC, "", nil
+}
+
+// loadZone loads the IANA zone name. time.LoadLocation also accepts "Local",
+// whatever zone the machine is in, which is neither reproducible nor a name
+// GitHub understands.
+func loadZone(name string) (*time.Location, error) {
+	if name == "Local" {
+		return nil, fmt.Errorf("%q is not an IANA zone name", name)
+	}
+	return time.LoadLocation(name)
 }
 
 // resolveHost picks the GitHub host: the --hostname flag, then GH_HOST, then the
@@ -527,7 +581,7 @@ func splitIntoYearChunks(dr daterange.DateRange) []daterange.DateRange {
 		if chunkEnd.After(dr.End) {
 			chunkEnd = dr.End
 		}
-		chunk, _ := daterange.New(chunkStart, chunkEnd)
+		chunk, _ := daterange.New(chunkStart, chunkEnd, dr.Location())
 		chunks = append(chunks, chunk)
 		chunkStart = chunkEnd.AddDate(0, 0, 1)
 	}

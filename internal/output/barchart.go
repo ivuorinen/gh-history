@@ -68,7 +68,8 @@ func BuildWeekdayBars(stats models.Statistics, barWidth int) []BarChartEntry {
 	return buildBars(stats.TotalEvents, barWidth, weekdayLabels, counts)
 }
 
-// BuildHourlyBars computes bar chart entries for activity by hour (0–23 UTC).
+// BuildHourlyBars computes bar chart entries for activity by hour (0–23, in the
+// report's zone).
 // Zero-count hours are omitted.
 func BuildHourlyBars(stats models.Statistics, barWidth int) []BarChartEntry {
 	labels := make([]string, 24)

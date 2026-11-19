@@ -17,6 +17,7 @@ func FormatMarkdown(stats models.Statistics) string {
 	fmt.Fprintf(&b, "**Period:** %s to %s\n\n",
 		stats.DateRange.Start.Format(ghutil.DateFormat),
 		stats.DateRange.End.Format(ghutil.DateFormat))
+	fmt.Fprintf(&b, "**Time zone:** %s\n\n", stats.DateRange.Location())
 
 	b.WriteString("## Summary\n\n")
 	b.WriteString("| Metric | Value |\n")
@@ -49,7 +50,7 @@ func FormatMarkdown(stats models.Statistics) string {
 	}
 
 	if hourlyEntries := BuildHourlyBars(stats, 20); len(hourlyEntries) > 0 {
-		b.WriteString("\n## Activity by Hour (UTC)\n\n")
+		fmt.Fprintf(&b, "\n## Activity by Hour (%s)\n\n", stats.DateRange.Location())
 		b.WriteString("| Hour | Count | Bar | Percentage |\n")
 		b.WriteString("|------|-------|-----|------------|\n")
 		for _, entry := range hourlyEntries {

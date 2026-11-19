@@ -8,7 +8,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 )
@@ -100,37 +99,6 @@ type graphQLClient struct {
 	http     *http.Client
 }
 
-// LocalTimeZone returns the IANA name of the machine's time zone, or "" if it
-// cannot be determined.
-//
-// This matters more than it looks: GitHub buckets contributionsCollection by
-// the Time-Zone request header, so the same query returns different counts
-// depending on it. Sending the local zone matches what the user sees on
-// github.com, and is what go-gh did. Go's time.Local only reports "Local", so
-// the name has to be recovered from the environment or the zoneinfo symlink.
-func LocalTimeZone() string {
-	if tz := strings.TrimPrefix(os.Getenv("TZ"), ":"); validZone(tz) {
-		return tz
-	}
-	// On Unix /etc/localtime is a symlink into the zoneinfo database.
-	if target, err := os.Readlink("/etc/localtime"); err == nil {
-		if _, name, ok := strings.Cut(target, "zoneinfo/"); ok && validZone(name) {
-			return name
-		}
-	}
-	return ""
-}
-
-// validZone reports whether name is a loadable IANA zone. It rejects the POSIX
-// TZ forms (such as "CET-1CEST,M3.5.0") that GitHub would not understand.
-func validZone(name string) bool {
-	if name == "" || name == "Local" {
-		return false
-	}
-	_, err := time.LoadLocation(name)
-	return err == nil
-}
-
 // maxErrorBody caps how much of an error response body is read into the
 // message, so a proxy returning a large HTML page cannot flood the output.
 const maxErrorBody = 2048
@@ -186,10 +154,9 @@ func (c *graphQLClient) post(body []byte, response any) error {
 	if c.token != "" {
 		req.Header.Set("Authorization", "bearer "+c.token)
 	}
-	// Determines how GitHub buckets contributions into days.
-	if c.timeZone != "" {
-		req.Header.Set("Time-Zone", c.timeZone)
-	}
+	// Determines how GitHub buckets contributions into days. Always sent, so
+	// the days GitHub counts are days in the zone the report records.
+	req.Header.Set("Time-Zone", c.timeZone)
 
 	resp, err := c.http.Do(req)
 	if err != nil {

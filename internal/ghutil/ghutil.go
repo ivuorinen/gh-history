@@ -7,15 +7,16 @@ import (
 // DateFormat is the standard date layout used throughout the application.
 const DateFormat = time.DateOnly
 
-// TruncateToDay returns the start of t's UTC day.
+// TruncateToDay returns the calendar day instant t falls on in loc, as midnight
+// UTC.
 //
-// t is converted to UTC first: reading Year/Month/Day off a non-UTC time yields
-// that zone's calendar day, which would then be mislabelled as a UTC date. Every
-// caller currently passes a UTC time, so this changes no existing behaviour — it
-// makes the stated contract true for any caller that does not.
-func TruncateToDay(t time.Time) time.Time {
-	u := t.UTC()
-	return time.Date(u.Year(), u.Month(), u.Day(), 0, 0, 0, 0, time.UTC)
+// Every date in a report is a midnight UTC value, so dates compare and step by
+// 24 hours without a daylight-saving day in between. The zone decides only
+// which day an instant belongs to: t is read in loc, whatever zone it carries,
+// because reading Year/Month/Day in t's own zone gives that zone's day instead.
+func TruncateToDay(t time.Time, loc *time.Location) time.Time {
+	l := t.In(loc)
+	return time.Date(l.Year(), l.Month(), l.Day(), 0, 0, 0, 0, time.UTC)
 }
 
 // SafeDiv returns numerator/denominator as a float64, returning 0 if denominator is 0.
