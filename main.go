@@ -467,11 +467,12 @@ func resolveTimeZone(flagZone, envTZ string) (*time.Location, string, error) {
 	return time.UTC, "", nil
 }
 
-// loadZone loads the IANA zone name. time.LoadLocation also accepts "Local",
-// whatever zone the machine is in, which is neither reproducible nor a name
-// GitHub understands.
+// loadZone loads the IANA zone name. time.LoadLocation also accepts two names
+// for whatever zone the machine is in: "Local", and "localtime", which it finds
+// in the zone database where Debian's tzdata links it to /etc/localtime.
+// Neither is reproducible, and neither is an IANA zone name.
 func loadZone(name string) (*time.Location, error) {
-	if name == "Local" {
+	if name == "Local" || name == "localtime" {
 		return nil, fmt.Errorf("%q is not an IANA zone name", name)
 	}
 	return time.LoadLocation(name)

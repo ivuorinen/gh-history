@@ -424,9 +424,13 @@ func TestResolveTimeZone(t *testing.T) {
 		{name: "bad flag", flag: "Mars/Olympus_Mons"},
 		{name: "POSIX flag", flag: "CET-1CEST,M3.5.0"},
 		{name: "Local is not a zone name", flag: "Local"},
+		// Debian's tzdata links zoneinfo/localtime to /etc/localtime, so
+		// time.LoadLocation would load the machine's zone under this name.
+		{name: "localtime is not a zone name", flag: "localtime"},
 		{name: "TZ", tz: "America/Los_Angeles", want: "America/Los_Angeles"},
 		{name: "TZ with the POSIX leading colon", tz: ":Europe/Berlin", want: "Europe/Berlin"},
 		{name: "POSIX TZ falls back to UTC", tz: "CET-1CEST,M3.5.0,M10.5.0/3", want: "UTC", warns: true},
+		{name: "TZ=localtime falls back to UTC", tz: "localtime", want: "UTC", warns: true},
 		{name: "unset TZ is UTC", want: "UTC"},
 	}
 	for _, tt := range tests {
