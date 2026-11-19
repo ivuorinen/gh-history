@@ -58,9 +58,10 @@ func barsAlt(prefix string, entries []BarChartEntry) string {
 }
 
 type htmlRepoRow struct {
-	Rank  int
-	Repo  string
-	Count int
+	Rank       int
+	Repo       string
+	Visibility string // visibilityLabel, so the table words it as text and Markdown do
+	Count      int
 }
 
 // mustJSON marshals v to JSON for embedding in the template.
@@ -307,10 +308,10 @@ var reportTemplate = template.Must(template.New("report").Parse(`<!DOCTYPE html>
             <h2 class="chart-title" id="h-repos-table">Top Repositories (table)</h2>
             <table>
                 <caption class="stat-label">Repositories by number of events in the reporting period</caption>
-                <thead><tr><th scope="col">#</th><th scope="col">Repository</th><th scope="col">Events</th></tr></thead>
+                <thead><tr><th scope="col">#</th><th scope="col">Repository</th><th scope="col">Visibility</th><th scope="col">Events</th></tr></thead>
                 <tbody>
                     {{range .ReposTable}}
-                    <tr><td>{{.Rank}}</td><td>{{.Repo}}</td><td>{{.Count}}</td></tr>
+                    <tr><td>{{.Rank}}</td><td>{{.Repo}}</td><td>{{.Visibility}}</td><td>{{.Count}}</td></tr>
                     {{end}}
                 </tbody>
             </table>
@@ -441,9 +442,10 @@ func buildHTML(stats models.Statistics) (string, error) {
 
 		for i, rc := range topRepos {
 			data.ReposTable = append(data.ReposTable, htmlRepoRow{
-				Rank:  i + 1,
-				Repo:  rc.Repo,
-				Count: rc.Count,
+				Rank:       i + 1,
+				Repo:       rc.Repo,
+				Visibility: visibilityLabel(rc.Private),
+				Count:      rc.Count,
 			})
 		}
 	}

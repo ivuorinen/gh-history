@@ -47,17 +47,17 @@
         "weekday": 2
       },
       {
-        "count": 46,
+        "count": 47,
         "date": "2026-09-10",
         "weekday": 3
       },
       {
-        "count": 26,
+        "count": 27,
         "date": "2026-09-11",
         "weekday": 4
       },
       {
-        "count": 7,
+        "count": 8,
         "date": "2026-09-12",
         "weekday": 5
       },
@@ -117,12 +117,12 @@
         "weekday": 2
       },
       {
-        "count": 35,
+        "count": 36,
         "date": "2026-09-24",
         "weekday": 3
       },
       {
-        "count": 25,
+        "count": 26,
         "date": "2026-09-25",
         "weekday": 4
       },
@@ -147,130 +147,163 @@
         "weekday": 1
       },
       {
-        "count": 32,
+        "count": 34,
         "date": "2026-09-30",
         "weekday": 2
       }
     ],
-    "reported_total": 589,
-    "total_contributions": 589
+    "reported_total": 596,
+    "total_contributions": 596
   },
   "commits_by_repo": [
     {
       "count": 58,
+      "private": false,
       "repo": "ivuorinen/dotfiles"
     },
     {
-      "count": 34,
+      "count": 35,
+      "private": false,
       "repo": "ivuorinen/ivuorinen"
     },
     {
       "count": 30,
+      "private": false,
       "repo": "ivuorinen/cheatsheet-tldr"
     },
     {
       "count": 25,
+      "private": false,
       "repo": "ivuorinen/starred"
     },
     {
       "count": 10,
+      "private": false,
       "repo": "ivuorinen/skills"
     },
     {
       "count": 8,
-      "repo": "example-org/private-repo-3"
+      "private": true,
+      "repo": "example-org/private-repo-1"
     },
     {
-      "count": 5,
-      "repo": "ivuorinen/base-configs-commitlint"
-    },
-    {
-      "count": 5,
-      "repo": "ivuorinen/base-configs-eslint"
-    },
-    {
-      "count": 5,
+      "count": 7,
+      "private": false,
       "repo": "ivuorinen/base-configs-semantic-release"
     },
     {
       "count": 5,
+      "private": false,
+      "repo": "ivuorinen/base-configs-commitlint"
+    },
+    {
+      "count": 5,
+      "private": false,
+      "repo": "ivuorinen/base-configs-eslint"
+    },
+    {
+      "count": 5,
+      "private": false,
       "repo": "ivuorinen/base-configs-stylelint"
     },
     {
       "count": 5,
+      "private": false,
       "repo": "ivuorinen/tree-sitter-shellspec"
     },
     {
       "count": 4,
+      "private": false,
       "repo": "ivuorinen/base-configs"
     },
     {
       "count": 4,
+      "private": false,
       "repo": "ivuorinen/base-configs-browserslist"
     },
     {
       "count": 4,
+      "private": false,
       "repo": "ivuorinen/base-configs-markdownlint"
     },
     {
       "count": 4,
+      "private": false,
       "repo": "ivuorinen/base-configs-prettier"
     },
     {
       "count": 4,
+      "private": false,
       "repo": "ivuorinen/branch-usage-checker"
     },
     {
       "count": 4,
+      "private": false,
       "repo": "ivuorinen/config-checker"
     },
     {
+      "count": 4,
+      "private": true,
+      "repo": "ivuorinen/private-repo-5"
+    },
+    {
       "count": 3,
+      "private": true,
       "repo": "example-org/private-repo-2"
     },
     {
       "count": 3,
+      "private": false,
       "repo": "ivuorinen/semver-ranger"
     },
     {
       "count": 1,
+      "private": false,
       "repo": "ivuorinen/a"
     },
     {
       "count": 1,
+      "private": false,
       "repo": "ivuorinen/actions"
     },
     {
       "count": 1,
+      "private": false,
       "repo": "ivuorinen/github-base-template"
     },
     {
       "count": 1,
+      "private": false,
       "repo": "ivuorinen/homebrew-tap"
     },
     {
       "count": 1,
+      "private": false,
       "repo": "ivuorinen/nvim-shellspec"
     },
     {
       "count": 1,
+      "private": false,
       "repo": "ivuorinen/phpenv.fish"
     },
     {
       "count": 1,
+      "private": false,
       "repo": "ivuorinen/renovate-config"
     },
     {
       "count": 1,
+      "private": false,
       "repo": "ivuorinen/sysvinit-service-generator"
     },
     {
       "count": 1,
+      "private": true,
       "repo": "example-org/private-repo-4"
     }
   ],
   "contribution_totals": {
-    "commits": 229,
+    "commits": 236,
     "issues": 2,
     "pull_requests": 96,
     "repositories": 1,
@@ -286,6 +319,7 @@
       "id": "gql-review-2026-09-30T16:57:23Z-239-ivuorinen/base-configs-semantic-release",
       "number": 239,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump @ivuorinen/config-checker from 2.6.15 to 2.6.17",
       "type": "PullRequestReviewEvent"
@@ -297,7 +331,9 @@
       "merged": true,
       "number": 732,
       "repo": "ivuorinen/dotfiles",
+      "repo_private": false,
       "subject_created_at": "2026-09-30T07:12:27Z",
+      "subject_state": "MERGED",
       "title": "feat(theme): switch to kanagawa with per-family palettes",
       "type": "PullRequestEvent"
     },
@@ -306,6 +342,7 @@
       "id": "gql-review-2026-09-30T15:35:40Z-137-ivuorinen/monolog-gdpr-filter",
       "number": 137,
       "repo": "ivuorinen/monolog-gdpr-filter",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update codecov/codecov-action action (v7.0.0 → v7.1.1)",
       "type": "PullRequestReviewEvent"
@@ -315,6 +352,7 @@
       "id": "gql-review-2026-09-30T15:35:16Z-136-ivuorinen/monolog-gdpr-filter",
       "number": 136,
       "repo": "ivuorinen/monolog-gdpr-filter",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(tooling): update pre-commit hook bridgecrewio/checkov (3.3.16 → 3.3.19)",
       "type": "PullRequestReviewEvent"
@@ -325,7 +363,9 @@
       "id": "gql-pr-opened-589-ivuorinen/base-configs",
       "number": 589,
       "repo": "ivuorinen/base-configs",
+      "repo_private": false,
       "subject_created_at": "2026-09-30T15:33:59Z",
+      "subject_state": "MERGED",
       "title": "fix(ci): update dependabot commit message prefix",
       "type": "PullRequestEvent"
     },
@@ -336,7 +376,9 @@
       "merged": true,
       "number": 255,
       "repo": "ivuorinen/config-checker",
+      "repo_private": false,
       "subject_created_at": "2026-09-29T23:35:57Z",
+      "subject_state": "MERGED",
       "title": "chore(audit): track the nitpicker findings store",
       "type": "PullRequestEvent"
     },
@@ -345,6 +387,7 @@
       "id": "gql-review-2026-09-30T15:31:32Z-77-ivuorinen/homebrew-tap",
       "number": 77,
       "repo": "ivuorinen/homebrew-tap",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update ruby/setup-ruby action (v1.326.0 → v1.327.0)",
       "type": "PullRequestReviewEvent"
@@ -356,7 +399,9 @@
       "merged": true,
       "number": 201,
       "repo": "ivuorinen/base-configs-stylelint",
+      "repo_private": false,
       "subject_created_at": "2026-09-29T23:36:30Z",
+      "subject_state": "MERGED",
       "title": "chore(audit): record resolved findings",
       "type": "PullRequestEvent"
     },
@@ -367,7 +412,9 @@
       "merged": true,
       "number": 205,
       "repo": "ivuorinen/base-configs-commitlint",
+      "repo_private": false,
       "subject_created_at": "2026-09-29T23:36:12Z",
+      "subject_state": "MERGED",
       "title": "chore(audit): record resolved findings and the architecture profile",
       "type": "PullRequestEvent"
     },
@@ -376,6 +423,7 @@
       "id": "gql-review-2026-09-30T15:27:54Z-252-ivuorinen/base-configs-eslint",
       "number": 252,
       "repo": "ivuorinen/base-configs-eslint",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump ip-address from 10.4.0 to 10.7.2 in the npm_and_yarn group across 1 directory",
       "type": "PullRequestReviewEvent"
@@ -385,6 +433,7 @@
       "id": "gql-review-2026-09-30T15:27:00Z-49-ivuorinen/paperboy",
       "number": 49,
       "repo": "ivuorinen/paperboy",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "fix(deps): update module github.com/mmcdole/gofeed (v1.4.2 → v1.5.0)",
       "type": "PullRequestReviewEvent"
@@ -394,6 +443,7 @@
       "id": "gql-review-2026-09-30T15:25:38Z-241-ivuorinen/base-configs-semantic-release",
       "number": 241,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump brace-expansion from 1.1.18 to 1.1.21 in the npm_and_yarn group across 1 directory",
       "type": "PullRequestReviewEvent"
@@ -405,7 +455,9 @@
       "merged": true,
       "number": 237,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "subject_created_at": "2026-09-30T14:15:50Z",
+      "subject_state": "MERGED",
       "title": "fix(tools): dependabot commit message prefix",
       "type": "PullRequestEvent"
     },
@@ -416,7 +468,9 @@
       "merged": true,
       "number": 235,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "subject_created_at": "2026-09-29T23:36:26Z",
+      "subject_state": "MERGED",
       "title": "chore(audit): record resolved findings and the architecture profile",
       "type": "PullRequestEvent"
     },
@@ -426,7 +480,9 @@
       "id": "gql-pr-opened-237-ivuorinen/base-configs-semantic-release",
       "number": 237,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "subject_created_at": "2026-09-30T14:15:50Z",
+      "subject_state": "MERGED",
       "title": "fix(tools): dependabot commit message prefix",
       "type": "PullRequestEvent"
     },
@@ -435,6 +491,7 @@
       "id": "gql-review-2026-09-30T14:13:37Z-236-ivuorinen/base-configs-semantic-release",
       "number": 236,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): bump ip-address from 10.4.0 to 10.7.2 in the npm_and_yarn group across 1 directory",
       "type": "PullRequestReviewEvent"
@@ -444,6 +501,7 @@
       "id": "gql-review-2026-09-30T14:12:42Z-700-ivuorinen/actions",
       "number": 700,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps-dev): bump brace-expansion from 5.0.9 to 5.0.12",
       "type": "PullRequestReviewEvent"
@@ -454,7 +512,9 @@
       "id": "gql-pr-opened-732-ivuorinen/dotfiles",
       "number": 732,
       "repo": "ivuorinen/dotfiles",
+      "repo_private": false,
       "subject_created_at": "2026-09-30T07:12:27Z",
+      "subject_state": "MERGED",
       "title": "feat(theme): switch to kanagawa with per-family palettes",
       "type": "PullRequestEvent"
     },
@@ -465,7 +525,9 @@
       "merged": true,
       "number": 150,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-29T19:23:12Z",
+      "subject_state": "MERGED",
       "title": "feat: harden nitpicker's tools, gates and guards from the 2026-09-28 audits",
       "type": "PullRequestEvent"
     },
@@ -475,7 +537,9 @@
       "id": "gql-pr-opened-201-ivuorinen/base-configs-stylelint",
       "number": 201,
       "repo": "ivuorinen/base-configs-stylelint",
+      "repo_private": false,
       "subject_created_at": "2026-09-29T23:36:30Z",
+      "subject_state": "MERGED",
       "title": "chore(audit): record resolved findings",
       "type": "PullRequestEvent"
     },
@@ -485,7 +549,9 @@
       "id": "gql-pr-opened-235-ivuorinen/base-configs-semantic-release",
       "number": 235,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "subject_created_at": "2026-09-29T23:36:26Z",
+      "subject_state": "MERGED",
       "title": "chore(audit): record resolved findings and the architecture profile",
       "type": "PullRequestEvent"
     },
@@ -495,7 +561,9 @@
       "id": "gql-pr-opened-233-ivuorinen/base-configs-prettier",
       "number": 233,
       "repo": "ivuorinen/base-configs-prettier",
+      "repo_private": false,
       "subject_created_at": "2026-09-29T23:36:21Z",
+      "subject_state": "MERGED",
       "title": "chore(audit): track the findings store and architecture profile",
       "type": "PullRequestEvent"
     },
@@ -505,7 +573,9 @@
       "id": "gql-pr-opened-206-ivuorinen/base-configs-markdownlint",
       "number": 206,
       "repo": "ivuorinen/base-configs-markdownlint",
+      "repo_private": false,
       "subject_created_at": "2026-09-29T23:36:16Z",
+      "subject_state": "MERGED",
       "title": "chore(audit): track the findings store and architecture profile",
       "type": "PullRequestEvent"
     },
@@ -515,7 +585,9 @@
       "id": "gql-pr-opened-205-ivuorinen/base-configs-commitlint",
       "number": 205,
       "repo": "ivuorinen/base-configs-commitlint",
+      "repo_private": false,
       "subject_created_at": "2026-09-29T23:36:12Z",
+      "subject_state": "MERGED",
       "title": "chore(audit): record resolved findings and the architecture profile",
       "type": "PullRequestEvent"
     },
@@ -525,7 +597,9 @@
       "id": "gql-pr-opened-282-ivuorinen/base-configs-browserslist",
       "number": 282,
       "repo": "ivuorinen/base-configs-browserslist",
+      "repo_private": false,
       "subject_created_at": "2026-09-29T23:36:07Z",
+      "subject_state": "MERGED",
       "title": "chore(audit): track the findings store and architecture profile",
       "type": "PullRequestEvent"
     },
@@ -535,7 +609,9 @@
       "id": "gql-pr-opened-588-ivuorinen/base-configs",
       "number": 588,
       "repo": "ivuorinen/base-configs",
+      "repo_private": false,
       "subject_created_at": "2026-09-29T23:36:02Z",
+      "subject_state": "MERGED",
       "title": "chore(audit): track the findings store, migrate the v1 findings file",
       "type": "PullRequestEvent"
     },
@@ -545,7 +621,9 @@
       "id": "gql-pr-opened-255-ivuorinen/config-checker",
       "number": 255,
       "repo": "ivuorinen/config-checker",
+      "repo_private": false,
       "subject_created_at": "2026-09-29T23:35:57Z",
+      "subject_state": "MERGED",
       "title": "chore(audit): track the nitpicker findings store",
       "type": "PullRequestEvent"
     },
@@ -554,15 +632,17 @@
       "id": "gql-review-2026-09-29T23:28:41Z-67-ivuorinen/aeonview",
       "number": 67,
       "repo": "ivuorinen/aeonview",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(tooling): update pre-commit hook astral-sh/ruff-pre-commit (v0.16.8 → v0.16.9)",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-29T23:27:24Z",
-      "id": "gql-review-2026-09-29T23:27:24Z-586-ivuorinen/private-repo-4",
+      "id": "gql-review-2026-09-29T23:27:24Z-586-ivuorinen/private-repo-1",
       "number": 586,
-      "repo": "ivuorinen/private-repo-4",
+      "repo": "ivuorinen/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -570,23 +650,26 @@
     {
       "created_at": "2026-09-29T23:25:45Z",
       "id": "gql-comment-private-1",
-      "repo": "ivuorinen/private-repo-4",
+      "repo": "ivuorinen/private-repo-1",
+      "repo_private": true,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-29T23:24:08Z",
-      "id": "gql-review-2026-09-29T23:24:08Z-589-ivuorinen/private-repo-4",
+      "id": "gql-review-2026-09-29T23:24:08Z-589-ivuorinen/private-repo-1",
       "number": 589,
-      "repo": "ivuorinen/private-repo-4",
+      "repo": "ivuorinen/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-29T23:22:34Z",
-      "id": "gql-review-2026-09-29T23:22:34Z-83-example-org/private-repo-1",
+      "id": "gql-review-2026-09-29T23:22:34Z-83-example-org/private-repo-3",
       "number": 83,
-      "repo": "example-org/private-repo-1",
+      "repo": "example-org/private-repo-3",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -597,7 +680,9 @@
       "id": "gql-pr-opened-153-ivuorinen/skills",
       "number": 153,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-29T19:49:19Z",
+      "subject_state": "MERGED",
       "title": "feat: fix the third audit's findings in the shipped tools, gates and docs",
       "type": "PullRequestEvent"
     },
@@ -607,7 +692,9 @@
       "id": "gql-pr-opened-152-ivuorinen/skills",
       "number": 152,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-29T19:26:43Z",
+      "subject_state": "MERGED",
       "title": "chore(graphify): stop the vendored skill uploading or executing repository text",
       "type": "PullRequestEvent"
     },
@@ -617,7 +704,9 @@
       "id": "gql-pr-opened-151-ivuorinen/skills",
       "number": 151,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-29T19:26:39Z",
+      "subject_state": "MERGED",
       "title": "chore(hooks): close the audited shell-guard bypasses and detect enforcement-surface changes",
       "type": "PullRequestEvent"
     },
@@ -627,7 +716,9 @@
       "id": "gql-pr-opened-150-ivuorinen/skills",
       "number": 150,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-29T19:23:12Z",
+      "subject_state": "MERGED",
       "title": "feat: harden nitpicker's tools, gates and guards from the 2026-09-28 audits",
       "type": "PullRequestEvent"
     },
@@ -636,6 +727,7 @@
       "id": "gql-review-2026-09-29T16:43:01Z-205-ivuorinen/base-configs-markdownlint",
       "number": 205,
       "repo": "ivuorinen/base-configs-markdownlint",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump ip-address from 10.4.0 to 10.7.2 in the npm_and_yarn group across 1 directory",
       "type": "PullRequestReviewEvent"
@@ -644,13 +736,15 @@
       "created_at": "2026-09-29T07:42:03Z",
       "id": "gql-comment-IC_kwDOJex6nM8AAAABXtNfug",
       "repo": "ivuorinen/base-configs",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-29T07:40:28Z",
-      "id": "gql-review-2026-09-29T07:40:28Z-128-ivuorinen/private-repo-2",
+      "id": "gql-review-2026-09-29T07:40:28Z-128-ivuorinen/private-repo-4",
       "number": 128,
-      "repo": "ivuorinen/private-repo-2",
+      "repo": "ivuorinen/private-repo-4",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -660,6 +754,7 @@
       "id": "gql-review-2026-09-29T07:38:55Z-280-ivuorinen/base-configs-browserslist",
       "number": 280,
       "repo": "ivuorinen/base-configs-browserslist",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump ip-address from 10.4.0 to 10.7.2",
       "type": "PullRequestReviewEvent"
@@ -669,6 +764,7 @@
       "id": "gql-review-2026-09-29T07:37:50Z-253-ivuorinen/config-checker",
       "number": 253,
       "repo": "ivuorinen/config-checker",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump ip-address from 10.4.0 to 10.7.2 in the npm_and_yarn group across 1 directory",
       "type": "PullRequestReviewEvent"
@@ -680,7 +776,9 @@
       "merged": true,
       "number": 586,
       "repo": "ivuorinen/base-configs",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T22:22:59Z",
+      "subject_state": "MERGED",
       "title": "chore(renovate): rely on the shared preset for commit scopes and groups",
       "type": "PullRequestEvent"
     },
@@ -689,6 +787,7 @@
       "id": "gql-review-2026-09-29T06:45:37Z-314-ivuorinen/gh-action-readme",
       "number": 314,
       "repo": "ivuorinen/gh-action-readme",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(tooling): update pre-commit hook editorconfig-checker/editorconfig-checker (v3.11.3 → v4.0.2)",
       "type": "PullRequestReviewEvent"
@@ -698,6 +797,7 @@
       "id": "gql-review-2026-09-29T06:44:14Z-231-ivuorinen/f2b",
       "number": 231,
       "repo": "ivuorinen/f2b",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update dependency golangci/golangci-lint (v2.13.2 → v2.14.0)",
       "type": "PullRequestReviewEvent"
@@ -707,6 +807,7 @@
       "id": "gql-review-2026-09-29T06:43:59Z-230-ivuorinen/f2b",
       "number": 230,
       "repo": "ivuorinen/f2b",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(tooling): update pre-commit hook python-jsonschema/check-jsonschema (0.38.0 → 0.38.2)",
       "type": "PullRequestReviewEvent"
@@ -716,6 +817,7 @@
       "id": "gql-review-2026-09-29T06:43:42Z-229-ivuorinen/f2b",
       "number": 229,
       "repo": "ivuorinen/f2b",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(tooling): update pre-commit hook editorconfig-checker/editorconfig-checker (v4.0.1 → v4.0.2)",
       "type": "PullRequestReviewEvent"
@@ -725,6 +827,7 @@
       "id": "gql-review-2026-09-29T06:42:15Z-697-ivuorinen/actions",
       "number": 697,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update docker/build-push-action action (v7.3.0 → v7.4.0)",
       "type": "PullRequestReviewEvent"
@@ -734,6 +837,7 @@
       "id": "gql-review-2026-09-29T06:41:58Z-696-ivuorinen/actions",
       "number": 696,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(tooling): update pre-commit hook DavidAnson/markdownlint-cli2 (v0.23.2 → v0.23.3)",
       "type": "PullRequestReviewEvent"
@@ -743,6 +847,7 @@
       "id": "gql-review-2026-09-29T06:41:36Z-695-ivuorinen/actions",
       "number": 695,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update trufflesecurity/trufflehog action (v3.97.4 → v3.97.6)",
       "type": "PullRequestReviewEvent"
@@ -752,6 +857,7 @@
       "id": "gql-review-2026-09-29T06:41:04Z-228-ivuorinen/f2b",
       "number": 228,
       "repo": "ivuorinen/f2b",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(tooling): update pre-commit hook DavidAnson/markdownlint-cli2 (v0.23.2 → v0.23.3)",
       "type": "PullRequestReviewEvent"
@@ -761,6 +867,7 @@
       "id": "gql-review-2026-09-29T06:40:32Z-232-ivuorinen/base-configs-prettier",
       "number": 232,
       "repo": "ivuorinen/base-configs-prettier",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency undici (8.10.0 → 8.10.2) [security]",
       "type": "PullRequestReviewEvent"
@@ -770,6 +877,7 @@
       "id": "gql-review-2026-09-29T06:38:44Z-146-ivuorinen/skills",
       "number": 146,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update github/codeql-action action (v4.38.1 → v4.38.2)",
       "type": "PullRequestReviewEvent"
@@ -779,6 +887,7 @@
       "id": "gql-review-2026-09-29T06:36:42Z-231-ivuorinen/base-configs-prettier",
       "number": 231,
       "repo": "ivuorinen/base-configs-prettier",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump ip-address from 10.4.0 to 10.7.2",
       "type": "PullRequestReviewEvent"
@@ -788,6 +897,7 @@
       "id": "gql-review-2026-09-29T05:57:26Z-130-ivuorinen/ghaw-auditor",
       "number": 130,
       "repo": "ivuorinen/ghaw-auditor",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(tooling): update pre-commit hook astral-sh/uv-pre-commit (0.12.17 → 0.12.19)",
       "type": "PullRequestReviewEvent"
@@ -797,6 +907,7 @@
       "id": "gql-review-2026-09-29T05:57:05Z-698-ivuorinen/actions",
       "number": 698,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update docker/setup-buildx-action action (v4.3.0 → v4.4.1)",
       "type": "PullRequestReviewEvent"
@@ -806,6 +917,7 @@
       "id": "gql-review-2026-09-29T05:54:50Z-699-ivuorinen/actions",
       "number": 699,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update docker/setup-qemu-action action (v4.3.0 → v4.4.0)",
       "type": "PullRequestReviewEvent"
@@ -815,6 +927,7 @@
       "id": "gql-review-2026-09-28T23:24:50Z-200-ivuorinen/base-configs-stylelint",
       "number": 200,
       "repo": "ivuorinen/base-configs-stylelint",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump ip-address from 10.4.0 to 10.7.2",
       "type": "PullRequestReviewEvent"
@@ -824,6 +937,7 @@
       "id": "gql-review-2026-09-28T23:21:26Z-168-ivuorinen/github-base-template",
       "number": 168,
       "repo": "ivuorinen/github-base-template",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook bridgecrewio/checkov (3.3.17 → 3.3.19)",
       "type": "PullRequestReviewEvent"
@@ -833,6 +947,7 @@
       "id": "gql-review-2026-09-28T23:19:36Z-199-ivuorinen/base-configs-stylelint",
       "number": 199,
       "repo": "ivuorinen/base-configs-stylelint",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump fast-uri from 3.1.6 to 3.1.8",
       "type": "PullRequestReviewEvent"
@@ -844,7 +959,9 @@
       "merged": true,
       "number": 203,
       "repo": "ivuorinen/base-configs-commitlint",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T22:23:03Z",
+      "subject_state": "MERGED",
       "title": "chore(renovate): rely on the shared preset for commit scopes and groups",
       "type": "PullRequestEvent"
     },
@@ -855,7 +972,9 @@
       "merged": true,
       "number": 204,
       "repo": "ivuorinen/base-configs-commitlint",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T23:06:45Z",
+      "subject_state": "MERGED",
       "title": "chore(lockfile): re-resolve every dependency to clear osv-scanner advisories",
       "type": "PullRequestEvent"
     },
@@ -866,7 +985,9 @@
       "merged": true,
       "number": 587,
       "repo": "ivuorinen/base-configs",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T23:04:00Z",
+      "subject_state": "MERGED",
       "title": "chore(lockfile): re-resolve every dependency to clear osv-scanner advisories",
       "type": "PullRequestEvent"
     },
@@ -876,7 +997,9 @@
       "id": "gql-pr-opened-204-ivuorinen/base-configs-commitlint",
       "number": 204,
       "repo": "ivuorinen/base-configs-commitlint",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T23:06:45Z",
+      "subject_state": "MERGED",
       "title": "chore(lockfile): re-resolve every dependency to clear osv-scanner advisories",
       "type": "PullRequestEvent"
     },
@@ -886,7 +1009,9 @@
       "id": "gql-pr-opened-587-ivuorinen/base-configs",
       "number": 587,
       "repo": "ivuorinen/base-configs",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T23:04:00Z",
+      "subject_state": "MERGED",
       "title": "chore(lockfile): re-resolve every dependency to clear osv-scanner advisories",
       "type": "PullRequestEvent"
     },
@@ -894,18 +1019,21 @@
       "created_at": "2026-09-28T22:52:30Z",
       "id": "gql-comment-IC_kwDOPAGfz88AAAABXnxbzw",
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-28T22:52:10Z",
       "id": "gql-comment-IC_kwDOPAGfz88AAAABXnxLNQ",
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-28T22:51:40Z",
       "id": "gql-comment-IC_kwDOPAGfz88AAAABXnwu0A",
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -913,24 +1041,27 @@
       "id": "gql-review-2026-09-28T22:50:27Z-21-ivuorinen/coderabbit",
       "number": 21,
       "repo": "ivuorinen/coderabbit",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook python-jsonschema/check-jsonschema (0.38.0 → 0.38.2)",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-28T22:48:53Z",
-      "id": "gql-review-2026-09-28T22:48:53Z-587-ivuorinen/private-repo-4",
+      "id": "gql-review-2026-09-28T22:48:53Z-587-ivuorinen/private-repo-1",
       "number": 587,
-      "repo": "ivuorinen/private-repo-4",
+      "repo": "ivuorinen/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-28T22:46:07Z",
-      "id": "gql-review-2026-09-28T22:46:07Z-585-ivuorinen/private-repo-4",
+      "id": "gql-review-2026-09-28T22:46:07Z-585-ivuorinen/private-repo-1",
       "number": 585,
-      "repo": "ivuorinen/private-repo-4",
+      "repo": "ivuorinen/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -940,6 +1071,7 @@
       "id": "gql-review-2026-09-28T22:45:20Z-38-ivuorinen/stylelint-a11y",
       "number": 38,
       "repo": "ivuorinen/stylelint-a11y",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update github/codeql-action action (v4.38.1 → v4.38.2)",
       "type": "PullRequestReviewEvent"
@@ -949,6 +1081,7 @@
       "id": "gql-review-2026-09-28T22:43:13Z-175-ivuorinen/go-test-sarif",
       "number": 175,
       "repo": "ivuorinen/go-test-sarif",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update github/codeql-action action (v4.38.1 → v4.38.2)",
       "type": "PullRequestReviewEvent"
@@ -958,6 +1091,7 @@
       "id": "gql-review-2026-09-28T22:42:12Z-64-ivuorinen/pinboard-checker",
       "number": 64,
       "repo": "ivuorinen/pinboard-checker",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update dependency golangci/golangci-lint (v2.13.2 → v2.14.0)",
       "type": "PullRequestReviewEvent"
@@ -966,6 +1100,7 @@
       "created_at": "2026-09-28T22:41:10Z",
       "id": "gql-comment-IC_kwDOJex6nM8AAAABXno1Aw",
       "repo": "ivuorinen/base-configs",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -973,6 +1108,7 @@
       "id": "gql-review-2026-09-28T22:39:47Z-584-ivuorinen/base-configs",
       "number": 584,
       "repo": "ivuorinen/base-configs",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): bump npm-run-all2 from 9.0.2 to 9.0.3",
       "type": "PullRequestReviewEvent"
@@ -982,6 +1118,7 @@
       "id": "gql-review-2026-09-28T22:39:21Z-147-ivuorinen/skills",
       "number": 147,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency davidanson/markdownlint-cli2 (v0.23.2 → v0.23.3)",
       "type": "PullRequestReviewEvent"
@@ -991,6 +1128,7 @@
       "id": "gql-review-2026-09-28T22:38:14Z-280-ivuorinen/gibidify",
       "number": 280,
       "repo": "ivuorinen/gibidify",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update dependency golangci/golangci-lint (v2.13.2 → v2.14.0)",
       "type": "PullRequestReviewEvent"
@@ -1000,6 +1138,7 @@
       "id": "gql-review-2026-09-28T22:37:51Z-279-ivuorinen/gibidify",
       "number": 279,
       "repo": "ivuorinen/gibidify",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update github/codeql-action action (v4.38.1 → v4.38.2)",
       "type": "PullRequestReviewEvent"
@@ -1009,6 +1148,7 @@
       "id": "gql-review-2026-09-28T22:37:10Z-281-ivuorinen/gibidify",
       "number": 281,
       "repo": "ivuorinen/gibidify",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update module github.com/golangci/golangci-lint/v2/cmd/golangci-lint (v2.13.2 → v2.14.0)",
       "type": "PullRequestReviewEvent"
@@ -1018,6 +1158,7 @@
       "id": "gql-review-2026-09-28T22:36:04Z-65-ivuorinen/pinboard-checker",
       "number": 65,
       "repo": "ivuorinen/pinboard-checker",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency golangci-lint (2.13.2 → 2.14.0)",
       "type": "PullRequestReviewEvent"
@@ -1027,6 +1168,7 @@
       "id": "gql-review-2026-09-28T22:35:31Z-148-ivuorinen/skills",
       "number": 148,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency python-jsonschema/check-jsonschema (0.38.0 → 0.38.2)",
       "type": "PullRequestReviewEvent"
@@ -1035,6 +1177,7 @@
       "created_at": "2026-09-28T22:34:39Z",
       "id": "gql-comment-IC_kwDOJex6nM8AAAABXnkIdg",
       "repo": "ivuorinen/base-configs",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -1042,6 +1185,7 @@
       "id": "gql-review-2026-09-28T22:31:14Z-149-ivuorinen/skills",
       "number": 149,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update astral-sh/setup-uv action (v10.1.0 → v10.2.0)",
       "type": "PullRequestReviewEvent"
@@ -1053,7 +1197,9 @@
       "merged": true,
       "number": 249,
       "repo": "ivuorinen/base-configs-eslint",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T22:23:05Z",
+      "subject_state": "MERGED",
       "title": "chore(renovate): rely on the shared preset for commit scopes and groups",
       "type": "PullRequestEvent"
     },
@@ -1064,7 +1210,9 @@
       "merged": true,
       "number": 204,
       "repo": "ivuorinen/base-configs-markdownlint",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T22:23:07Z",
+      "subject_state": "MERGED",
       "title": "chore(renovate): rely on the shared preset for commit scopes and groups",
       "type": "PullRequestEvent"
     },
@@ -1075,7 +1223,9 @@
       "merged": true,
       "number": 233,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T22:23:13Z",
+      "subject_state": "MERGED",
       "title": "chore(renovate): rely on the shared preset for commit scopes and groups",
       "type": "PullRequestEvent"
     },
@@ -1086,7 +1236,9 @@
       "merged": true,
       "number": 252,
       "repo": "ivuorinen/config-checker",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T22:23:18Z",
+      "subject_state": "MERGED",
       "title": "chore(renovate): rely on the shared preset for commit scopes and groups",
       "type": "PullRequestEvent"
     },
@@ -1097,7 +1249,9 @@
       "merged": true,
       "number": 279,
       "repo": "ivuorinen/base-configs-browserslist",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T22:23:01Z",
+      "subject_state": "MERGED",
       "title": "chore(renovate): rely on the shared preset for commit scopes and groups",
       "type": "PullRequestEvent"
     },
@@ -1108,7 +1262,9 @@
       "merged": true,
       "number": 198,
       "repo": "ivuorinen/base-configs-stylelint",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T22:23:15Z",
+      "subject_state": "MERGED",
       "title": "chore(renovate): rely on the shared preset for commit scopes and groups",
       "type": "PullRequestEvent"
     },
@@ -1119,7 +1275,9 @@
       "merged": true,
       "number": 230,
       "repo": "ivuorinen/base-configs-prettier",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T22:23:10Z",
+      "subject_state": "MERGED",
       "title": "chore(renovate): rely on the shared preset for commit scopes and groups",
       "type": "PullRequestEvent"
     },
@@ -1129,7 +1287,9 @@
       "id": "gql-pr-opened-252-ivuorinen/config-checker",
       "number": 252,
       "repo": "ivuorinen/config-checker",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T22:23:18Z",
+      "subject_state": "MERGED",
       "title": "chore(renovate): rely on the shared preset for commit scopes and groups",
       "type": "PullRequestEvent"
     },
@@ -1139,7 +1299,9 @@
       "id": "gql-pr-opened-198-ivuorinen/base-configs-stylelint",
       "number": 198,
       "repo": "ivuorinen/base-configs-stylelint",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T22:23:15Z",
+      "subject_state": "MERGED",
       "title": "chore(renovate): rely on the shared preset for commit scopes and groups",
       "type": "PullRequestEvent"
     },
@@ -1149,7 +1311,9 @@
       "id": "gql-pr-opened-233-ivuorinen/base-configs-semantic-release",
       "number": 233,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T22:23:13Z",
+      "subject_state": "MERGED",
       "title": "chore(renovate): rely on the shared preset for commit scopes and groups",
       "type": "PullRequestEvent"
     },
@@ -1159,7 +1323,9 @@
       "id": "gql-pr-opened-230-ivuorinen/base-configs-prettier",
       "number": 230,
       "repo": "ivuorinen/base-configs-prettier",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T22:23:10Z",
+      "subject_state": "MERGED",
       "title": "chore(renovate): rely on the shared preset for commit scopes and groups",
       "type": "PullRequestEvent"
     },
@@ -1169,7 +1335,9 @@
       "id": "gql-pr-opened-204-ivuorinen/base-configs-markdownlint",
       "number": 204,
       "repo": "ivuorinen/base-configs-markdownlint",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T22:23:07Z",
+      "subject_state": "MERGED",
       "title": "chore(renovate): rely on the shared preset for commit scopes and groups",
       "type": "PullRequestEvent"
     },
@@ -1179,7 +1347,9 @@
       "id": "gql-pr-opened-249-ivuorinen/base-configs-eslint",
       "number": 249,
       "repo": "ivuorinen/base-configs-eslint",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T22:23:05Z",
+      "subject_state": "MERGED",
       "title": "chore(renovate): rely on the shared preset for commit scopes and groups",
       "type": "PullRequestEvent"
     },
@@ -1189,7 +1359,9 @@
       "id": "gql-pr-opened-203-ivuorinen/base-configs-commitlint",
       "number": 203,
       "repo": "ivuorinen/base-configs-commitlint",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T22:23:03Z",
+      "subject_state": "MERGED",
       "title": "chore(renovate): rely on the shared preset for commit scopes and groups",
       "type": "PullRequestEvent"
     },
@@ -1199,7 +1371,9 @@
       "id": "gql-pr-opened-279-ivuorinen/base-configs-browserslist",
       "number": 279,
       "repo": "ivuorinen/base-configs-browserslist",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T22:23:01Z",
+      "subject_state": "MERGED",
       "title": "chore(renovate): rely on the shared preset for commit scopes and groups",
       "type": "PullRequestEvent"
     },
@@ -1209,7 +1383,9 @@
       "id": "gql-pr-opened-586-ivuorinen/base-configs",
       "number": 586,
       "repo": "ivuorinen/base-configs",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T22:22:59Z",
+      "subject_state": "MERGED",
       "title": "chore(renovate): rely on the shared preset for commit scopes and groups",
       "type": "PullRequestEvent"
     },
@@ -1220,7 +1396,9 @@
       "merged": true,
       "number": 114,
       "repo": "ivuorinen/renovate-config",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T19:19:50Z",
+      "subject_state": "MERGED",
       "title": "fix(preset): never mark dev dependency or tooling updates breaking",
       "type": "PullRequestEvent"
     },
@@ -1230,7 +1408,9 @@
       "id": "gql-pr-opened-114-ivuorinen/renovate-config",
       "number": 114,
       "repo": "ivuorinen/renovate-config",
+      "repo_private": false,
       "subject_created_at": "2026-09-28T19:19:50Z",
+      "subject_state": "MERGED",
       "title": "fix(preset): never mark dev dependency or tooling updates breaking",
       "type": "PullRequestEvent"
     },
@@ -1239,6 +1419,7 @@
       "id": "gql-review-2026-09-28T19:03:49Z-48-ivuorinen/paperboy",
       "number": 48,
       "repo": "ivuorinen/paperboy",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update github/codeql-action action (v4.38.0 → v4.38.2)",
       "type": "PullRequestReviewEvent"
@@ -1248,6 +1429,7 @@
       "id": "gql-review-2026-09-28T18:21:19Z-225-ivuorinen/base-configs-semantic-release",
       "number": 225,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): bump eslint from 10.10.0 to 10.11.0",
       "type": "PullRequestReviewEvent"
@@ -1256,6 +1438,7 @@
       "created_at": "2026-09-28T10:52:54Z",
       "id": "gql-comment-IC_kwDOPAGfz88AAAABXclxzw",
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -1263,6 +1446,7 @@
       "id": "gql-review-2026-09-28T08:55:55Z-137-ivuorinen/semver-ranger",
       "number": 137,
       "repo": "ivuorinen/semver-ranger",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update node.js (v26.9.0 → v26.10.0)",
       "type": "PullRequestReviewEvent"
@@ -1271,12 +1455,14 @@
       "created_at": "2026-09-27T16:12:42Z",
       "id": "gql-comment-private-2",
       "repo": "example-org/private-repo-4",
+      "repo_private": true,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-27T11:35:44Z",
       "id": "gql-comment-IC_kwDOIPIUjc8AAAABXQNavg",
       "repo": "ivuorinen/branch-usage-checker",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -1286,7 +1472,9 @@
       "merged": true,
       "number": 85,
       "repo": "ivuorinen/branch-usage-checker",
+      "repo_private": false,
       "subject_created_at": "2026-09-27T03:02:04Z",
+      "subject_state": "MERGED",
       "title": "chore(master): release 0.2.0",
       "type": "PullRequestEvent"
     },
@@ -1295,6 +1483,7 @@
       "id": "gql-review-2026-09-27T11:12:50Z-719-ivuorinen/dotfiles",
       "number": 719,
       "repo": "ivuorinen/dotfiles",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency github:anchore/grype (v0.118.0 → v0.119.0)",
       "type": "PullRequestReviewEvent"
@@ -1304,6 +1493,7 @@
       "id": "gql-review-2026-09-27T11:12:14Z-718-ivuorinen/dotfiles",
       "number": 718,
       "repo": "ivuorinen/dotfiles",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency uv (0.12.16 → 0.12.18)",
       "type": "PullRequestReviewEvent"
@@ -1313,6 +1503,7 @@
       "id": "gql-review-2026-09-27T10:36:26Z-39-ivuorinen/docker-php-with-imagick",
       "number": 39,
       "repo": "ivuorinen/docker-php-with-imagick",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update docker/setup-buildx-action digest to f87e599",
       "type": "PullRequestReviewEvent"
@@ -1322,6 +1513,7 @@
       "id": "gql-review-2026-09-27T10:34:11Z-66-ivuorinen/aeonview",
       "number": 66,
       "repo": "ivuorinen/aeonview",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update astral-sh/setup-uv action (v10.1.0 → v10.2.0)",
       "type": "PullRequestReviewEvent"
@@ -1331,24 +1523,27 @@
       "id": "gql-review-2026-09-27T09:23:36Z-65-ivuorinen/aeonview",
       "number": 65,
       "repo": "ivuorinen/aeonview",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook astral-sh/ruff-pre-commit (v0.16.7 → v0.16.8)",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-27T09:23:11Z",
-      "id": "gql-review-2026-09-27T09:23:11Z-582-ivuorinen/private-repo-4",
+      "id": "gql-review-2026-09-27T09:23:11Z-582-ivuorinen/private-repo-1",
       "number": 582,
-      "repo": "ivuorinen/private-repo-4",
+      "repo": "ivuorinen/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-27T09:22:47Z",
-      "id": "gql-review-2026-09-27T09:22:47Z-583-ivuorinen/private-repo-4",
+      "id": "gql-review-2026-09-27T09:22:47Z-583-ivuorinen/private-repo-1",
       "number": 583,
-      "repo": "ivuorinen/private-repo-4",
+      "repo": "ivuorinen/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -1358,6 +1553,7 @@
       "id": "gql-review-2026-09-27T09:20:55Z-242-ivuorinen/generic-landing-page",
       "number": 242,
       "repo": "ivuorinen/generic-landing-page",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps)!: update dependency @ivuorinen/eslint-config (1.0.4 → 2.0.0)",
       "type": "PullRequestReviewEvent"
@@ -1367,6 +1563,7 @@
       "id": "gql-review-2026-09-27T03:09:17Z-113-ivuorinen/skills",
       "number": 113,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(main): release ivuorinen-skills 3.1.0",
       "type": "PullRequestReviewEvent"
@@ -1376,6 +1573,7 @@
       "id": "gql-review-2026-09-27T03:08:31Z-129-ivuorinen/ghaw-auditor",
       "number": 129,
       "repo": "ivuorinen/ghaw-auditor",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update astral-sh/setup-uv action (v10.1.0 → v10.2.0)",
       "type": "PullRequestReviewEvent"
@@ -1385,15 +1583,17 @@
       "id": "gql-review-2026-09-27T03:07:08Z-37-ivuorinen/stylelint-a11y",
       "number": 37,
       "repo": "ivuorinen/stylelint-a11y",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update github/codeql-action action (v4.38.0 → v4.38.1)",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-27T03:06:01Z",
-      "id": "gql-review-2026-09-27T03:06:01Z-48-ivuorinen/private-repo-1",
+      "id": "gql-review-2026-09-27T03:06:01Z-48-ivuorinen/private-repo-2",
       "number": 48,
-      "repo": "ivuorinen/private-repo-1",
+      "repo": "ivuorinen/private-repo-2",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -1404,7 +1604,9 @@
       "id": "gql-pr-opened-85-ivuorinen/branch-usage-checker",
       "number": 85,
       "repo": "ivuorinen/branch-usage-checker",
+      "repo_private": false,
       "subject_created_at": "2026-09-27T03:02:04Z",
+      "subject_state": "MERGED",
       "title": "chore(master): release 0.2.0",
       "type": "PullRequestEvent"
     },
@@ -1415,7 +1617,9 @@
       "merged": true,
       "number": 84,
       "repo": "ivuorinen/branch-usage-checker",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T18:48:47Z",
+      "subject_state": "MERGED",
       "title": "ci: add release-please release automation",
       "type": "PullRequestEvent"
     },
@@ -1423,6 +1627,7 @@
       "created_at": "2026-09-26T21:26:15Z",
       "id": "gql-comment-IC_kwDOIPIUjc8AAAABXLBQWg",
       "repo": "ivuorinen/branch-usage-checker",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -1430,6 +1635,7 @@
       "id": "gql-review-2026-09-26T21:10:06Z-110-ivuorinen/renovate-config",
       "number": 110,
       "repo": "ivuorinen/renovate-config",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook python-jsonschema/check-jsonschema (0.38.1 → 0.38.2)",
       "type": "PullRequestReviewEvent"
@@ -1439,6 +1645,7 @@
       "id": "gql-review-2026-09-26T21:08:44Z-135-ivuorinen/semver-ranger",
       "number": 135,
       "repo": "ivuorinen/semver-ranger",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update @ivuorinen packages (1.5.16 → 2.0.0)",
       "type": "PullRequestReviewEvent"
@@ -1449,7 +1656,9 @@
       "id": "gql-pr-opened-84-ivuorinen/branch-usage-checker",
       "number": 84,
       "repo": "ivuorinen/branch-usage-checker",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T18:48:47Z",
+      "subject_state": "MERGED",
       "title": "ci: add release-please release automation",
       "type": "PullRequestEvent"
     },
@@ -1458,6 +1667,7 @@
       "id": "gql-review-2026-09-26T18:31:24Z-76-ivuorinen/homebrew-tap",
       "number": 76,
       "repo": "ivuorinen/homebrew-tap",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update ruby/setup-ruby action (v1.323.0 → v1.326.0)",
       "type": "PullRequestReviewEvent"
@@ -1467,6 +1677,7 @@
       "id": "gql-review-2026-09-26T18:25:39Z-149-ivuorinen/ivuorinen",
       "number": 149,
       "repo": "ivuorinen/ivuorinen",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps)!: update dependency @ivuorinen/base-configs (4.0.2 → 5.0.0)",
       "type": "PullRequestReviewEvent"
@@ -1478,7 +1689,9 @@
       "merged": true,
       "number": 83,
       "repo": "ivuorinen/branch-usage-checker",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T16:38:03Z",
+      "subject_state": "MERGED",
       "title": "feat(check): accept months after the vendor/package argument",
       "type": "PullRequestEvent"
     },
@@ -1486,12 +1699,14 @@
       "created_at": "2026-09-26T16:57:46Z",
       "id": "gql-comment-IC_kwDOIPIUjc8AAAABXJL8kQ",
       "repo": "ivuorinen/branch-usage-checker",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-26T16:54:13Z",
       "id": "gql-comment-IC_kwDOIPIUjc8AAAABXJKdUQ",
       "repo": "ivuorinen/branch-usage-checker",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -1500,7 +1715,9 @@
       "id": "gql-pr-opened-83-ivuorinen/branch-usage-checker",
       "number": 83,
       "repo": "ivuorinen/branch-usage-checker",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T16:38:03Z",
+      "subject_state": "MERGED",
       "title": "feat(check): accept months after the vendor/package argument",
       "type": "PullRequestEvent"
     },
@@ -1509,6 +1726,7 @@
       "id": "gql-review-2026-09-26T16:05:11Z-694-ivuorinen/actions",
       "number": 694,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump smol-toml and markdownlint-cli2",
       "type": "PullRequestReviewEvent"
@@ -1520,7 +1738,9 @@
       "merged": true,
       "number": 82,
       "repo": "ivuorinen/branch-usage-checker",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T15:56:40Z",
+      "subject_state": "MERGED",
       "title": "chore(deps)!: upgrade laravel-zero 13, illuminate/http 13, pest 5",
       "type": "PullRequestEvent"
     },
@@ -1530,7 +1750,9 @@
       "id": "gql-pr-opened-82-ivuorinen/branch-usage-checker",
       "number": 82,
       "repo": "ivuorinen/branch-usage-checker",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T15:56:40Z",
+      "subject_state": "MERGED",
       "title": "chore(deps)!: upgrade laravel-zero 13, illuminate/http 13, pest 5",
       "type": "PullRequestEvent"
     },
@@ -1541,7 +1763,9 @@
       "merged": true,
       "number": 251,
       "repo": "ivuorinen/config-checker",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T13:59:09Z",
+      "subject_state": "MERGED",
       "title": "ci: harden the workflows and run the tests on pull requests",
       "type": "PullRequestEvent"
     },
@@ -1551,7 +1775,9 @@
       "id": "gql-pr-opened-251-ivuorinen/config-checker",
       "number": 251,
       "repo": "ivuorinen/config-checker",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T13:59:09Z",
+      "subject_state": "MERGED",
       "title": "ci: harden the workflows and run the tests on pull requests",
       "type": "PullRequestEvent"
     },
@@ -1562,7 +1788,9 @@
       "merged": true,
       "number": 250,
       "repo": "ivuorinen/config-checker",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T13:37:42Z",
+      "subject_state": "MERGED",
       "title": "chore(actions): align the vendored configs and Renovate rules with base-configs",
       "type": "PullRequestEvent"
     },
@@ -1572,7 +1800,9 @@
       "id": "gql-pr-opened-250-ivuorinen/config-checker",
       "number": 250,
       "repo": "ivuorinen/config-checker",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T13:37:42Z",
+      "subject_state": "MERGED",
       "title": "chore(actions): align the vendored configs and Renovate rules with base-configs",
       "type": "PullRequestEvent"
     },
@@ -1580,6 +1810,7 @@
       "created_at": "2026-09-26T13:25:11Z",
       "id": "gql-comment-IC_kwDONNFK3M8AAAABXHyKtA",
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -1589,7 +1820,9 @@
       "merged": true,
       "number": 145,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:12:27Z",
+      "subject_state": "MERGED",
       "title": "fix: migrate the v1 documents agents actually wrote",
       "type": "PullRequestEvent"
     },
@@ -1597,12 +1830,14 @@
       "created_at": "2026-09-26T02:22:48Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABXDsJtQ",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-26T01:36:04Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABXDYHHg",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -1612,7 +1847,9 @@
       "merged": true,
       "number": 232,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T01:08:37Z",
+      "subject_state": "MERGED",
       "title": "ci: record why zizmor's self-repository audit is ignored",
       "type": "PullRequestEvent"
     },
@@ -1623,7 +1860,9 @@
       "merged": true,
       "number": 197,
       "repo": "ivuorinen/base-configs-stylelint",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T01:05:18Z",
+      "subject_state": "MERGED",
       "title": "ci: publish to npm via trusted publishing",
       "type": "PullRequestEvent"
     },
@@ -1634,7 +1873,9 @@
       "merged": true,
       "number": 229,
       "repo": "ivuorinen/base-configs-prettier",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T01:05:14Z",
+      "subject_state": "MERGED",
       "title": "ci: publish to npm via trusted publishing",
       "type": "PullRequestEvent"
     },
@@ -1645,7 +1886,9 @@
       "merged": true,
       "number": 203,
       "repo": "ivuorinen/base-configs-markdownlint",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T01:05:09Z",
+      "subject_state": "MERGED",
       "title": "ci: publish to npm via trusted publishing",
       "type": "PullRequestEvent"
     },
@@ -1656,7 +1899,9 @@
       "merged": true,
       "number": 248,
       "repo": "ivuorinen/base-configs-eslint",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T01:05:05Z",
+      "subject_state": "MERGED",
       "title": "ci: publish to npm via trusted publishing",
       "type": "PullRequestEvent"
     },
@@ -1667,7 +1912,9 @@
       "merged": true,
       "number": 278,
       "repo": "ivuorinen/base-configs-browserslist",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T01:05:00Z",
+      "subject_state": "MERGED",
       "title": "ci: publish to npm via trusted publishing",
       "type": "PullRequestEvent"
     },
@@ -1675,6 +1922,7 @@
       "created_at": "2026-09-26T01:18:24Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABXDQAsw",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -1683,7 +1931,9 @@
       "id": "gql-pr-opened-232-ivuorinen/base-configs-semantic-release",
       "number": 232,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T01:08:37Z",
+      "subject_state": "MERGED",
       "title": "ci: record why zizmor's self-repository audit is ignored",
       "type": "PullRequestEvent"
     },
@@ -1693,7 +1943,9 @@
       "id": "gql-pr-opened-197-ivuorinen/base-configs-stylelint",
       "number": 197,
       "repo": "ivuorinen/base-configs-stylelint",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T01:05:18Z",
+      "subject_state": "MERGED",
       "title": "ci: publish to npm via trusted publishing",
       "type": "PullRequestEvent"
     },
@@ -1703,7 +1955,9 @@
       "id": "gql-pr-opened-229-ivuorinen/base-configs-prettier",
       "number": 229,
       "repo": "ivuorinen/base-configs-prettier",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T01:05:14Z",
+      "subject_state": "MERGED",
       "title": "ci: publish to npm via trusted publishing",
       "type": "PullRequestEvent"
     },
@@ -1713,7 +1967,9 @@
       "id": "gql-pr-opened-203-ivuorinen/base-configs-markdownlint",
       "number": 203,
       "repo": "ivuorinen/base-configs-markdownlint",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T01:05:09Z",
+      "subject_state": "MERGED",
       "title": "ci: publish to npm via trusted publishing",
       "type": "PullRequestEvent"
     },
@@ -1723,7 +1979,9 @@
       "id": "gql-pr-opened-248-ivuorinen/base-configs-eslint",
       "number": 248,
       "repo": "ivuorinen/base-configs-eslint",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T01:05:05Z",
+      "subject_state": "MERGED",
       "title": "ci: publish to npm via trusted publishing",
       "type": "PullRequestEvent"
     },
@@ -1733,7 +1991,9 @@
       "id": "gql-pr-opened-278-ivuorinen/base-configs-browserslist",
       "number": 278,
       "repo": "ivuorinen/base-configs-browserslist",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T01:05:00Z",
+      "subject_state": "MERGED",
       "title": "ci: publish to npm via trusted publishing",
       "type": "PullRequestEvent"
     },
@@ -1741,12 +2001,14 @@
       "created_at": "2026-09-26T00:55:43Z",
       "id": "gql-comment-IC_kwDOJex6nM8AAAABXDGd4g",
       "repo": "ivuorinen/base-configs",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-26T00:55:09Z",
       "id": "gql-comment-IC_kwDOJex6nM8AAAABXDGPIw",
       "repo": "ivuorinen/base-configs",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -1756,7 +2018,9 @@
       "merged": true,
       "number": 580,
       "repo": "ivuorinen/base-configs",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T00:07:42Z",
+      "subject_state": "MERGED",
       "title": "fix!: restore the commit-msg hook and raise the Node floor",
       "type": "PullRequestEvent"
     },
@@ -1765,6 +2029,7 @@
       "id": "gql-review-2026-09-26T00:08:04Z-712-ivuorinen/dotfiles",
       "number": 712,
       "repo": "ivuorinen/dotfiles",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency editorconfig-checker (4.0.1 → 4.0.2)",
       "type": "PullRequestReviewEvent"
@@ -1774,6 +2039,7 @@
       "id": "gql-review-2026-09-26T00:07:43Z-713-ivuorinen/dotfiles",
       "number": 713,
       "repo": "ivuorinen/dotfiles",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency github:wakatime/wakatime-cli (v2.26.2 → v2.26.5)",
       "type": "PullRequestReviewEvent"
@@ -1784,7 +2050,9 @@
       "id": "gql-pr-opened-580-ivuorinen/base-configs",
       "number": 580,
       "repo": "ivuorinen/base-configs",
+      "repo_private": false,
       "subject_created_at": "2026-09-26T00:07:42Z",
+      "subject_state": "MERGED",
       "title": "fix!: restore the commit-msg hook and raise the Node floor",
       "type": "PullRequestEvent"
     },
@@ -1795,7 +2063,9 @@
       "merged": true,
       "number": 247,
       "repo": "ivuorinen/base-configs-eslint",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:55:41Z",
+      "subject_state": "MERGED",
       "title": "chore(actions): bump @ivuorinen/semantic-release-config to ^3.0.0",
       "type": "PullRequestEvent"
     },
@@ -1806,7 +2076,9 @@
       "merged": true,
       "number": 196,
       "repo": "ivuorinen/base-configs-stylelint",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:22:34Z",
+      "subject_state": "MERGED",
       "title": "fix: honour the value of IVUORINEN_STYLELINT_NO_POSTINSTALL",
       "type": "PullRequestEvent"
     },
@@ -1817,7 +2089,9 @@
       "merged": true,
       "number": 228,
       "repo": "ivuorinen/base-configs-prettier",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:22:26Z",
+      "subject_state": "MERGED",
       "title": "fix: never fail the consumer's install from postinstall",
       "type": "PullRequestEvent"
     },
@@ -1828,7 +2102,9 @@
       "merged": true,
       "number": 202,
       "repo": "ivuorinen/base-configs-markdownlint",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:22:22Z",
+      "subject_state": "MERGED",
       "title": "fix!: raise the Node floor to what markdownlint-cli needs",
       "type": "PullRequestEvent"
     },
@@ -1839,7 +2115,9 @@
       "merged": true,
       "number": 202,
       "repo": "ivuorinen/base-configs-commitlint",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:22:14Z",
+      "subject_state": "MERGED",
       "title": "docs: document package-manager behaviour of the starter config",
       "type": "PullRequestEvent"
     },
@@ -1850,7 +2128,9 @@
       "merged": true,
       "number": 277,
       "repo": "ivuorinen/base-configs-browserslist",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:22:10Z",
+      "subject_state": "MERGED",
       "title": "fix: never fail the consumer's install from postinstall",
       "type": "PullRequestEvent"
     },
@@ -1860,7 +2140,9 @@
       "id": "gql-pr-opened-247-ivuorinen/base-configs-eslint",
       "number": 247,
       "repo": "ivuorinen/base-configs-eslint",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:55:41Z",
+      "subject_state": "MERGED",
       "title": "chore(actions): bump @ivuorinen/semantic-release-config to ^3.0.0",
       "type": "PullRequestEvent"
     },
@@ -1871,7 +2153,9 @@
       "merged": true,
       "number": 231,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:43:40Z",
+      "subject_state": "MERGED",
       "title": "fix(deps): hold conventional-changelog-conventionalcommits at ^9 so release notes render",
       "type": "PullRequestEvent"
     },
@@ -1881,7 +2165,9 @@
       "id": "gql-pr-opened-231-ivuorinen/base-configs-semantic-release",
       "number": 231,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:43:40Z",
+      "subject_state": "MERGED",
       "title": "fix(deps): hold conventional-changelog-conventionalcommits at ^9 so release notes render",
       "type": "PullRequestEvent"
     },
@@ -1890,6 +2176,7 @@
       "id": "gql-review-2026-09-25T23:27:44Z-691-ivuorinen/actions",
       "number": 691,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook bridgecrewio/checkov (3.3.16 → 3.3.19)",
       "type": "PullRequestReviewEvent"
@@ -1901,7 +2188,9 @@
       "merged": true,
       "number": 246,
       "repo": "ivuorinen/base-configs-eslint",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:22:18Z",
+      "subject_state": "MERGED",
       "title": "fix!: parse modern syntax, scope the jest config to test files, drop the typescript dependency",
       "type": "PullRequestEvent"
     },
@@ -1912,7 +2201,9 @@
       "merged": true,
       "number": 228,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:22:30Z",
+      "subject_state": "MERGED",
       "title": "fix!: raise the Node floor to what semantic-release 25 needs",
       "type": "PullRequestEvent"
     },
@@ -1922,7 +2213,9 @@
       "id": "gql-pr-opened-196-ivuorinen/base-configs-stylelint",
       "number": 196,
       "repo": "ivuorinen/base-configs-stylelint",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:22:34Z",
+      "subject_state": "MERGED",
       "title": "fix: honour the value of IVUORINEN_STYLELINT_NO_POSTINSTALL",
       "type": "PullRequestEvent"
     },
@@ -1932,7 +2225,9 @@
       "id": "gql-pr-opened-228-ivuorinen/base-configs-semantic-release",
       "number": 228,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:22:30Z",
+      "subject_state": "MERGED",
       "title": "fix!: raise the Node floor to what semantic-release 25 needs",
       "type": "PullRequestEvent"
     },
@@ -1942,7 +2237,9 @@
       "id": "gql-pr-opened-228-ivuorinen/base-configs-prettier",
       "number": 228,
       "repo": "ivuorinen/base-configs-prettier",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:22:26Z",
+      "subject_state": "MERGED",
       "title": "fix: never fail the consumer's install from postinstall",
       "type": "PullRequestEvent"
     },
@@ -1952,7 +2249,9 @@
       "id": "gql-pr-opened-202-ivuorinen/base-configs-markdownlint",
       "number": 202,
       "repo": "ivuorinen/base-configs-markdownlint",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:22:22Z",
+      "subject_state": "MERGED",
       "title": "fix!: raise the Node floor to what markdownlint-cli needs",
       "type": "PullRequestEvent"
     },
@@ -1962,7 +2261,9 @@
       "id": "gql-pr-opened-246-ivuorinen/base-configs-eslint",
       "number": 246,
       "repo": "ivuorinen/base-configs-eslint",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:22:18Z",
+      "subject_state": "MERGED",
       "title": "fix!: parse modern syntax, scope the jest config to test files, drop the typescript dependency",
       "type": "PullRequestEvent"
     },
@@ -1972,7 +2273,9 @@
       "id": "gql-pr-opened-202-ivuorinen/base-configs-commitlint",
       "number": 202,
       "repo": "ivuorinen/base-configs-commitlint",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:22:14Z",
+      "subject_state": "MERGED",
       "title": "docs: document package-manager behaviour of the starter config",
       "type": "PullRequestEvent"
     },
@@ -1982,7 +2285,9 @@
       "id": "gql-pr-opened-277-ivuorinen/base-configs-browserslist",
       "number": 277,
       "repo": "ivuorinen/base-configs-browserslist",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:22:10Z",
+      "subject_state": "MERGED",
       "title": "fix: never fail the consumer's install from postinstall",
       "type": "PullRequestEvent"
     },
@@ -1993,7 +2298,9 @@
       "merged": true,
       "number": 578,
       "repo": "ivuorinen/base-configs",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:09:36Z",
+      "subject_state": "MERGED",
       "title": "chore(actions): stop devDependency and pre-commit updates from releasing",
       "type": "PullRequestEvent"
     },
@@ -2004,7 +2311,9 @@
       "merged": true,
       "number": 195,
       "repo": "ivuorinen/base-configs-stylelint",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:10:08Z",
+      "subject_state": "MERGED",
       "title": "chore(actions): stop devDependency and pre-commit updates from releasing",
       "type": "PullRequestEvent"
     },
@@ -2015,7 +2324,9 @@
       "merged": true,
       "number": 227,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:10:04Z",
+      "subject_state": "MERGED",
       "title": "chore(actions): stop devDependency and pre-commit updates from releasing",
       "type": "PullRequestEvent"
     },
@@ -2026,7 +2337,9 @@
       "merged": true,
       "number": 227,
       "repo": "ivuorinen/base-configs-prettier",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:09:59Z",
+      "subject_state": "MERGED",
       "title": "chore(actions): stop devDependency and pre-commit updates from releasing",
       "type": "PullRequestEvent"
     },
@@ -2037,7 +2350,9 @@
       "merged": true,
       "number": 201,
       "repo": "ivuorinen/base-configs-markdownlint",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:09:55Z",
+      "subject_state": "MERGED",
       "title": "chore(actions): stop devDependency and pre-commit updates from releasing",
       "type": "PullRequestEvent"
     },
@@ -2048,7 +2363,9 @@
       "merged": true,
       "number": 244,
       "repo": "ivuorinen/base-configs-eslint",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:09:50Z",
+      "subject_state": "MERGED",
       "title": "chore(actions): stop devDependency and pre-commit updates from releasing",
       "type": "PullRequestEvent"
     },
@@ -2059,7 +2376,9 @@
       "merged": true,
       "number": 201,
       "repo": "ivuorinen/base-configs-commitlint",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:09:45Z",
+      "subject_state": "MERGED",
       "title": "chore(actions): stop devDependency and pre-commit updates from releasing",
       "type": "PullRequestEvent"
     },
@@ -2070,7 +2389,9 @@
       "merged": true,
       "number": 276,
       "repo": "ivuorinen/base-configs-browserslist",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:09:40Z",
+      "subject_state": "MERGED",
       "title": "chore(actions): stop devDependency and pre-commit updates from releasing",
       "type": "PullRequestEvent"
     },
@@ -2080,7 +2401,9 @@
       "id": "gql-pr-opened-145-ivuorinen/skills",
       "number": 145,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:12:27Z",
+      "subject_state": "MERGED",
       "title": "fix: migrate the v1 documents agents actually wrote",
       "type": "PullRequestEvent"
     },
@@ -2090,7 +2413,9 @@
       "id": "gql-pr-opened-195-ivuorinen/base-configs-stylelint",
       "number": 195,
       "repo": "ivuorinen/base-configs-stylelint",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:10:08Z",
+      "subject_state": "MERGED",
       "title": "chore(actions): stop devDependency and pre-commit updates from releasing",
       "type": "PullRequestEvent"
     },
@@ -2100,7 +2425,9 @@
       "id": "gql-pr-opened-227-ivuorinen/base-configs-semantic-release",
       "number": 227,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:10:04Z",
+      "subject_state": "MERGED",
       "title": "chore(actions): stop devDependency and pre-commit updates from releasing",
       "type": "PullRequestEvent"
     },
@@ -2110,7 +2437,9 @@
       "id": "gql-pr-opened-227-ivuorinen/base-configs-prettier",
       "number": 227,
       "repo": "ivuorinen/base-configs-prettier",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:09:59Z",
+      "subject_state": "MERGED",
       "title": "chore(actions): stop devDependency and pre-commit updates from releasing",
       "type": "PullRequestEvent"
     },
@@ -2120,7 +2449,9 @@
       "id": "gql-pr-opened-201-ivuorinen/base-configs-markdownlint",
       "number": 201,
       "repo": "ivuorinen/base-configs-markdownlint",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:09:55Z",
+      "subject_state": "MERGED",
       "title": "chore(actions): stop devDependency and pre-commit updates from releasing",
       "type": "PullRequestEvent"
     },
@@ -2130,7 +2461,9 @@
       "id": "gql-pr-opened-244-ivuorinen/base-configs-eslint",
       "number": 244,
       "repo": "ivuorinen/base-configs-eslint",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:09:50Z",
+      "subject_state": "MERGED",
       "title": "chore(actions): stop devDependency and pre-commit updates from releasing",
       "type": "PullRequestEvent"
     },
@@ -2140,7 +2473,9 @@
       "id": "gql-pr-opened-201-ivuorinen/base-configs-commitlint",
       "number": 201,
       "repo": "ivuorinen/base-configs-commitlint",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:09:45Z",
+      "subject_state": "MERGED",
       "title": "chore(actions): stop devDependency and pre-commit updates from releasing",
       "type": "PullRequestEvent"
     },
@@ -2150,7 +2485,9 @@
       "id": "gql-pr-opened-276-ivuorinen/base-configs-browserslist",
       "number": 276,
       "repo": "ivuorinen/base-configs-browserslist",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:09:40Z",
+      "subject_state": "MERGED",
       "title": "chore(actions): stop devDependency and pre-commit updates from releasing",
       "type": "PullRequestEvent"
     },
@@ -2160,7 +2497,9 @@
       "id": "gql-pr-opened-578-ivuorinen/base-configs",
       "number": 578,
       "repo": "ivuorinen/base-configs",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T23:09:36Z",
+      "subject_state": "MERGED",
       "title": "chore(actions): stop devDependency and pre-commit updates from releasing",
       "type": "PullRequestEvent"
     },
@@ -2171,7 +2510,9 @@
       "merged": true,
       "number": 144,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T09:41:29Z",
+      "subject_state": "MERGED",
       "title": "feat: hold nitpicker's instructions under pressure: cr loop signals, audit scope, step closure",
       "type": "PullRequestEvent"
     },
@@ -2179,53 +2520,62 @@
       "created_at": "2026-09-25T15:22:33Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABW8lIKg",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-25T14:18:40Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABW7rAqg",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-25T13:20:38Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABW63Slg",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-25T13:04:10Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABW6o21g",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-25T10:58:40Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABW5Ic1Q",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-25T10:45:57Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABW4_OQg",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "action": "closed",
       "created_at": "2026-09-25T10:39:09Z",
-      "id": "gql-pr-closed-259-example-org/private-repo-3",
+      "id": "gql-pr-closed-259-example-org/private-repo-1",
       "merged": false,
       "number": 259,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "subject_created_at": "2026-09-24T18:09:03Z",
+      "subject_state": "CLOSED",
       "title": "Private pull request",
       "type": "PullRequestEvent"
     },
     {
       "created_at": "2026-09-25T10:39:08Z",
       "id": "gql-comment-private-3",
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "type": "IssueCommentEvent"
     },
     {
@@ -2235,7 +2585,9 @@
       "merged": true,
       "number": 147,
       "repo": "ivuorinen/tree-sitter-shellspec",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T08:57:47Z",
+      "subject_state": "MERGED",
       "title": "ci(codeql): ignore generated parser code and document the heredoc scanner",
       "type": "PullRequestEvent"
     },
@@ -2243,6 +2595,7 @@
       "created_at": "2026-09-25T09:58:07Z",
       "id": "gql-comment-IC_kwDOPuPJcc8AAAABW4YdRg",
       "repo": "ivuorinen/tree-sitter-shellspec",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -2251,7 +2604,9 @@
       "id": "gql-pr-opened-144-ivuorinen/skills",
       "number": 144,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T09:41:29Z",
+      "subject_state": "MERGED",
       "title": "feat: hold nitpicker's instructions under pressure: cr loop signals, audit scope, step closure",
       "type": "PullRequestEvent"
     },
@@ -2261,7 +2616,9 @@
       "id": "gql-pr-opened-147-ivuorinen/tree-sitter-shellspec",
       "number": 147,
       "repo": "ivuorinen/tree-sitter-shellspec",
+      "repo_private": false,
       "subject_created_at": "2026-09-25T08:57:47Z",
+      "subject_state": "MERGED",
       "title": "ci(codeql): ignore generated parser code and document the heredoc scanner",
       "type": "PullRequestEvent"
     },
@@ -2270,6 +2627,7 @@
       "id": "gql-review-2026-09-25T08:42:47Z-145-ivuorinen/tree-sitter-shellspec",
       "number": 145,
       "repo": "ivuorinen/tree-sitter-shellspec",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update dependency python (3.12.14 → 3.14.7)",
       "type": "PullRequestReviewEvent"
@@ -2281,7 +2639,9 @@
       "merged": true,
       "number": 146,
       "repo": "ivuorinen/tree-sitter-shellspec",
+      "repo_private": false,
       "subject_created_at": "2026-09-24T19:31:38Z",
+      "subject_state": "MERGED",
       "title": "ci(release): automate releases with release-please and trusted publishing",
       "type": "PullRequestEvent"
     },
@@ -2290,6 +2650,7 @@
       "id": "gql-review-2026-09-25T07:11:28Z-178-example-org/private-repo-2",
       "number": 178,
       "repo": "example-org/private-repo-2",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -2299,6 +2660,7 @@
       "id": "gql-review-2026-09-25T07:10:48Z-180-example-org/private-repo-2",
       "number": 180,
       "repo": "example-org/private-repo-2",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -2308,6 +2670,7 @@
       "id": "gql-review-2026-09-25T07:10:20Z-179-example-org/private-repo-2",
       "number": 179,
       "repo": "example-org/private-repo-2",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -2317,6 +2680,7 @@
       "id": "gql-review-2026-09-25T07:09:38Z-181-example-org/private-repo-2",
       "number": 181,
       "repo": "example-org/private-repo-2",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -2326,6 +2690,7 @@
       "id": "gql-review-2026-09-25T07:09:07Z-182-example-org/private-repo-2",
       "number": 182,
       "repo": "example-org/private-repo-2",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -2335,6 +2700,7 @@
       "id": "gql-review-2026-09-25T07:08:46Z-183-example-org/private-repo-2",
       "number": 183,
       "repo": "example-org/private-repo-2",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -2344,6 +2710,7 @@
       "id": "gql-review-2026-09-25T07:07:44Z-59-ivuorinen/github-actions-runner-setup",
       "number": 59,
       "repo": "ivuorinen/github-actions-runner-setup",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update github/codeql-action action (v4.38.0 → v4.38.1)",
       "type": "PullRequestReviewEvent"
@@ -2353,6 +2720,7 @@
       "id": "gql-review-2026-09-25T07:07:28Z-58-ivuorinen/github-actions-runner-setup",
       "number": 58,
       "repo": "ivuorinen/github-actions-runner-setup",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook bridgecrewio/checkov (3.3.17 → 3.3.19)",
       "type": "PullRequestReviewEvent"
@@ -2362,6 +2730,7 @@
       "id": "gql-review-2026-09-25T07:07:15Z-57-ivuorinen/github-actions-runner-setup",
       "number": 57,
       "repo": "ivuorinen/github-actions-runner-setup",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update docker/setup-buildx-action action (v4.3.0 → v4.4.1)",
       "type": "PullRequestReviewEvent"
@@ -2371,6 +2740,7 @@
       "id": "gql-review-2026-09-25T07:05:59Z-690-ivuorinen/actions",
       "number": 690,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook astral-sh/ruff-pre-commit (v0.16.6 → v0.16.8)",
       "type": "PullRequestReviewEvent"
@@ -2380,6 +2750,7 @@
       "id": "gql-review-2026-09-25T07:05:38Z-693-ivuorinen/actions",
       "number": 693,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update github/codeql-action action (v4.37.9 → v4.38.1)",
       "type": "PullRequestReviewEvent"
@@ -2389,6 +2760,7 @@
       "id": "gql-review-2026-09-25T07:05:20Z-692-ivuorinen/actions",
       "number": 692,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update astral-sh/setup-uv action (v10.0.1 → v10.1.0)",
       "type": "PullRequestReviewEvent"
@@ -2398,6 +2770,7 @@
       "id": "gql-review-2026-09-25T07:04:38Z-689-ivuorinen/actions",
       "number": 689,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update github/issue-metrics action (v5.0.1 → v5.0.2)",
       "type": "PullRequestReviewEvent"
@@ -2407,15 +2780,17 @@
       "id": "gql-review-2026-09-25T07:04:25Z-687-ivuorinen/actions",
       "number": 687,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook astral-sh/uv-pre-commit (0.12.10 → 0.12.17)",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-25T07:03:10Z",
-      "id": "gql-review-2026-09-25T07:03:10Z-47-ivuorinen/private-repo-1",
+      "id": "gql-review-2026-09-25T07:03:10Z-47-ivuorinen/private-repo-2",
       "number": 47,
-      "repo": "ivuorinen/private-repo-1",
+      "repo": "ivuorinen/private-repo-2",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -2425,6 +2800,7 @@
       "id": "gql-review-2026-09-25T07:02:19Z-143-ivuorinen/skills",
       "number": 143,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update github/codeql-action action (v4.38.0 → v4.38.1)",
       "type": "PullRequestReviewEvent"
@@ -2436,7 +2812,9 @@
       "merged": true,
       "number": 2,
       "repo": "ivuorinen/ssh-audit",
+      "repo_private": false,
       "subject_created_at": "2026-09-24T19:26:57Z",
+      "subject_state": "MERGED",
       "title": "Release 2.0.0",
       "type": "PullRequestEvent"
     },
@@ -2447,7 +2825,9 @@
       "merged": true,
       "number": 143,
       "repo": "ivuorinen/nvim-shellspec",
+      "repo_private": false,
       "subject_created_at": "2026-09-24T19:30:37Z",
+      "subject_state": "MERGED",
       "title": "fix!: harden the formatter, Vim fallback, health check and test suite",
       "type": "PullRequestEvent"
     },
@@ -2455,42 +2835,49 @@
       "created_at": "2026-09-24T23:43:25Z",
       "id": "gql-comment-IC_kwDOPrgBt88AAAABWyUnLQ",
       "repo": "ivuorinen/nvim-shellspec",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-24T22:53:11Z",
       "id": "gql-comment-IC_kwDOPrgBt88AAAABWxxLlw",
       "repo": "ivuorinen/nvim-shellspec",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-24T22:40:39Z",
       "id": "gql-comment-IC_kwDOPrgBt88AAAABWxpM_A",
       "repo": "ivuorinen/nvim-shellspec",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-24T21:37:13Z",
       "id": "gql-comment-IC_kwDOPrgBt88AAAABWw6gvg",
       "repo": "ivuorinen/nvim-shellspec",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-24T21:37:13Z",
       "id": "gql-comment-IC_kwDOPrgBt88AAAABWw6g2Q",
       "repo": "ivuorinen/nvim-shellspec",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-24T20:51:38Z",
       "id": "gql-comment-IC_kwDOPuPJcc8AAAABWwVn_g",
       "repo": "ivuorinen/tree-sitter-shellspec",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-24T20:33:59Z",
       "id": "gql-comment-IC_kwDOPrgBt88AAAABWwGgTw",
       "repo": "ivuorinen/nvim-shellspec",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -2500,7 +2887,9 @@
       "merged": true,
       "number": 141,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-17T13:52:00Z",
+      "subject_state": "MERGED",
       "title": "feat: pressure-test the review commands and gate what the audits found",
       "type": "PullRequestEvent"
     },
@@ -2508,6 +2897,7 @@
       "created_at": "2026-09-24T20:09:10Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABWvwgPw",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -2516,7 +2906,9 @@
       "id": "gql-pr-opened-146-ivuorinen/tree-sitter-shellspec",
       "number": 146,
       "repo": "ivuorinen/tree-sitter-shellspec",
+      "repo_private": false,
       "subject_created_at": "2026-09-24T19:31:38Z",
+      "subject_state": "MERGED",
       "title": "ci(release): automate releases with release-please and trusted publishing",
       "type": "PullRequestEvent"
     },
@@ -2526,7 +2918,9 @@
       "id": "gql-pr-opened-143-ivuorinen/nvim-shellspec",
       "number": 143,
       "repo": "ivuorinen/nvim-shellspec",
+      "repo_private": false,
       "subject_created_at": "2026-09-24T19:30:37Z",
+      "subject_state": "MERGED",
       "title": "fix!: harden the formatter, Vim fallback, health check and test suite",
       "type": "PullRequestEvent"
     },
@@ -2536,7 +2930,9 @@
       "id": "gql-pr-opened-2-ivuorinen/ssh-audit",
       "number": 2,
       "repo": "ivuorinen/ssh-audit",
+      "repo_private": false,
       "subject_created_at": "2026-09-24T19:26:57Z",
+      "subject_state": "MERGED",
       "title": "Release 2.0.0",
       "type": "PullRequestEvent"
     },
@@ -2544,33 +2940,39 @@
       "created_at": "2026-09-24T19:21:03Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABWvBcrQ",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-24T19:20:52Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABWvBTqA",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-24T19:06:08Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABWuzJZA",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-24T18:31:02Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABWuRTYw",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "action": "opened",
       "created_at": "2026-09-24T18:09:03Z",
-      "id": "gql-pr-opened-259-example-org/private-repo-3",
+      "id": "gql-pr-opened-259-example-org/private-repo-1",
       "number": 259,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "subject_created_at": "2026-09-24T18:09:03Z",
+      "subject_state": "CLOSED",
       "title": "Private pull request",
       "type": "PullRequestEvent"
     },
@@ -2578,24 +2980,28 @@
       "created_at": "2026-09-24T18:03:07Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABWt2Uvw",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-24T17:20:14Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABWtQVpQ",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-24T16:59:06Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABWs9uOg",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-24T15:55:06Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABWsBb1w",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -2605,7 +3011,9 @@
       "merged": true,
       "number": 134,
       "repo": "ivuorinen/semver-ranger",
+      "repo_private": false,
       "subject_created_at": "2026-09-17T18:25:32Z",
+      "subject_state": "MERGED",
       "title": "fix(npm): stop publishing stale changelog and dev-only configs",
       "type": "PullRequestEvent"
     },
@@ -2616,7 +3024,9 @@
       "merged": true,
       "number": 1,
       "repo": "ivuorinen/ssh-audit",
+      "repo_private": false,
       "subject_created_at": "2026-09-24T15:41:31Z",
+      "subject_state": "MERGED",
       "title": "Modernize the fork: Python 3.14, GitHub Actions, current algorithm database",
       "type": "PullRequestEvent"
     },
@@ -2626,7 +3036,9 @@
       "id": "gql-pr-opened-1-ivuorinen/ssh-audit",
       "number": 1,
       "repo": "ivuorinen/ssh-audit",
+      "repo_private": false,
       "subject_created_at": "2026-09-24T15:41:31Z",
+      "subject_state": "MERGED",
       "title": "Modernize the fork: Python 3.14, GitHub Actions, current algorithm database",
       "type": "PullRequestEvent"
     },
@@ -2634,6 +3046,7 @@
       "created_at": "2026-09-24T15:26:29Z",
       "id": "gql-comment-IC_kwDOM9vfbM8AAAABWrle0Q",
       "repo": "ivuorinen/semver-ranger",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -2643,7 +3056,9 @@
       "merged": true,
       "number": 144,
       "repo": "ivuorinen/tree-sitter-shellspec",
+      "repo_private": false,
       "subject_created_at": "2026-09-22T18:49:21Z",
+      "subject_state": "MERGED",
       "title": "style(go): sort binding test imports for gofmt",
       "type": "PullRequestEvent"
     },
@@ -2651,6 +3066,7 @@
       "created_at": "2026-09-22T19:27:35Z",
       "id": "gql-comment-IC_kwDOPuPJcc8AAAABWKwRPg",
       "repo": "ivuorinen/tree-sitter-shellspec",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -2659,7 +3075,9 @@
       "id": "gql-pr-opened-144-ivuorinen/tree-sitter-shellspec",
       "number": 144,
       "repo": "ivuorinen/tree-sitter-shellspec",
+      "repo_private": false,
       "subject_created_at": "2026-09-22T18:49:21Z",
+      "subject_state": "MERGED",
       "title": "style(go): sort binding test imports for gofmt",
       "type": "PullRequestEvent"
     },
@@ -2668,6 +3086,7 @@
       "id": "gql-review-2026-09-22T18:45:55Z-143-ivuorinen/tree-sitter-shellspec",
       "number": 143,
       "repo": "ivuorinen/tree-sitter-shellspec",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook bridgecrewio/checkov (3.3.17 → 3.3.19)",
       "type": "PullRequestReviewEvent"
@@ -2679,7 +3098,9 @@
       "merged": true,
       "number": 142,
       "repo": "ivuorinen/tree-sitter-shellspec",
+      "repo_private": false,
       "subject_created_at": "2026-09-17T11:38:27Z",
+      "subject_state": "MERGED",
       "title": "feat(grammar)!: parse every spec file ShellSpec ships, and gate it in CI",
       "type": "PullRequestEvent"
     },
@@ -2688,6 +3109,7 @@
       "id": "gql-review-2026-09-22T18:19:57Z-142-ivuorinen/skills",
       "number": 142,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update ruff to v0.16.8",
       "type": "PullRequestReviewEvent"
@@ -2696,6 +3118,7 @@
       "created_at": "2026-09-22T18:17:41Z",
       "id": "gql-comment-IC_kwDOPuPJcc8AAAABWJ0Iyw",
       "repo": "ivuorinen/tree-sitter-shellspec",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -2703,6 +3126,7 @@
       "id": "gql-review-2026-09-22T17:56:27Z-187-ivuorinen/a",
       "number": 187,
       "repo": "ivuorinen/a",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook bridgecrewio/checkov (3.3.17 → 3.3.19)",
       "type": "PullRequestReviewEvent"
@@ -2712,6 +3136,7 @@
       "id": "gql-review-2026-09-22T17:56:05Z-186-ivuorinen/a",
       "number": 186,
       "repo": "ivuorinen/a",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency syft (1.51.1 → 1.52.0)",
       "type": "PullRequestReviewEvent"
@@ -2721,6 +3146,7 @@
       "id": "gql-review-2026-09-22T17:49:14Z-225-ivuorinen/f2b",
       "number": 225,
       "repo": "ivuorinen/f2b",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update dependency goreleaser/goreleaser (v2.16.0 → v2.18.2)",
       "type": "PullRequestReviewEvent"
@@ -2730,6 +3156,7 @@
       "id": "gql-review-2026-09-22T17:34:08Z-184-ivuorinen/a",
       "number": 184,
       "repo": "ivuorinen/a",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency goreleaser (2.18.1 → 2.18.2)",
       "type": "PullRequestReviewEvent"
@@ -2739,6 +3166,7 @@
       "id": "gql-review-2026-09-22T17:33:49Z-183-ivuorinen/a",
       "number": 183,
       "repo": "ivuorinen/a",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency checkov (3.3.17 → 3.3.19)",
       "type": "PullRequestReviewEvent"
@@ -2748,6 +3176,7 @@
       "id": "gql-review-2026-09-22T17:33:20Z-185-ivuorinen/a",
       "number": 185,
       "repo": "ivuorinen/a",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update docker/setup-buildx-action action (v4.3.0 → v4.4.1)",
       "type": "PullRequestReviewEvent"
@@ -2757,6 +3186,7 @@
       "id": "gql-review-2026-09-22T15:41:49Z-224-ivuorinen/f2b",
       "number": 224,
       "repo": "ivuorinen/f2b",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update development tools",
       "type": "PullRequestReviewEvent"
@@ -2766,15 +3196,17 @@
       "id": "gql-review-2026-09-22T11:12:10Z-249-ivuorinen/config-checker",
       "number": 249,
       "repo": "ivuorinen/config-checker",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook bridgecrewio/checkov (3.3.17 → 3.3.19)",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-20T18:43:45Z",
-      "id": "gql-review-2026-09-20T18:43:45Z-49-ivuorinen/private-repo-1",
+      "id": "gql-review-2026-09-20T18:43:45Z-49-ivuorinen/private-repo-2",
       "number": 49,
-      "repo": "ivuorinen/private-repo-1",
+      "repo": "ivuorinen/private-repo-2",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -2784,6 +3216,7 @@
       "id": "gql-review-2026-09-20T18:42:51Z-104-ivuorinen/renovate-config",
       "number": 104,
       "repo": "ivuorinen/renovate-config",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook renovatebot/pre-commit-hooks (44.95.0 → 44.97.4)",
       "type": "PullRequestReviewEvent"
@@ -2793,6 +3226,7 @@
       "id": "gql-review-2026-09-20T13:03:52Z-220-ivuorinen/base-configs-semantic-release",
       "number": 220,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): bump @types/node from 26.5.0 to 26.5.1",
       "type": "PullRequestReviewEvent"
@@ -2802,6 +3236,7 @@
       "id": "gql-review-2026-09-20T13:03:20Z-221-ivuorinen/base-configs-semantic-release",
       "number": 221,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): bump @ivuorinen/eslint-config from 1.5.13 to 1.5.16",
       "type": "PullRequestReviewEvent"
@@ -2811,6 +3246,7 @@
       "id": "gql-review-2026-09-20T13:02:14Z-56-ivuorinen/github-actions-runner-setup",
       "number": 56,
       "repo": "ivuorinen/github-actions-runner-setup",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update docker/build-push-action action (v7.3.0 → v7.4.0)",
       "type": "PullRequestReviewEvent"
@@ -2820,6 +3256,7 @@
       "id": "gql-review-2026-09-20T13:01:19Z-74-ivuorinen/homebrew-tap",
       "number": 74,
       "repo": "ivuorinen/homebrew-tap",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency ruby (4.0.6 → 4.0.7)",
       "type": "PullRequestReviewEvent"
@@ -2829,6 +3266,7 @@
       "id": "gql-review-2026-09-20T13:00:51Z-182-ivuorinen/a",
       "number": 182,
       "repo": "ivuorinen/a",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency prek (0.5.2 → 0.5.3)",
       "type": "PullRequestReviewEvent"
@@ -2838,6 +3276,7 @@
       "id": "gql-review-2026-09-20T13:00:25Z-222-ivuorinen/base-configs-semantic-release",
       "number": 222,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): bump @ivuorinen/config-checker from 2.6.13 to 2.6.15",
       "type": "PullRequestReviewEvent"
@@ -2847,15 +3286,17 @@
       "id": "gql-review-2026-09-20T12:59:51Z-41-ivuorinen/docker-php-with-imagick",
       "number": 41,
       "repo": "ivuorinen/docker-php-with-imagick",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update docker/build-push-action digest to c3c9e26",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-20T12:58:59Z",
-      "id": "gql-review-2026-09-20T12:58:59Z-46-ivuorinen/private-repo-1",
+      "id": "gql-review-2026-09-20T12:58:59Z-46-ivuorinen/private-repo-2",
       "number": 46,
-      "repo": "ivuorinen/private-repo-1",
+      "repo": "ivuorinen/private-repo-2",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -2865,6 +3306,7 @@
       "id": "gql-review-2026-09-20T12:57:38Z-130-ivuorinen/semver-ranger",
       "number": 130,
       "repo": "ivuorinen/semver-ranger",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update node.js (v26.8.2 → v26.9.0)",
       "type": "PullRequestReviewEvent"
@@ -2874,6 +3316,7 @@
       "id": "gql-review-2026-09-20T12:56:18Z-693-ivuorinen/dotfiles",
       "number": 693,
       "repo": "ivuorinen/dotfiles",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency checkov (3.3.17 → 3.3.19)",
       "type": "PullRequestReviewEvent"
@@ -2883,6 +3326,7 @@
       "id": "gql-review-2026-09-20T12:56:00Z-75-ivuorinen/homebrew-tap",
       "number": 75,
       "repo": "ivuorinen/homebrew-tap",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update ruby/setup-ruby action (v1.321.0 → v1.323.0)",
       "type": "PullRequestReviewEvent"
@@ -2892,6 +3336,7 @@
       "id": "gql-review-2026-09-20T12:54:36Z-25-ivuorinen/markdowndocs",
       "number": 25,
       "repo": "ivuorinen/markdowndocs",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "ci(actions): update codecov/codecov-action action (v7.0.0 → v7.1.1)",
       "type": "PullRequestReviewEvent"
@@ -2900,6 +3345,7 @@
       "created_at": "2026-09-17T19:06:11Z",
       "id": "gql-comment-IC_kwDOM9vfbM8AAAABVOymfg",
       "repo": "ivuorinen/semver-ranger",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -2908,7 +3354,9 @@
       "id": "gql-pr-opened-134-ivuorinen/semver-ranger",
       "number": 134,
       "repo": "ivuorinen/semver-ranger",
+      "repo_private": false,
       "subject_created_at": "2026-09-17T18:25:32Z",
+      "subject_state": "MERGED",
       "title": "fix(npm): stop publishing stale changelog and dev-only configs",
       "type": "PullRequestEvent"
     },
@@ -2918,7 +3366,9 @@
       "id": "gql-pr-opened-141-ivuorinen/skills",
       "number": 141,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-17T13:52:00Z",
+      "subject_state": "MERGED",
       "title": "feat: pressure-test the review commands and gate what the audits found",
       "type": "PullRequestEvent"
     },
@@ -2928,7 +3378,9 @@
       "id": "gql-pr-opened-142-ivuorinen/tree-sitter-shellspec",
       "number": 142,
       "repo": "ivuorinen/tree-sitter-shellspec",
+      "repo_private": false,
       "subject_created_at": "2026-09-17T11:38:27Z",
+      "subject_state": "MERGED",
       "title": "feat(grammar)!: parse every spec file ShellSpec ships, and gate it in CI",
       "type": "PullRequestEvent"
     },
@@ -2937,6 +3389,7 @@
       "description": "SSH server auditing (banner, key exchange, encryption, mac, compression, compatibility, security, etc)",
       "id": "gql-repo-created-ivuorinen/ssh-audit",
       "repo": "ivuorinen/ssh-audit",
+      "repo_private": false,
       "type": "CreateEvent"
     },
     {
@@ -2944,6 +3397,7 @@
       "id": "gql-review-2026-09-17T03:39:08Z-696-ivuorinen/dotfiles",
       "number": 696,
       "repo": "ivuorinen/dotfiles",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency uv (0.12.13 → 0.12.14)",
       "type": "PullRequestReviewEvent"
@@ -2953,6 +3407,7 @@
       "id": "gql-review-2026-09-17T03:36:41Z-688-ivuorinen/actions",
       "number": 688,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update image python to v3.14.7",
       "type": "PullRequestReviewEvent"
@@ -2962,6 +3417,7 @@
       "id": "gql-review-2026-09-17T03:36:07Z-176-example-org/private-repo-2",
       "number": 176,
       "repo": "example-org/private-repo-2",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -2971,6 +3427,7 @@
       "id": "gql-review-2026-09-16T05:32:45Z-181-ivuorinen/a",
       "number": 181,
       "repo": "ivuorinen/a",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook bridgecrewio/checkov (3.3.16 → 3.3.17)",
       "type": "PullRequestReviewEvent"
@@ -2980,6 +3437,7 @@
       "id": "gql-review-2026-09-16T05:32:15Z-180-ivuorinen/a",
       "number": 180,
       "repo": "ivuorinen/a",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency checkov (3.3.16 → 3.3.17)",
       "type": "PullRequestReviewEvent"
@@ -2989,6 +3447,7 @@
       "id": "gql-review-2026-09-16T01:42:39Z-178-ivuorinen/phpenv.fish",
       "number": 178,
       "repo": "ivuorinen/phpenv.fish",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook bridgecrewio/checkov (3.3.16 → 3.3.17)",
       "type": "PullRequestReviewEvent"
@@ -3000,7 +3459,9 @@
       "merged": true,
       "number": 133,
       "repo": "ivuorinen/semver-ranger",
+      "repo_private": false,
       "subject_created_at": "2026-09-16T01:21:24Z",
+      "subject_state": "MERGED",
       "title": "fix(release): force conventional-changelog-writer 9 so release notes render",
       "type": "PullRequestEvent"
     },
@@ -3009,6 +3470,7 @@
       "id": "gql-review-2026-09-16T01:22:12Z-64-ivuorinen/aeonview",
       "number": 64,
       "repo": "ivuorinen/aeonview",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update astral-sh/setup-uv action (v10.0.1 → v10.1.0)",
       "type": "PullRequestReviewEvent"
@@ -3019,7 +3481,9 @@
       "id": "gql-pr-opened-133-ivuorinen/semver-ranger",
       "number": 133,
       "repo": "ivuorinen/semver-ranger",
+      "repo_private": false,
       "subject_created_at": "2026-09-16T01:21:24Z",
+      "subject_state": "MERGED",
       "title": "fix(release): force conventional-changelog-writer 9 so release notes render",
       "type": "PullRequestEvent"
     },
@@ -3028,6 +3492,7 @@
       "id": "gql-review-2026-09-16T01:16:44Z-173-example-org/private-repo-2",
       "number": 173,
       "repo": "example-org/private-repo-2",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -3037,6 +3502,7 @@
       "id": "gql-review-2026-09-15T14:30:02Z-63-ivuorinen/aeonview",
       "number": 63,
       "repo": "ivuorinen/aeonview",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook astral-sh/ruff-pre-commit (v0.16.6 → v0.16.7)",
       "type": "PullRequestReviewEvent"
@@ -3046,6 +3512,7 @@
       "id": "gql-review-2026-09-15T14:29:33Z-273-ivuorinen/base-configs-browserslist",
       "number": 273,
       "repo": "ivuorinen/base-configs-browserslist",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update browserslist database",
       "type": "PullRequestReviewEvent"
@@ -3057,7 +3524,9 @@
       "merged": true,
       "number": 141,
       "repo": "ivuorinen/tree-sitter-shellspec",
+      "repo_private": false,
       "subject_created_at": "2026-09-15T10:54:54Z",
+      "subject_state": "MERGED",
       "title": "chore(deps): update npm packages, gh workflows, pre-commit-config and rebuild",
       "type": "PullRequestEvent"
     },
@@ -3067,7 +3536,9 @@
       "id": "gql-pr-opened-141-ivuorinen/tree-sitter-shellspec",
       "number": 141,
       "repo": "ivuorinen/tree-sitter-shellspec",
+      "repo_private": false,
       "subject_created_at": "2026-09-15T10:54:54Z",
+      "subject_state": "MERGED",
       "title": "chore(deps): update npm packages, gh workflows, pre-commit-config and rebuild",
       "type": "PullRequestEvent"
     },
@@ -3076,6 +3547,7 @@
       "id": "gql-review-2026-09-15T07:55:50Z-137-ivuorinen/skills",
       "number": 137,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency pyright (1.1.411 → 1.1.414)",
       "type": "PullRequestReviewEvent"
@@ -3085,6 +3557,7 @@
       "id": "gql-review-2026-09-15T07:54:57Z-138-ivuorinen/skills",
       "number": 138,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update ruff to v0.16.7",
       "type": "PullRequestReviewEvent"
@@ -3094,6 +3567,7 @@
       "id": "gql-review-2026-09-15T07:54:31Z-139-ivuorinen/skills",
       "number": 139,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update astral-sh/setup-uv action (v10.0.1 → v10.1.0)",
       "type": "PullRequestReviewEvent"
@@ -3105,7 +3579,9 @@
       "merged": true,
       "number": 140,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-15T06:03:31Z",
+      "subject_state": "MERGED",
       "title": "feat: add harness-agnostic task-tracking MCP tools and close the full-repository audit",
       "type": "PullRequestEvent"
     },
@@ -3113,12 +3589,14 @@
       "created_at": "2026-09-15T06:47:02Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABUlD5Eg",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-15T06:31:05Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABUk4Jbg",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -3127,7 +3605,9 @@
       "id": "gql-pr-opened-140-ivuorinen/skills",
       "number": 140,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-15T06:03:31Z",
+      "subject_state": "MERGED",
       "title": "feat: add harness-agnostic task-tracking MCP tools and close the full-repository audit",
       "type": "PullRequestEvent"
     },
@@ -3136,6 +3616,7 @@
       "id": "gql-review-2026-09-14T19:02:18Z-177-ivuorinen/a",
       "number": 177,
       "repo": "ivuorinen/a",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency shfmt (3.14.0 → 3.14.1)",
       "type": "PullRequestReviewEvent"
@@ -3145,6 +3626,7 @@
       "id": "gql-review-2026-09-14T15:15:09Z-47-ivuorinen/paperboy",
       "number": 47,
       "repo": "ivuorinen/paperboy",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update github/codeql-action action (v4.37.9 → v4.38.0)",
       "type": "PullRequestReviewEvent"
@@ -3154,24 +3636,27 @@
       "id": "gql-review-2026-09-14T13:32:16Z-139-ivuorinen/tree-sitter-shellspec",
       "number": 139,
       "repo": "ivuorinen/tree-sitter-shellspec",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook bridgecrewio/checkov (3.3.13 → 3.3.17)",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-14T11:24:40Z",
-      "id": "gql-review-2026-09-14T11:24:40Z-580-ivuorinen/private-repo-4",
+      "id": "gql-review-2026-09-14T11:24:40Z-580-ivuorinen/private-repo-1",
       "number": 580,
-      "repo": "ivuorinen/private-repo-4",
+      "repo": "ivuorinen/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-14T11:16:31Z",
-      "id": "gql-review-2026-09-14T11:16:31Z-581-ivuorinen/private-repo-4",
+      "id": "gql-review-2026-09-14T11:16:31Z-581-ivuorinen/private-repo-1",
       "number": 581,
-      "repo": "ivuorinen/private-repo-4",
+      "repo": "ivuorinen/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -3181,6 +3666,7 @@
       "id": "gql-review-2026-09-14T11:14:12Z-35-ivuorinen/stylelint-a11y",
       "number": 35,
       "repo": "ivuorinen/stylelint-a11y",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update github/codeql-action action (v4.37.9 → v4.38.0)",
       "type": "PullRequestReviewEvent"
@@ -3190,6 +3676,7 @@
       "id": "gql-review-2026-09-14T11:13:46Z-172-example-org/private-repo-2",
       "number": 172,
       "repo": "example-org/private-repo-2",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -3199,6 +3686,7 @@
       "id": "gql-review-2026-09-14T11:13:21Z-166-ivuorinen/github-base-template",
       "number": 166,
       "repo": "ivuorinen/github-base-template",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook bridgecrewio/checkov (3.3.16 → 3.3.17)",
       "type": "PullRequestReviewEvent"
@@ -3208,60 +3696,67 @@
       "id": "gql-review-2026-09-14T11:12:55Z-54-ivuorinen/github-actions-runner-setup",
       "number": 54,
       "repo": "ivuorinen/github-actions-runner-setup",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook bridgecrewio/checkov (3.3.13 → 3.3.17)",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-14T10:57:15Z",
-      "id": "gql-review-2026-09-14T10:57:15Z-241-example-org/private-repo-3",
+      "id": "gql-review-2026-09-14T10:57:15Z-241-example-org/private-repo-1",
       "number": 241,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-14T10:56:55Z",
-      "id": "gql-review-2026-09-14T10:56:55Z-242-example-org/private-repo-3",
+      "id": "gql-review-2026-09-14T10:56:55Z-242-example-org/private-repo-1",
       "number": 242,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-14T10:56:34Z",
-      "id": "gql-review-2026-09-14T10:56:34Z-243-example-org/private-repo-3",
+      "id": "gql-review-2026-09-14T10:56:34Z-243-example-org/private-repo-1",
       "number": 243,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-14T10:56:11Z",
-      "id": "gql-review-2026-09-14T10:56:11Z-244-example-org/private-repo-3",
+      "id": "gql-review-2026-09-14T10:56:11Z-244-example-org/private-repo-1",
       "number": 244,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-14T10:55:45Z",
-      "id": "gql-review-2026-09-14T10:55:45Z-245-example-org/private-repo-3",
+      "id": "gql-review-2026-09-14T10:55:45Z-245-example-org/private-repo-1",
       "number": 245,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-14T10:55:09Z",
-      "id": "gql-review-2026-09-14T10:55:09Z-247-example-org/private-repo-3",
+      "id": "gql-review-2026-09-14T10:55:09Z-247-example-org/private-repo-1",
       "number": 247,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -3270,6 +3765,7 @@
       "created_at": "2026-09-14T08:18:37Z",
       "id": "gql-comment-IC_kwDONCGHwM8AAAABUW0Bfg",
       "repo": "ivuorinen/uptime",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -3278,7 +3774,9 @@
       "id": "gql-issue-closed-306-ivuorinen/uptime",
       "number": 306,
       "repo": "ivuorinen/uptime",
+      "repo_private": false,
       "subject_created_at": "2026-09-14T07:58:50Z",
+      "subject_state": "CLOSED",
       "title": "🛑 ivuorinen.com is down",
       "type": "IssuesEvent"
     },
@@ -3288,7 +3786,9 @@
       "id": "gql-issue-opened-306-ivuorinen/uptime",
       "number": 306,
       "repo": "ivuorinen/uptime",
+      "repo_private": false,
       "subject_created_at": "2026-09-14T07:58:50Z",
+      "subject_state": "CLOSED",
       "title": "🛑 ivuorinen.com is down",
       "type": "IssuesEvent"
     },
@@ -3297,6 +3797,7 @@
       "id": "gql-review-2026-09-14T05:51:37Z-36-ivuorinen/stylelint-a11y",
       "number": 36,
       "repo": "ivuorinen/stylelint-a11y",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump js-yaml",
       "type": "PullRequestReviewEvent"
@@ -3306,15 +3807,17 @@
       "id": "gql-review-2026-09-14T05:48:19Z-246-ivuorinen/config-checker",
       "number": 246,
       "repo": "ivuorinen/config-checker",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump js-yaml from 4.3.1 to 4.3.2",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-14T05:46:54Z",
-      "id": "gql-review-2026-09-14T05:46:54Z-82-example-org/private-repo-1",
+      "id": "gql-review-2026-09-14T05:46:54Z-82-example-org/private-repo-3",
       "number": 82,
-      "repo": "example-org/private-repo-1",
+      "repo": "example-org/private-repo-3",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -3324,6 +3827,7 @@
       "id": "gql-review-2026-09-13T17:40:21Z-55-ivuorinen/github-actions-runner-setup",
       "number": 55,
       "repo": "ivuorinen/github-actions-runner-setup",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update github/codeql-action action (v4.37.9 → v4.38.0)",
       "type": "PullRequestReviewEvent"
@@ -3333,6 +3837,7 @@
       "id": "gql-review-2026-09-13T17:05:00Z-133-ivuorinen/skills",
       "number": 133,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update github/codeql-action digest to b96794f",
       "type": "PullRequestReviewEvent"
@@ -3342,6 +3847,7 @@
       "id": "gql-review-2026-09-13T16:09:04Z-134-ivuorinen/skills",
       "number": 134,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency zizmorcore/zizmor-pre-commit (v1.30.0 → v1.30.1)",
       "type": "PullRequestReviewEvent"
@@ -3351,6 +3857,7 @@
       "id": "gql-review-2026-09-13T16:05:33Z-130-ivuorinen/skills",
       "number": 130,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "fix(deps): update ruff to v0.16.6",
       "type": "PullRequestReviewEvent"
@@ -3362,7 +3869,9 @@
       "merged": true,
       "number": 136,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-13T15:52:44Z",
+      "subject_state": "MERGED",
       "title": "ci: put the version in the grouped ruff PR title",
       "type": "PullRequestEvent"
     },
@@ -3373,7 +3882,9 @@
       "merged": true,
       "number": 179,
       "repo": "ivuorinen/a",
+      "repo_private": false,
       "subject_created_at": "2026-09-13T11:03:18Z",
+      "subject_state": "MERGED",
       "title": "fix: harden the CLI, reach full coverage, and gate CI",
       "type": "PullRequestEvent"
     },
@@ -3383,7 +3894,9 @@
       "id": "gql-pr-opened-136-ivuorinen/skills",
       "number": 136,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-13T15:52:44Z",
+      "subject_state": "MERGED",
       "title": "ci: put the version in the grouped ruff PR title",
       "type": "PullRequestEvent"
     },
@@ -3394,7 +3907,9 @@
       "merged": true,
       "number": 135,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-13T13:44:20Z",
+      "subject_state": "MERGED",
       "title": "fix: a CodeRabbit rate-limit window is a floor, not a guarantee",
       "type": "PullRequestEvent"
     },
@@ -3404,7 +3919,9 @@
       "id": "gql-pr-opened-135-ivuorinen/skills",
       "number": 135,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-13T13:44:20Z",
+      "subject_state": "MERGED",
       "title": "fix: a CodeRabbit rate-limit window is a floor, not a guarantee",
       "type": "PullRequestEvent"
     },
@@ -3415,7 +3932,9 @@
       "merged": true,
       "number": 132,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-12T14:53:30Z",
+      "subject_state": "MERGED",
       "title": "feat: gate on Codacy's Agentlinter engine with a justified baseline",
       "type": "PullRequestEvent"
     },
@@ -3423,12 +3942,14 @@
       "created_at": "2026-09-13T11:58:05Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABUPOzOQ",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-13T11:35:30Z",
       "id": "gql-comment-IC_kwDOM9vfbM8AAAABUPIXIg",
       "repo": "ivuorinen/semver-ranger",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -3438,7 +3959,9 @@
       "merged": true,
       "number": 132,
       "repo": "ivuorinen/semver-ranger",
+      "repo_private": false,
       "subject_created_at": "2026-09-13T11:18:22Z",
+      "subject_state": "MERGED",
       "title": "chore(deps): update npm packages and github workflows, add pre-commit-config",
       "type": "PullRequestEvent"
     },
@@ -3446,6 +3969,7 @@
       "created_at": "2026-09-13T11:27:56Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABUPGPNA",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -3454,7 +3978,9 @@
       "id": "gql-pr-opened-132-ivuorinen/semver-ranger",
       "number": 132,
       "repo": "ivuorinen/semver-ranger",
+      "repo_private": false,
       "subject_created_at": "2026-09-13T11:18:22Z",
+      "subject_state": "MERGED",
       "title": "chore(deps): update npm packages and github workflows, add pre-commit-config",
       "type": "PullRequestEvent"
     },
@@ -3463,6 +3989,7 @@
       "id": "gql-review-2026-09-13T11:06:44Z-129-ivuorinen/semver-ranger",
       "number": 129,
       "repo": "ivuorinen/semver-ranger",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps-dev): bump smol-toml from 1.7.0 to 1.7.2 in the npm_and_yarn group across 1 directory",
       "type": "PullRequestReviewEvent"
@@ -3473,7 +4000,9 @@
       "id": "gql-pr-opened-179-ivuorinen/a",
       "number": 179,
       "repo": "ivuorinen/a",
+      "repo_private": false,
       "subject_created_at": "2026-09-13T11:03:18Z",
+      "subject_state": "MERGED",
       "title": "fix: harden the CLI, reach full coverage, and gate CI",
       "type": "PullRequestEvent"
     },
@@ -3481,18 +4010,21 @@
       "created_at": "2026-09-12T16:57:48Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABUJuSuA",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-12T15:57:27Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABUJY6kQ",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-12T15:53:23Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABUJXh2g",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -3501,7 +4033,9 @@
       "id": "gql-pr-opened-132-ivuorinen/skills",
       "number": 132,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-12T14:53:30Z",
+      "subject_state": "MERGED",
       "title": "feat: gate on Codacy's Agentlinter engine with a justified baseline",
       "type": "PullRequestEvent"
     },
@@ -3510,15 +4044,17 @@
       "id": "gql-review-2026-09-12T08:05:48Z-216-ivuorinen/base-configs-semantic-release",
       "number": 216,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): bump @types/node from 26.4.0 to 26.5.0",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-12T08:04:26Z",
-      "id": "gql-review-2026-09-12T08:04:26Z-579-ivuorinen/private-repo-4",
+      "id": "gql-review-2026-09-12T08:04:26Z-579-ivuorinen/private-repo-1",
       "number": 579,
-      "repo": "ivuorinen/private-repo-4",
+      "repo": "ivuorinen/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -3528,6 +4064,7 @@
       "id": "gql-review-2026-09-11T21:37:50Z-59-ivuorinen/gh-codeql-report",
       "number": 59,
       "repo": "ivuorinen/gh-codeql-report",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps)!: update vite (4.1.11 → 5.0.0)",
       "type": "PullRequestReviewEvent"
@@ -3537,6 +4074,7 @@
       "id": "gql-review-2026-09-11T21:37:20Z-224-ivuorinen/base-configs-prettier",
       "number": 224,
       "repo": "ivuorinen/base-configs-prettier",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump js-yaml from 4.3.1 to 4.3.2",
       "type": "PullRequestReviewEvent"
@@ -3546,6 +4084,7 @@
       "id": "gql-review-2026-09-11T21:18:45Z-222-ivuorinen/base-configs-prettier",
       "number": 222,
       "repo": "ivuorinen/base-configs-prettier",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump postcss-selector-parser from 7.1.1 to 7.1.5",
       "type": "PullRequestReviewEvent"
@@ -3555,6 +4094,7 @@
       "id": "gql-review-2026-09-11T21:16:58Z-317-ivuorinen/gh-action-readme",
       "number": 317,
       "repo": "ivuorinen/gh-action-readme",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "fix(deps): update golang.org/x packages",
       "type": "PullRequestReviewEvent"
@@ -3566,7 +4106,9 @@
       "merged": true,
       "number": 131,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-11T01:48:30Z",
+      "subject_state": "MERGED",
       "title": "feat: make context discipline an architectural property of the toolkit",
       "type": "PullRequestEvent"
     },
@@ -3575,6 +4117,7 @@
       "id": "gql-review-2026-09-11T21:04:39Z-60-ivuorinen/gh-codeql-report",
       "number": 60,
       "repo": "ivuorinen/gh-codeql-report",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency vitest (4.1.10 → 4.1.11) [security]",
       "type": "PullRequestReviewEvent"
@@ -3583,6 +4126,7 @@
       "created_at": "2026-09-11T20:52:15Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABUDMbpA",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -3590,6 +4134,7 @@
       "id": "gql-review-2026-09-11T20:18:27Z-69-ivuorinen/emoji",
       "number": 69,
       "repo": "ivuorinen/emoji",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update calibreapp/image-actions digest to 26d5b54",
       "type": "PullRequestReviewEvent"
@@ -3599,6 +4144,7 @@
       "id": "gql-review-2026-09-11T20:11:54Z-95-ivuorinen/renovate-config",
       "number": 95,
       "repo": "ivuorinen/renovate-config",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook renovatebot/pre-commit-hooks (44.69.7 → 44.69.11)",
       "type": "PullRequestReviewEvent"
@@ -3607,65 +4153,77 @@
       "created_at": "2026-09-11T20:05:01Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABUCuQvg",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-11T19:50:13Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABUCkgtw",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-11T19:49:54Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABUCkTmg",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "action": "closed",
       "created_at": "2026-09-11T13:58:52Z",
-      "id": "gql-pr-closed-240-example-org/private-repo-3",
+      "id": "gql-pr-closed-240-example-org/private-repo-1",
       "merged": true,
       "number": 240,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "subject_created_at": "2026-09-11T09:58:20Z",
+      "subject_state": "MERGED",
       "title": "Private pull request",
       "type": "PullRequestEvent"
     },
     {
       "action": "opened",
       "created_at": "2026-09-11T09:58:19Z",
-      "id": "gql-pr-opened-240-example-org/private-repo-3",
+      "id": "gql-pr-opened-240-example-org/private-repo-1",
       "number": 240,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "subject_created_at": "2026-09-11T09:58:20Z",
+      "subject_state": "MERGED",
       "title": "Private pull request",
       "type": "PullRequestEvent"
     },
     {
       "created_at": "2026-09-11T08:46:04Z",
       "id": "gql-comment-private-4",
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "type": "IssueCommentEvent"
     },
     {
       "action": "closed",
       "created_at": "2026-09-11T08:25:07Z",
-      "id": "gql-pr-closed-233-example-org/private-repo-3",
+      "id": "gql-pr-closed-233-example-org/private-repo-1",
       "merged": true,
       "number": 233,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "subject_created_at": "2026-09-11T08:20:40Z",
+      "subject_state": "MERGED",
       "title": "Private pull request",
       "type": "PullRequestEvent"
     },
     {
       "action": "opened",
       "created_at": "2026-09-11T08:20:40Z",
-      "id": "gql-pr-opened-233-example-org/private-repo-3",
+      "id": "gql-pr-opened-233-example-org/private-repo-1",
       "number": 233,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "subject_created_at": "2026-09-11T08:20:40Z",
+      "subject_state": "MERGED",
       "title": "Private pull request",
       "type": "PullRequestEvent"
     },
@@ -3673,12 +4231,14 @@
       "created_at": "2026-09-11T06:51:40Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABT5y3Pg",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-11T05:26:28Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABT5HBJg",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -3686,6 +4246,7 @@
       "id": "gql-review-2026-09-11T05:07:51Z-94-ivuorinen/renovate-config",
       "number": 94,
       "repo": "ivuorinen/renovate-config",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook renovatebot/pre-commit-hooks (44.65.5 → 44.69.7)",
       "type": "PullRequestReviewEvent"
@@ -3695,6 +4256,7 @@
       "id": "gql-review-2026-09-11T05:07:32Z-217-ivuorinen/base-configs-semantic-release",
       "number": 217,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): bump eslint from 10.9.1 to 10.10.0",
       "type": "PullRequestReviewEvent"
@@ -3704,6 +4266,7 @@
       "id": "gql-review-2026-09-11T04:59:13Z-218-ivuorinen/base-configs-semantic-release",
       "number": 218,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): bump @ivuorinen/config-checker from 2.6.11 to 2.6.13",
       "type": "PullRequestReviewEvent"
@@ -3713,6 +4276,7 @@
       "id": "gql-review-2026-09-11T04:58:36Z-219-ivuorinen/base-configs-semantic-release",
       "number": 219,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): bump @ivuorinen/eslint-config from 1.5.10 to 1.5.13",
       "type": "PullRequestReviewEvent"
@@ -3723,7 +4287,9 @@
       "id": "gql-pr-opened-131-ivuorinen/skills",
       "number": 131,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-11T01:48:30Z",
+      "subject_state": "MERGED",
       "title": "feat: make context discipline an architectural property of the toolkit",
       "type": "PullRequestEvent"
     },
@@ -3734,28 +4300,34 @@
       "merged": true,
       "number": 148,
       "repo": "ivuorinen/ivuorinen",
+      "repo_private": false,
       "subject_created_at": "2026-09-11T00:50:43Z",
+      "subject_state": "MERGED",
       "title": "chore(deps): update npm packages and github workflows",
       "type": "PullRequestEvent"
     },
     {
       "action": "closed",
       "created_at": "2026-09-11T01:43:58Z",
-      "id": "gql-pr-closed-232-example-org/private-repo-3",
+      "id": "gql-pr-closed-232-example-org/private-repo-1",
       "merged": true,
       "number": 232,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "subject_created_at": "2026-09-11T01:37:26Z",
+      "subject_state": "MERGED",
       "title": "Private pull request",
       "type": "PullRequestEvent"
     },
     {
       "action": "opened",
       "created_at": "2026-09-11T01:37:26Z",
-      "id": "gql-pr-opened-232-example-org/private-repo-3",
+      "id": "gql-pr-opened-232-example-org/private-repo-1",
       "number": 232,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "subject_created_at": "2026-09-11T01:37:26Z",
+      "subject_state": "MERGED",
       "title": "Private pull request",
       "type": "PullRequestEvent"
     },
@@ -3765,7 +4337,9 @@
       "id": "gql-pr-opened-148-ivuorinen/ivuorinen",
       "number": 148,
       "repo": "ivuorinen/ivuorinen",
+      "repo_private": false,
       "subject_created_at": "2026-09-11T00:50:43Z",
+      "subject_state": "MERGED",
       "title": "chore(deps): update npm packages and github workflows",
       "type": "PullRequestEvent"
     },
@@ -3774,6 +4348,7 @@
       "id": "gql-review-2026-09-10T20:44:23Z-215-ivuorinen/base-configs-semantic-release",
       "number": 215,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): bump the npm_and_yarn group across 1 directory with 2 updates",
       "type": "PullRequestReviewEvent"
@@ -3783,6 +4358,7 @@
       "id": "gql-review-2026-09-10T20:43:42Z-200-ivuorinen/base-configs-markdownlint",
       "number": 200,
       "repo": "ivuorinen/base-configs-markdownlint",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump js-yaml from 4.3.1 to 4.3.2",
       "type": "PullRequestReviewEvent"
@@ -3792,6 +4368,7 @@
       "id": "gql-review-2026-09-10T20:42:54Z-271-ivuorinen/base-configs-browserslist",
       "number": 271,
       "repo": "ivuorinen/base-configs-browserslist",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump js-yaml from 4.3.1 to 4.3.2",
       "type": "PullRequestReviewEvent"
@@ -3801,6 +4378,7 @@
       "id": "gql-review-2026-09-10T15:44:10Z-268-ivuorinen/base-configs-browserslist",
       "number": 268,
       "repo": "ivuorinen/base-configs-browserslist",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump postcss-selector-parser from 7.1.1 to 7.1.5",
       "type": "PullRequestReviewEvent"
@@ -3810,6 +4388,7 @@
       "id": "gql-review-2026-09-10T15:43:37Z-211-ivuorinen/base-configs-semantic-release",
       "number": 211,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): bump pacote from 21.5.0 to 21.5.1 in the npm_and_yarn group across 1 directory",
       "type": "PullRequestReviewEvent"
@@ -3819,15 +4398,17 @@
       "id": "gql-review-2026-09-10T15:43:02Z-199-ivuorinen/base-configs-markdownlint",
       "number": 199,
       "repo": "ivuorinen/base-configs-markdownlint",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump postcss-selector-parser from 7.1.1 to 7.1.5",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-10T15:41:57Z",
-      "id": "gql-review-2026-09-10T15:41:57Z-45-ivuorinen/private-repo-1",
+      "id": "gql-review-2026-09-10T15:41:57Z-45-ivuorinen/private-repo-2",
       "number": 45,
-      "repo": "ivuorinen/private-repo-1",
+      "repo": "ivuorinen/private-repo-2",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -3837,6 +4418,7 @@
       "id": "gql-review-2026-09-10T15:37:13Z-197-ivuorinen/base-configs-commitlint",
       "number": 197,
       "repo": "ivuorinen/base-configs-commitlint",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump postcss-selector-parser from 7.1.1 to 7.1.5",
       "type": "PullRequestReviewEvent"
@@ -3846,6 +4428,7 @@
       "id": "gql-review-2026-09-10T15:36:33Z-199-ivuorinen/base-configs-commitlint",
       "number": 199,
       "repo": "ivuorinen/base-configs-commitlint",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump js-yaml from 4.3.1 to 4.3.2",
       "type": "PullRequestReviewEvent"
@@ -3855,6 +4438,7 @@
       "id": "gql-review-2026-09-10T15:35:58Z-194-ivuorinen/base-configs-stylelint",
       "number": 194,
       "repo": "ivuorinen/base-configs-stylelint",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump js-yaml from 4.3.1 to 4.3.2",
       "type": "PullRequestReviewEvent"
@@ -3863,6 +4447,7 @@
       "created_at": "2026-09-10T15:12:27Z",
       "id": "gql-comment-IC_kwDOPAGgD88AAAABTwi95Q",
       "repo": "ivuorinen/base-configs-stylelint",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -3870,6 +4455,7 @@
       "id": "gql-review-2026-09-10T15:12:01Z-192-ivuorinen/base-configs-stylelint",
       "number": 192,
       "repo": "ivuorinen/base-configs-stylelint",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump postcss-selector-parser from 7.1.1 to 7.1.6",
       "type": "PullRequestReviewEvent"
@@ -3879,6 +4465,7 @@
       "id": "gql-review-2026-09-10T15:10:26Z-193-ivuorinen/base-configs-stylelint",
       "number": 193,
       "repo": "ivuorinen/base-configs-stylelint",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump fast-uri from 3.1.5 to 3.1.6",
       "type": "PullRequestReviewEvent"
@@ -3888,6 +4475,7 @@
       "id": "gql-review-2026-09-10T15:09:42Z-198-ivuorinen/base-configs-commitlint",
       "number": 198,
       "repo": "ivuorinen/base-configs-commitlint",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump fast-uri from 3.1.5 to 3.1.6",
       "type": "PullRequestReviewEvent"
@@ -3897,6 +4485,7 @@
       "id": "gql-review-2026-09-10T14:17:36Z-147-ivuorinen/ivuorinen",
       "number": 147,
       "repo": "ivuorinen/ivuorinen",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps-dev): bump js-yaml from 4.3.1 to 4.3.2 in the npm_and_yarn group across 1 directory",
       "type": "PullRequestReviewEvent"
@@ -3906,6 +4495,7 @@
       "id": "gql-review-2026-09-10T14:16:56Z-112-ivuorinen/private-repo-3",
       "number": 112,
       "repo": "ivuorinen/private-repo-3",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -3915,6 +4505,7 @@
       "id": "gql-review-2026-09-10T14:15:43Z-240-ivuorinen/generic-landing-page",
       "number": 240,
       "repo": "ivuorinen/generic-landing-page",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps)!: update vite (4.1.11 → 5.0.0)",
       "type": "PullRequestReviewEvent"
@@ -3924,6 +4515,7 @@
       "id": "gql-review-2026-09-10T13:55:37Z-110-ivuorinen/private-repo-3",
       "number": 110,
       "repo": "ivuorinen/private-repo-3",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -3935,7 +4527,9 @@
       "merged": true,
       "number": 682,
       "repo": "ivuorinen/dotfiles",
+      "repo_private": false,
       "subject_created_at": "2026-09-10T04:19:44Z",
+      "subject_state": "MERGED",
       "title": "fix(nvim): show apply/discard verbs in the vim.pack update flow",
       "type": "PullRequestEvent"
     },
@@ -3944,6 +4538,7 @@
       "id": "gql-review-2026-09-10T12:38:51Z-241-ivuorinen/base-configs-eslint",
       "number": 241,
       "repo": "ivuorinen/base-configs-eslint",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump js-yaml from 4.3.1 to 4.3.2",
       "type": "PullRequestReviewEvent"
@@ -3953,6 +4548,7 @@
       "id": "gql-review-2026-09-10T06:32:20Z-176-ivuorinen/a",
       "number": 176,
       "repo": "ivuorinen/a",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency goreleaser (2.18.0 → 2.18.1)",
       "type": "PullRequestReviewEvent"
@@ -3963,7 +4559,9 @@
       "id": "gql-pr-opened-682-ivuorinen/dotfiles",
       "number": 682,
       "repo": "ivuorinen/dotfiles",
+      "repo_private": false,
       "subject_created_at": "2026-09-10T04:19:44Z",
+      "subject_state": "MERGED",
       "title": "fix(nvim): show apply/discard verbs in the vim.pack update flow",
       "type": "PullRequestEvent"
     },
@@ -3972,6 +4570,7 @@
       "id": "gql-review-2026-09-10T03:52:32Z-109-ivuorinen/private-repo-3",
       "number": 109,
       "repo": "ivuorinen/private-repo-3",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -3981,6 +4580,7 @@
       "id": "gql-review-2026-09-10T03:51:31Z-168-ivuorinen/go-test-sarif",
       "number": 168,
       "repo": "ivuorinen/go-test-sarif",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook editorconfig-checker/editorconfig-checker (v3.11.3 → v4.0.1)",
       "type": "PullRequestReviewEvent"
@@ -3990,6 +4590,7 @@
       "id": "gql-review-2026-09-10T03:50:35Z-216-ivuorinen/f2b",
       "number": 216,
       "repo": "ivuorinen/f2b",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook editorconfig-checker/editorconfig-checker (v3.11.3 → v4.0.1)",
       "type": "PullRequestReviewEvent"
@@ -3999,6 +4600,7 @@
       "id": "gql-review-2026-09-10T03:49:37Z-119-ivuorinen/ghaw-auditor",
       "number": 119,
       "repo": "ivuorinen/ghaw-auditor",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook astral-sh/uv-pre-commit (0.12.9 → 0.12.10)",
       "type": "PullRequestReviewEvent"
@@ -4008,6 +4610,7 @@
       "id": "gql-review-2026-09-10T03:48:59Z-146-ivuorinen/ivuorinen",
       "number": 146,
       "repo": "ivuorinen/ivuorinen",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps-dev): bump the npm_and_yarn group across 1 directory with 2 updates",
       "type": "PullRequestReviewEvent"
@@ -4017,6 +4620,7 @@
       "id": "gql-review-2026-09-10T03:46:16Z-241-ivuorinen/generic-landing-page",
       "number": 241,
       "repo": "ivuorinen/generic-landing-page",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency vitest (4.1.2 → 4.1.11) [security]",
       "type": "PullRequestReviewEvent"
@@ -4024,27 +4628,32 @@
     {
       "action": "closed",
       "created_at": "2026-09-10T02:19:28Z",
-      "id": "gql-pr-closed-231-example-org/private-repo-3",
+      "id": "gql-pr-closed-231-example-org/private-repo-1",
       "merged": true,
       "number": 231,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "subject_created_at": "2026-09-10T01:59:08Z",
+      "subject_state": "MERGED",
       "title": "Private pull request",
       "type": "PullRequestEvent"
     },
     {
       "created_at": "2026-09-10T02:13:35Z",
       "id": "gql-comment-private-5",
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "type": "IssueCommentEvent"
     },
     {
       "action": "opened",
       "created_at": "2026-09-10T01:59:08Z",
-      "id": "gql-pr-opened-231-example-org/private-repo-3",
+      "id": "gql-pr-opened-231-example-org/private-repo-1",
       "number": 231,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "subject_created_at": "2026-09-10T01:59:08Z",
+      "subject_state": "MERGED",
       "title": "Private pull request",
       "type": "PullRequestEvent"
     },
@@ -4055,28 +4664,34 @@
       "merged": true,
       "number": 177,
       "repo": "ivuorinen/phpenv.fish",
+      "repo_private": false,
       "subject_created_at": "2026-09-10T00:09:54Z",
+      "subject_state": "MERGED",
       "title": "fix: version detection, PATH initialization, and error propagation",
       "type": "PullRequestEvent"
     },
     {
       "action": "closed",
       "created_at": "2026-09-10T01:19:43Z",
-      "id": "gql-pr-closed-229-example-org/private-repo-3",
+      "id": "gql-pr-closed-229-example-org/private-repo-1",
       "merged": true,
       "number": 229,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "subject_created_at": "2026-09-10T01:11:36Z",
+      "subject_state": "MERGED",
       "title": "Private pull request",
       "type": "PullRequestEvent"
     },
     {
       "action": "opened",
       "created_at": "2026-09-10T01:11:36Z",
-      "id": "gql-pr-opened-229-example-org/private-repo-3",
+      "id": "gql-pr-opened-229-example-org/private-repo-1",
       "number": 229,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "subject_created_at": "2026-09-10T01:11:36Z",
+      "subject_state": "MERGED",
       "title": "Private pull request",
       "type": "PullRequestEvent"
     },
@@ -4084,12 +4699,14 @@
       "created_at": "2026-09-10T01:10:31Z",
       "id": "gql-comment-IC_kwDOPUpYa88AAAABTnNBVA",
       "repo": "ivuorinen/phpenv.fish",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-10T00:46:01Z",
       "id": "gql-comment-IC_kwDOPUpYa88AAAABTnAChA",
       "repo": "ivuorinen/phpenv.fish",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -4097,6 +4714,7 @@
       "id": "gql-review-2026-09-10T00:40:37Z-72-ivuorinen/homebrew-tap",
       "number": 72,
       "repo": "ivuorinen/homebrew-tap",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update actions/deploy-pages action (v5.0.0 → v5.0.1)",
       "type": "PullRequestReviewEvent"
@@ -4108,7 +4726,9 @@
       "merged": true,
       "number": 73,
       "repo": "ivuorinen/homebrew-tap",
+      "repo_private": false,
       "subject_created_at": "2026-09-10T00:08:55Z",
+      "subject_state": "MERGED",
       "title": "fix(ci): replace deprecated HOMEBREW_NO_REQUIRE_TAP_TRUST with brew trust",
       "type": "PullRequestEvent"
     },
@@ -4118,7 +4738,9 @@
       "id": "gql-pr-opened-177-ivuorinen/phpenv.fish",
       "number": 177,
       "repo": "ivuorinen/phpenv.fish",
+      "repo_private": false,
       "subject_created_at": "2026-09-10T00:09:54Z",
+      "subject_state": "MERGED",
       "title": "fix: version detection, PATH initialization, and error propagation",
       "type": "PullRequestEvent"
     },
@@ -4128,7 +4750,9 @@
       "id": "gql-pr-opened-73-ivuorinen/homebrew-tap",
       "number": 73,
       "repo": "ivuorinen/homebrew-tap",
+      "repo_private": false,
       "subject_created_at": "2026-09-10T00:08:55Z",
+      "subject_state": "MERGED",
       "title": "fix(ci): replace deprecated HOMEBREW_NO_REQUIRE_TAP_TRUST with brew trust",
       "type": "PullRequestEvent"
     },
@@ -4137,6 +4761,7 @@
       "id": "gql-review-2026-09-09T23:59:37Z-225-ivuorinen/sysvinit-service-generator",
       "number": 225,
       "repo": "ivuorinen/sysvinit-service-generator",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps)!: update dependency vitest (4.1.11 → 5.0.0)",
       "type": "PullRequestReviewEvent"
@@ -4146,51 +4771,57 @@
       "id": "gql-review-2026-09-09T23:57:11Z-171-example-org/private-repo-2",
       "number": 171,
       "repo": "example-org/private-repo-2",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-09T23:55:21Z",
-      "id": "gql-review-2026-09-09T23:55:21Z-577-ivuorinen/private-repo-4",
+      "id": "gql-review-2026-09-09T23:55:21Z-577-ivuorinen/private-repo-1",
       "number": 577,
-      "repo": "ivuorinen/private-repo-4",
+      "repo": "ivuorinen/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-09T23:55:00Z",
-      "id": "gql-review-2026-09-09T23:55:00Z-578-ivuorinen/private-repo-4",
+      "id": "gql-review-2026-09-09T23:55:00Z-578-ivuorinen/private-repo-1",
       "number": 578,
-      "repo": "ivuorinen/private-repo-4",
+      "repo": "ivuorinen/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-09T23:54:07Z",
-      "id": "gql-review-2026-09-09T23:54:07Z-574-ivuorinen/private-repo-4",
+      "id": "gql-review-2026-09-09T23:54:07Z-574-ivuorinen/private-repo-1",
       "number": 574,
-      "repo": "ivuorinen/private-repo-4",
+      "repo": "ivuorinen/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-09T23:53:41Z",
-      "id": "gql-review-2026-09-09T23:53:41Z-572-ivuorinen/private-repo-4",
+      "id": "gql-review-2026-09-09T23:53:41Z-572-ivuorinen/private-repo-1",
       "number": 572,
-      "repo": "ivuorinen/private-repo-4",
+      "repo": "ivuorinen/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-09T23:52:34Z",
-      "id": "gql-review-2026-09-09T23:52:34Z-576-ivuorinen/private-repo-4",
+      "id": "gql-review-2026-09-09T23:52:34Z-576-ivuorinen/private-repo-1",
       "number": 576,
-      "repo": "ivuorinen/private-repo-4",
+      "repo": "ivuorinen/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -4202,7 +4833,9 @@
       "merged": true,
       "number": 167,
       "repo": "ivuorinen/github-base-template",
+      "repo_private": false,
       "subject_created_at": "2026-09-09T05:52:28Z",
+      "subject_state": "MERGED",
       "title": "chore(deps): update prek hooks and github workflows",
       "type": "PullRequestEvent"
     },
@@ -4212,7 +4845,9 @@
       "id": "gql-pr-opened-167-ivuorinen/github-base-template",
       "number": 167,
       "repo": "ivuorinen/github-base-template",
+      "repo_private": false,
       "subject_created_at": "2026-09-09T05:52:28Z",
+      "subject_state": "MERGED",
       "title": "chore(deps): update prek hooks and github workflows",
       "type": "PullRequestEvent"
     },
@@ -4221,6 +4856,7 @@
       "id": "gql-review-2026-09-09T03:33:06Z-213-ivuorinen/base-configs-semantic-release",
       "number": 213,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): bump @ivuorinen/eslint-config from 1.5.8 to 1.5.10",
       "type": "PullRequestReviewEvent"
@@ -4232,7 +4868,9 @@
       "merged": true,
       "number": 686,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "subject_created_at": "2026-09-08T19:20:23Z",
+      "subject_state": "MERGED",
       "title": "chore(deps): update npm packages, prek hooks and github workflows",
       "type": "PullRequestEvent"
     },
@@ -4242,7 +4880,9 @@
       "id": "gql-pr-opened-686-ivuorinen/actions",
       "number": 686,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "subject_created_at": "2026-09-08T19:20:23Z",
+      "subject_state": "MERGED",
       "title": "chore(deps): update npm packages, prek hooks and github workflows",
       "type": "PullRequestEvent"
     },
@@ -4251,6 +4891,7 @@
       "id": "gql-review-2026-09-08T19:14:56Z-235-ivuorinen/base-configs-eslint",
       "number": 235,
       "repo": "ivuorinen/base-configs-eslint",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump postcss-selector-parser from 7.1.1 to 7.1.5",
       "type": "PullRequestReviewEvent"
@@ -4260,6 +4901,7 @@
       "id": "gql-review-2026-09-08T19:13:02Z-221-ivuorinen/sysvinit-service-generator",
       "number": 221,
       "repo": "ivuorinen/sysvinit-service-generator",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update node.js (v24.19.0 → v24.20.0)",
       "type": "PullRequestReviewEvent"
@@ -4271,7 +4913,9 @@
       "merged": true,
       "number": 226,
       "repo": "ivuorinen/sysvinit-service-generator",
+      "repo_private": false,
       "subject_created_at": "2026-09-08T18:20:15Z",
+      "subject_state": "MERGED",
       "title": "chore(deps): update npm packages, prek hooks and github workflows",
       "type": "PullRequestEvent"
     },
@@ -4281,7 +4925,9 @@
       "id": "gql-pr-opened-226-ivuorinen/sysvinit-service-generator",
       "number": 226,
       "repo": "ivuorinen/sysvinit-service-generator",
+      "repo_private": false,
       "subject_created_at": "2026-09-08T18:20:15Z",
+      "subject_state": "MERGED",
       "title": "chore(deps): update npm packages, prek hooks and github workflows",
       "type": "PullRequestEvent"
     },
@@ -4290,6 +4936,7 @@
       "id": "gql-review-2026-09-08T18:16:06Z-224-ivuorinen/sysvinit-service-generator",
       "number": 224,
       "repo": "ivuorinen/sysvinit-service-generator",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update actions/deploy-pages action (v5.0.0 → v5.0.1) - autoclosed",
       "type": "PullRequestReviewEvent"
@@ -4299,15 +4946,17 @@
       "id": "gql-review-2026-09-08T18:13:52Z-62-ivuorinen/aeonview",
       "number": 62,
       "repo": "ivuorinen/aeonview",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook astral-sh/ruff-pre-commit (v0.16.3 → v0.16.6)",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-08T18:10:08Z",
-      "id": "gql-review-2026-09-08T18:10:08Z-571-ivuorinen/private-repo-4",
+      "id": "gql-review-2026-09-08T18:10:08Z-571-ivuorinen/private-repo-1",
       "number": 571,
-      "repo": "ivuorinen/private-repo-4",
+      "repo": "ivuorinen/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -4315,50 +4964,59 @@
     {
       "action": "closed",
       "created_at": "2026-09-08T17:52:51Z",
-      "id": "gql-pr-closed-228-example-org/private-repo-3",
+      "id": "gql-pr-closed-228-example-org/private-repo-1",
       "merged": true,
       "number": 228,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "subject_created_at": "2026-09-08T17:33:42Z",
+      "subject_state": "MERGED",
       "title": "Private pull request",
       "type": "PullRequestEvent"
     },
     {
       "action": "opened",
       "created_at": "2026-09-08T17:33:41Z",
-      "id": "gql-pr-opened-228-example-org/private-repo-3",
+      "id": "gql-pr-opened-228-example-org/private-repo-1",
       "number": 228,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "subject_created_at": "2026-09-08T17:33:42Z",
+      "subject_state": "MERGED",
       "title": "Private pull request",
       "type": "PullRequestEvent"
     },
     {
       "action": "closed",
       "created_at": "2026-09-08T15:01:25Z",
-      "id": "gql-pr-closed-227-example-org/private-repo-3",
+      "id": "gql-pr-closed-227-example-org/private-repo-1",
       "merged": true,
       "number": 227,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "subject_created_at": "2026-09-08T10:19:07Z",
+      "subject_state": "MERGED",
       "title": "Private pull request",
       "type": "PullRequestEvent"
     },
     {
       "action": "opened",
       "created_at": "2026-09-08T10:19:06Z",
-      "id": "gql-pr-opened-227-example-org/private-repo-3",
+      "id": "gql-pr-opened-227-example-org/private-repo-1",
       "number": 227,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "subject_created_at": "2026-09-08T10:19:07Z",
+      "subject_state": "MERGED",
       "title": "Private pull request",
       "type": "PullRequestEvent"
     },
     {
       "created_at": "2026-09-08T10:15:51Z",
-      "id": "gql-review-2026-09-08T10:15:51Z-575-ivuorinen/private-repo-4",
+      "id": "gql-review-2026-09-08T10:15:51Z-575-ivuorinen/private-repo-1",
       "number": 575,
-      "repo": "ivuorinen/private-repo-4",
+      "repo": "ivuorinen/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -4368,6 +5026,7 @@
       "id": "gql-review-2026-09-08T10:14:47Z-315-ivuorinen/gh-action-readme",
       "number": 315,
       "repo": "ivuorinen/gh-action-readme",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook editorconfig-checker/editorconfig-checker (v3.11.2 → v3.11.3)",
       "type": "PullRequestReviewEvent"
@@ -4377,6 +5036,7 @@
       "id": "gql-review-2026-09-08T09:40:25Z-174-ivuorinen/a",
       "number": 174,
       "repo": "ivuorinen/a",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency go (1.27.0 → 1.27.1)",
       "type": "PullRequestReviewEvent"
@@ -4386,6 +5046,7 @@
       "id": "gql-review-2026-09-08T09:40:06Z-175-ivuorinen/a",
       "number": 175,
       "repo": "ivuorinen/a",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency prek (0.5.0 → 0.5.2)",
       "type": "PullRequestReviewEvent"
@@ -4395,6 +5056,7 @@
       "id": "gql-review-2026-09-08T09:20:33Z-129-ivuorinen/skills",
       "number": 129,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update github/codeql-action action (v3.37.9 → v4.37.9)",
       "type": "PullRequestReviewEvent"
@@ -4404,6 +5066,7 @@
       "id": "gql-review-2026-09-08T09:18:00Z-134-ivuorinen/monolog-gdpr-filter",
       "number": 134,
       "repo": "ivuorinen/monolog-gdpr-filter",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook bridgecrewio/checkov (3.3.13 → 3.3.16)",
       "type": "PullRequestReviewEvent"
@@ -4413,6 +5076,7 @@
       "id": "gql-review-2026-09-08T09:09:00Z-145-ivuorinen/ivuorinen",
       "number": 145,
       "repo": "ivuorinen/ivuorinen",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump fast-uri from 3.1.5 to 3.1.7 in the npm_and_yarn group across 1 directory",
       "type": "PullRequestReviewEvent"
@@ -4424,7 +5088,9 @@
       "merged": true,
       "number": 170,
       "repo": "example-org/private-repo-2",
+      "repo_private": true,
       "subject_created_at": "2026-09-08T08:57:37Z",
+      "subject_state": "MERGED",
       "title": "Private pull request",
       "type": "PullRequestEvent"
     },
@@ -4433,6 +5099,7 @@
       "id": "gql-review-2026-09-08T09:05:27Z-683-ivuorinen/actions",
       "number": 683,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update anchore/sbom-action action (v0.24.0 → v0.24.2)",
       "type": "PullRequestReviewEvent"
@@ -4442,6 +5109,7 @@
       "id": "gql-review-2026-09-08T09:05:13Z-680-ivuorinen/actions",
       "number": 680,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update docker/setup-buildx-action action (v4.2.0 → v4.3.0)",
       "type": "PullRequestReviewEvent"
@@ -4451,6 +5119,7 @@
       "id": "gql-review-2026-09-08T09:04:55Z-679-ivuorinen/actions",
       "number": 679,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook bridgecrewio/checkov (3.3.12 → 3.3.16)",
       "type": "PullRequestReviewEvent"
@@ -4460,6 +5129,7 @@
       "id": "gql-review-2026-09-08T09:04:32Z-678-ivuorinen/actions",
       "number": 678,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook astral-sh/ruff-pre-commit (v0.16.3 → v0.16.5)",
       "type": "PullRequestReviewEvent"
@@ -4469,6 +5139,7 @@
       "id": "gql-review-2026-09-08T09:04:10Z-677-ivuorinen/actions",
       "number": 677,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update github/issue-metrics action (v5.0.0 → v5.0.1)",
       "type": "PullRequestReviewEvent"
@@ -4478,6 +5149,7 @@
       "id": "gql-review-2026-09-08T08:57:44Z-676-ivuorinen/actions",
       "number": 676,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update github/codeql-action action (v4.37.7 → v4.37.9)",
       "type": "PullRequestReviewEvent"
@@ -4488,7 +5160,9 @@
       "id": "gql-pr-opened-170-example-org/private-repo-2",
       "number": 170,
       "repo": "example-org/private-repo-2",
+      "repo_private": true,
       "subject_created_at": "2026-09-08T08:57:37Z",
+      "subject_state": "MERGED",
       "title": "Private pull request",
       "type": "PullRequestEvent"
     },
@@ -4499,7 +5173,9 @@
       "merged": true,
       "number": 168,
       "repo": "example-org/private-repo-2",
+      "repo_private": true,
       "subject_created_at": "2026-09-08T08:20:50Z",
+      "subject_state": "MERGED",
       "title": "Private pull request",
       "type": "PullRequestEvent"
     },
@@ -4509,7 +5185,9 @@
       "id": "gql-pr-opened-168-example-org/private-repo-2",
       "number": 168,
       "repo": "example-org/private-repo-2",
+      "repo_private": true,
       "subject_created_at": "2026-09-08T08:20:50Z",
+      "subject_state": "MERGED",
       "title": "Private pull request",
       "type": "PullRequestEvent"
     },
@@ -4518,6 +5196,7 @@
       "id": "gql-review-2026-09-08T08:20:31Z-220-ivuorinen/f2b",
       "number": 220,
       "repo": "ivuorinen/f2b",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook editorconfig-checker/editorconfig-checker (v3.11.1 → v3.11.3)",
       "type": "PullRequestReviewEvent"
@@ -4527,6 +5206,7 @@
       "id": "gql-review-2026-09-08T07:07:57Z-169-ivuorinen/go-test-sarif",
       "number": 169,
       "repo": "ivuorinen/go-test-sarif",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook editorconfig-checker/editorconfig-checker (v3.11.2 → v3.11.3)",
       "type": "PullRequestReviewEvent"
@@ -4536,6 +5216,7 @@
       "id": "gql-review-2026-09-08T06:42:37Z-135-ivuorinen/monolog-gdpr-filter",
       "number": 135,
       "repo": "ivuorinen/monolog-gdpr-filter",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update softprops/action-gh-release action (v3.0.2 → v3.0.3)",
       "type": "PullRequestReviewEvent"
@@ -4545,8 +5226,9 @@
       "id": "gql-review-2026-09-08T06:38:50Z-18-ivuorinen/nvm-auto-use.fish",
       "number": 18,
       "repo": "ivuorinen/nvm-auto-use.fish",
+      "repo_private": false,
       "review_state": "DISMISSED",
-      "title": "chore(deps)!: update dependency editorconfig-checker/editorconfig-checker (v3.11.3 → v4.0.2)",
+      "title": "chore(deps)!: update dependency editorconfig-checker/editorconfig-checker (v3.11.3 → v4.0.2) - autoclosed",
       "type": "PullRequestReviewEvent"
     },
     {
@@ -4554,6 +5236,7 @@
       "id": "gql-review-2026-09-08T06:33:19Z-218-ivuorinen/f2b",
       "number": 218,
       "repo": "ivuorinen/f2b",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update go toolchain directive (1.27.0 → 1.27.1)",
       "type": "PullRequestReviewEvent"
@@ -4563,6 +5246,7 @@
       "id": "gql-review-2026-09-08T06:28:14Z-167-example-org/private-repo-2",
       "number": 167,
       "repo": "example-org/private-repo-2",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -4572,6 +5256,7 @@
       "id": "gql-review-2026-09-08T06:27:32Z-34-ivuorinen/stylelint-a11y",
       "number": 34,
       "repo": "ivuorinen/stylelint-a11y",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps-dev): bump @humanfs/node from 0.16.7 to 0.16.8",
       "type": "PullRequestReviewEvent"
@@ -4581,6 +5266,7 @@
       "id": "gql-review-2026-09-08T06:27:04Z-684-ivuorinen/actions",
       "number": 684,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update trufflesecurity/trufflehog action (v3.97.0 → v3.97.1)",
       "type": "PullRequestReviewEvent"
@@ -4590,6 +5276,7 @@
       "id": "gql-review-2026-09-08T06:26:09Z-219-ivuorinen/f2b",
       "number": 219,
       "repo": "ivuorinen/f2b",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook bridgecrewio/checkov (3.3.11 → 3.3.16)",
       "type": "PullRequestReviewEvent"
@@ -4598,6 +5285,7 @@
       "created_at": "2026-09-08T06:25:01Z",
       "id": "gql-comment-IC_kwDOHPl0Ec8AAAABTJypRw",
       "repo": "ivuorinen/stylelint-a11y",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -4605,6 +5293,7 @@
       "id": "gql-review-2026-09-08T06:24:17Z-33-ivuorinen/stylelint-a11y",
       "number": 33,
       "repo": "ivuorinen/stylelint-a11y",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump fast-uri from 3.1.5 to 3.1.7",
       "type": "PullRequestReviewEvent"
@@ -4614,6 +5303,7 @@
       "id": "gql-review-2026-09-08T05:11:04Z-32-ivuorinen/stylelint-a11y",
       "number": 32,
       "repo": "ivuorinen/stylelint-a11y",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump browserslist from 4.28.1 to 4.28.9",
       "type": "PullRequestReviewEvent"
@@ -4623,6 +5313,7 @@
       "id": "gql-review-2026-09-08T05:08:07Z-31-ivuorinen/stylelint-a11y",
       "number": 31,
       "repo": "ivuorinen/stylelint-a11y",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency postcss-selector-parser (7.1.1 → 7.1.3) [security]",
       "type": "PullRequestReviewEvent"
@@ -4632,6 +5323,7 @@
       "id": "gql-review-2026-09-08T05:03:15Z-215-ivuorinen/f2b",
       "number": 215,
       "repo": "ivuorinen/f2b",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps)!: update module github.com/editorconfig-checker/editorconfig-checker/v3/cmd/editorconfig-checker (v3.11.3 → v4.0.1)",
       "type": "PullRequestReviewEvent"
@@ -4641,6 +5333,7 @@
       "id": "gql-review-2026-09-08T05:02:08Z-221-ivuorinen/f2b",
       "number": 221,
       "repo": "ivuorinen/f2b",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "fix(deps): update module github.com/stretchr/testify (v1.11.1 → v1.12.1)",
       "type": "PullRequestReviewEvent"
@@ -4650,6 +5343,7 @@
       "id": "gql-review-2026-09-08T05:01:46Z-19-ivuorinen/nvm-auto-use.fish",
       "number": 19,
       "repo": "ivuorinen/nvm-auto-use.fish",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency editorconfig-checker/editorconfig-checker (v3.11.2 → v3.11.3)",
       "type": "PullRequestReviewEvent"
@@ -4659,6 +5353,7 @@
       "id": "gql-review-2026-09-08T05:01:15Z-685-ivuorinen/actions",
       "number": 685,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook astral-sh/uv-pre-commit (0.12.8 → 0.12.10)",
       "type": "PullRequestReviewEvent"
@@ -4668,6 +5363,7 @@
       "id": "gql-review-2026-09-08T05:00:21Z-118-ivuorinen/ghaw-auditor",
       "number": 118,
       "repo": "ivuorinen/ghaw-auditor",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook astral-sh/ruff-pre-commit (v0.16.5 → v0.16.6)",
       "type": "PullRequestReviewEvent"
@@ -4679,7 +5375,9 @@
       "merged": true,
       "number": 126,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-01T00:59:09Z",
+      "subject_state": "MERGED",
       "title": "feat: complete the analyzer surface and fix what a full audit found",
       "type": "PullRequestEvent"
     },
@@ -4688,6 +5386,7 @@
       "id": "gql-review-2026-09-05T18:59:20Z-89-ivuorinen/renovate-config",
       "number": 89,
       "repo": "ivuorinen/renovate-config",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook renovatebot/pre-commit-hooks (44.56.3 → 44.59.1)",
       "type": "PullRequestReviewEvent"
@@ -4697,6 +5396,7 @@
       "id": "gql-review-2026-09-05T18:56:41Z-575-ivuorinen/base-configs",
       "number": 575,
       "repo": "ivuorinen/base-configs",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump browserslist from 4.28.4 to 4.28.8",
       "type": "PullRequestReviewEvent"
@@ -4705,24 +5405,28 @@
       "created_at": "2026-09-05T14:31:41Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABSvRRAw",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-05T13:31:54Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABSu8qgQ",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-05T13:15:43Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABSu3f8A",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-05T13:06:21Z",
       "id": "gql-comment-IC_kwDOJex6nM8AAAABSu0cEQ",
       "repo": "ivuorinen/base-configs",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -4730,6 +5434,7 @@
       "id": "gql-review-2026-09-05T13:05:36Z-573-ivuorinen/base-configs",
       "number": 573,
       "repo": "ivuorinen/base-configs",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump fast-uri from 3.1.5 to 3.1.6",
       "type": "PullRequestReviewEvent"
@@ -4739,6 +5444,7 @@
       "id": "gql-review-2026-09-05T13:04:57Z-574-ivuorinen/base-configs",
       "number": 574,
       "repo": "ivuorinen/base-configs",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump @humanfs/node from 0.16.7 to 0.16.8",
       "type": "PullRequestReviewEvent"
@@ -4747,6 +5453,7 @@
       "created_at": "2026-09-05T12:16:18Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABSujqcg",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -4754,6 +5461,7 @@
       "id": "gql-review-2026-09-05T09:42:46Z-165-ivuorinen/a",
       "number": 165,
       "repo": "ivuorinen/a",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update dependency golangci/golangci-lint (v2.13.1 → v2.13.2)",
       "type": "PullRequestReviewEvent"
@@ -4763,6 +5471,7 @@
       "id": "gql-review-2026-09-05T09:42:08Z-166-ivuorinen/a",
       "number": 166,
       "repo": "ivuorinen/a",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency golangci-lint (2.13.1 → 2.13.2)",
       "type": "PullRequestReviewEvent"
@@ -4772,6 +5481,7 @@
       "id": "gql-review-2026-09-05T09:41:33Z-167-ivuorinen/a",
       "number": 167,
       "repo": "ivuorinen/a",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency syft (1.51.0 → 1.51.1)",
       "type": "PullRequestReviewEvent"
@@ -4781,6 +5491,7 @@
       "id": "gql-review-2026-09-05T09:41:07Z-168-ivuorinen/a",
       "number": 168,
       "repo": "ivuorinen/a",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency shfmt (3.13.1 → 3.14.0)",
       "type": "PullRequestReviewEvent"
@@ -4790,6 +5501,7 @@
       "id": "gql-review-2026-09-05T09:40:31Z-173-ivuorinen/a",
       "number": 173,
       "repo": "ivuorinen/a",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook bridgecrewio/checkov (3.3.15 → 3.3.16)",
       "type": "PullRequestReviewEvent"
@@ -4799,6 +5511,7 @@
       "id": "gql-review-2026-09-05T09:39:55Z-172-ivuorinen/a",
       "number": 172,
       "repo": "ivuorinen/a",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency checkov (3.3.15 → 3.3.16)",
       "type": "PullRequestReviewEvent"
@@ -4806,24 +5519,28 @@
     {
       "action": "closed",
       "created_at": "2026-09-04T23:45:13Z",
-      "id": "gql-pr-closed-224-example-org/private-repo-3",
+      "id": "gql-pr-closed-224-example-org/private-repo-1",
       "merged": true,
       "number": 224,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "subject_created_at": "2026-09-03T11:17:34Z",
+      "subject_state": "MERGED",
       "title": "Private pull request",
       "type": "PullRequestEvent"
     },
     {
       "created_at": "2026-09-04T15:36:38Z",
       "id": "gql-comment-private-6",
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-04T15:28:10Z",
       "id": "gql-comment-private-7",
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "type": "IssueCommentEvent"
     },
     {
@@ -4831,6 +5548,7 @@
       "id": "gql-review-2026-09-04T13:17:02Z-662-ivuorinen/dotfiles",
       "number": 662,
       "repo": "ivuorinen/dotfiles",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency github:binwiederhier/ntfy (v2.27.0 → v2.28.0)",
       "type": "PullRequestReviewEvent"
@@ -4840,6 +5558,7 @@
       "id": "gql-review-2026-09-04T13:16:04Z-663-ivuorinen/dotfiles",
       "number": 663,
       "repo": "ivuorinen/dotfiles",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency github:jgm/pandoc (3.10.2 → 3.11)",
       "type": "PullRequestReviewEvent"
@@ -4849,15 +5568,17 @@
       "id": "gql-review-2026-09-04T13:15:10Z-660-ivuorinen/dotfiles",
       "number": 660,
       "repo": "ivuorinen/dotfiles",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency age (1.3.1 → 1.3.2)",
       "type": "PullRequestReviewEvent"
     },
     {
       "created_at": "2026-09-04T13:13:50Z",
-      "id": "gql-review-2026-09-04T13:13:50Z-573-ivuorinen/private-repo-4",
+      "id": "gql-review-2026-09-04T13:13:50Z-573-ivuorinen/private-repo-1",
       "number": 573,
-      "repo": "ivuorinen/private-repo-4",
+      "repo": "ivuorinen/private-repo-1",
+      "repo_private": true,
       "review_state": "APPROVED",
       "title": "Private pull request",
       "type": "PullRequestReviewEvent"
@@ -4865,31 +5586,36 @@
     {
       "created_at": "2026-09-04T09:07:51Z",
       "id": "gql-comment-private-8",
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-04T08:58:50Z",
       "id": "gql-comment-private-9",
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-04T08:46:04Z",
       "id": "gql-comment-private-10",
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-04T08:21:00Z",
       "id": "gql-comment-private-11",
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-04T07:56:41Z",
       "id": "gql-comment-private-12",
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "type": "IssueCommentEvent"
     },
     {
@@ -4897,6 +5623,7 @@
       "id": "gql-review-2026-09-04T07:53:02Z-237-ivuorinen/base-configs-eslint",
       "number": 237,
       "repo": "ivuorinen/base-configs-eslint",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump browserslist from 4.28.1 to 4.28.8",
       "type": "PullRequestReviewEvent"
@@ -4906,6 +5633,7 @@
       "id": "gql-review-2026-09-04T07:48:26Z-127-ivuorinen/skills",
       "number": 127,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "fix(deps): update ruff",
       "type": "PullRequestReviewEvent"
@@ -4915,6 +5643,7 @@
       "id": "gql-review-2026-09-04T07:27:12Z-236-ivuorinen/base-configs-eslint",
       "number": 236,
       "repo": "ivuorinen/base-configs-eslint",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump @humanfs/node from 0.16.7 to 0.16.8",
       "type": "PullRequestReviewEvent"
@@ -4924,6 +5653,7 @@
       "id": "gql-review-2026-09-04T07:25:55Z-43-ivuorinen/paperboy",
       "number": 43,
       "repo": "ivuorinen/paperboy",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update go toolchain directive (1.27.0 → 1.27.1)",
       "type": "PullRequestReviewEvent"
@@ -4933,6 +5663,7 @@
       "id": "gql-review-2026-09-04T07:25:22Z-212-ivuorinen/base-configs-semantic-release",
       "number": 212,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): bump @ivuorinen/config-checker from 2.6.9 to 2.6.11",
       "type": "PullRequestReviewEvent"
@@ -4942,6 +5673,7 @@
       "id": "gql-review-2026-09-04T07:24:46Z-214-ivuorinen/base-configs-semantic-release",
       "number": 214,
       "repo": "ivuorinen/base-configs-semantic-release",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): bump @types/node from 26.3.0 to 26.4.0",
       "type": "PullRequestReviewEvent"
@@ -4951,6 +5683,7 @@
       "id": "gql-review-2026-09-04T07:24:06Z-128-ivuorinen/skills",
       "number": 128,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency zizmorcore/zizmor-pre-commit (v1.29.0 → v1.30.0)",
       "type": "PullRequestReviewEvent"
@@ -4960,6 +5693,7 @@
       "id": "gql-review-2026-09-04T07:23:31Z-140-ivuorinen/tree-sitter-shellspec",
       "number": 140,
       "repo": "ivuorinen/tree-sitter-shellspec",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency tree-sitter-cli (0.26.9 → 0.27.0)",
       "type": "PullRequestReviewEvent"
@@ -4969,6 +5703,7 @@
       "id": "gql-review-2026-09-04T07:22:28Z-245-ivuorinen/config-checker",
       "number": 245,
       "repo": "ivuorinen/config-checker",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook zizmorcore/zizmor-pre-commit (v1.29.0 → v1.30.0)",
       "type": "PullRequestReviewEvent"
@@ -4978,6 +5713,7 @@
       "id": "gql-review-2026-09-04T07:20:46Z-682-ivuorinen/actions",
       "number": 682,
       "repo": "ivuorinen/actions",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook astral-sh/uv-pre-commit (0.12.5 → 0.12.8)",
       "type": "PullRequestReviewEvent"
@@ -4987,6 +5723,7 @@
       "id": "gql-review-2026-09-04T07:19:39Z-244-ivuorinen/config-checker",
       "number": 244,
       "repo": "ivuorinen/config-checker",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update pre-commit hook bridgecrewio/checkov (3.3.15 → 3.3.16)",
       "type": "PullRequestReviewEvent"
@@ -4996,6 +5733,7 @@
       "id": "gql-review-2026-09-04T07:18:54Z-269-ivuorinen/base-configs-browserslist",
       "number": 269,
       "repo": "ivuorinen/base-configs-browserslist",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update dependency browserslist (4.28.2 → 4.28.7) [security]",
       "type": "PullRequestReviewEvent"
@@ -5003,10 +5741,12 @@
     {
       "action": "opened",
       "created_at": "2026-09-03T11:17:33Z",
-      "id": "gql-pr-opened-224-example-org/private-repo-3",
+      "id": "gql-pr-opened-224-example-org/private-repo-1",
       "number": 224,
-      "repo": "example-org/private-repo-3",
+      "repo": "example-org/private-repo-1",
+      "repo_private": true,
       "subject_created_at": "2026-09-03T11:17:34Z",
+      "subject_state": "MERGED",
       "title": "Private pull request",
       "type": "PullRequestEvent"
     },
@@ -5014,6 +5754,7 @@
       "created_at": "2026-09-03T10:05:43Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABSUJHgw",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -5021,6 +5762,7 @@
       "id": "gql-review-2026-09-03T04:04:21Z-243-ivuorinen/config-checker",
       "number": 243,
       "repo": "ivuorinen/config-checker",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): bump postcss-selector-parser from 7.1.1 to 7.1.5",
       "type": "PullRequestReviewEvent"
@@ -5030,6 +5772,7 @@
       "id": "gql-review-2026-09-03T04:03:43Z-169-ivuorinen/a",
       "number": 169,
       "repo": "ivuorinen/a",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update anchore/sbom-action action (v0.24.0 → v0.24.2)",
       "type": "PullRequestReviewEvent"
@@ -5039,6 +5782,7 @@
       "id": "gql-review-2026-09-03T04:01:38Z-81-ivuorinen/branch-usage-checker",
       "number": 81,
       "repo": "ivuorinen/branch-usage-checker",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(actions): update softprops/action-gh-release action (v3.0.2 → v3.0.3)",
       "type": "PullRequestReviewEvent"
@@ -5047,12 +5791,14 @@
       "created_at": "2026-09-02T16:16:55Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABSJUnfQ",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
       "created_at": "2026-09-02T15:44:04Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABSI5G8Q",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -5060,6 +5806,7 @@
       "id": "gql-review-2026-09-01T16:31:15Z-214-ivuorinen/f2b",
       "number": 214,
       "repo": "ivuorinen/f2b",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update development tools",
       "type": "PullRequestReviewEvent"
@@ -5069,6 +5816,7 @@
       "id": "gql-review-2026-09-01T09:06:18Z-267-ivuorinen/base-configs-browserslist",
       "number": 267,
       "repo": "ivuorinen/base-configs-browserslist",
+      "repo_private": false,
       "review_state": "APPROVED",
       "title": "chore(deps): update browserslist database",
       "type": "PullRequestReviewEvent"
@@ -5079,7 +5827,9 @@
       "id": "gql-issue-opened-11-airano-ir/skillhub",
       "number": 11,
       "repo": "airano-ir/skillhub",
+      "repo_private": false,
       "subject_created_at": "2026-09-01T08:59:03Z",
+      "subject_state": "OPEN",
       "title": "Can't login, \"problem with the server configuration\"",
       "type": "IssuesEvent"
     },
@@ -5087,6 +5837,7 @@
       "created_at": "2026-09-01T01:02:14Z",
       "id": "gql-comment-IC_kwDOSLySmM8AAAABRwxY-Q",
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "type": "IssueCommentEvent"
     },
     {
@@ -5095,7 +5846,9 @@
       "id": "gql-pr-opened-126-ivuorinen/skills",
       "number": 126,
       "repo": "ivuorinen/skills",
+      "repo_private": false,
       "subject_created_at": "2026-09-01T00:59:09Z",
+      "subject_state": "MERGED",
       "title": "feat: complete the analyzer surface and fix what a full audit found",
       "type": "PullRequestEvent"
     }
@@ -5161,10 +5914,10 @@
     "9": 26
   },
   "events_by_repo": {
-    "example-org/private-repo-1": 2,
+    "example-org/private-repo-3": 2,
     "airano-ir/skillhub": 1,
     "example-org/private-repo-2": 15,
-    "example-org/private-repo-3": 34,
+    "example-org/private-repo-1": 34,
     "ivuorinen/a": 21,
     "ivuorinen/actions": 26,
     "ivuorinen/aeonview": 6,
@@ -5179,7 +5932,7 @@
     "ivuorinen/branch-usage-checker": 13,
     "ivuorinen/coderabbit": 1,
     "ivuorinen/config-checker": 14,
-    "ivuorinen/private-repo-1": 5,
+    "ivuorinen/private-repo-2": 5,
     "ivuorinen/docker-php-with-imagick": 2,
     "ivuorinen/dotfiles": 13,
     "ivuorinen/emoji": 1,
@@ -5194,7 +5947,7 @@
     "ivuorinen/go-test-sarif": 3,
     "ivuorinen/homebrew-tap": 7,
     "ivuorinen/ivuorinen": 6,
-    "ivuorinen/private-repo-2": 1,
+    "ivuorinen/private-repo-4": 1,
     "ivuorinen/private-repo-3": 3,
     "ivuorinen/markdowndocs": 1,
     "ivuorinen/monolog-gdpr-filter": 4,
@@ -5210,7 +5963,7 @@
     "ivuorinen/stylelint-a11y": 9,
     "ivuorinen/sysvinit-service-generator": 5,
     "ivuorinen/tree-sitter-shellspec": 18,
-    "ivuorinen/private-repo-4": 18,
+    "ivuorinen/private-repo-1": 18,
     "ivuorinen/uptime": 3,
     "example-org/private-repo-4": 1
   },
@@ -5241,9 +5994,11 @@
     "total_days": 30
   },
   "summary": {
-    "commits": 229,
+    "commits": 236,
+    "issue_close_rate": 50,
     "issues_closed": 1,
     "issues_opened": 2,
+    "pr_merge_rate": 98.95833333333334,
     "prs_closed": 1,
     "prs_merged": 87,
     "prs_opened": 96,
@@ -5253,62 +6008,77 @@
   "top_repos": [
     {
       "count": 78,
+      "private": false,
       "repo": "ivuorinen/skills"
     },
     {
       "count": 34,
-      "repo": "example-org/private-repo-3"
+      "private": true,
+      "repo": "example-org/private-repo-1"
     },
     {
       "count": 34,
+      "private": false,
       "repo": "ivuorinen/base-configs-semantic-release"
     },
     {
       "count": 26,
+      "private": false,
       "repo": "ivuorinen/actions"
     },
     {
       "count": 21,
+      "private": false,
       "repo": "ivuorinen/a"
     },
     {
       "count": 20,
+      "private": false,
       "repo": "ivuorinen/base-configs"
     },
     {
       "count": 18,
+      "private": false,
       "repo": "ivuorinen/tree-sitter-shellspec"
     },
     {
       "count": 18,
-      "repo": "ivuorinen/private-repo-4"
+      "private": true,
+      "repo": "ivuorinen/private-repo-1"
     },
     {
       "count": 16,
+      "private": false,
       "repo": "ivuorinen/base-configs-stylelint"
     },
     {
       "count": 15,
+      "private": true,
       "repo": "example-org/private-repo-2"
     },
     {
       "count": 15,
+      "private": false,
       "repo": "ivuorinen/base-configs-browserslist"
     },
     {
       "count": 15,
+      "private": false,
       "repo": "ivuorinen/base-configs-eslint"
     },
     {
       "count": 14,
+      "private": false,
       "repo": "ivuorinen/config-checker"
     },
     {
       "count": 13,
+      "private": false,
       "repo": "ivuorinen/base-configs-commitlint"
     },
     {
       "count": 13,
+      "private": false,
       "repo": "ivuorinen/base-configs-prettier"
     }
   ],

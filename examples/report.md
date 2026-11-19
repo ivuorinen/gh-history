@@ -7,12 +7,14 @@
 | Metric | Value |
 |--------|-------|
 | Total Events | 533 |
-| Commits | 229 |
+| Commits | 236 |
 | PRs Opened | 96 |
 | PRs Merged | 87 |
 | PRs Closed | 1 |
+| PR Merge Rate | 99.0% |
 | Issues Opened | 2 |
 | Issues Closed | 1 |
+| Issue Close Rate | 50.0% |
 | Code Reviews | 261 |
 | Active Days | 30 / 30 (100.0%) |
 | Longest Streak | 30 days |
@@ -71,20 +73,20 @@
 
 ## Top Repositories
 
-| # | Repository | Events |
-|---|------------|--------|
-| 1 | ivuorinen/skills | 78 |
-| 2 | example-org/private-repo-3 | 34 |
-| 3 | ivuorinen/base-configs-semantic-release | 34 |
-| 4 | ivuorinen/actions | 26 |
-| 5 | ivuorinen/a | 21 |
-| 6 | ivuorinen/base-configs | 20 |
-| 7 | ivuorinen/tree-sitter-shellspec | 18 |
-| 8 | ivuorinen/private-repo-4 | 18 |
-| 9 | ivuorinen/base-configs-stylelint | 16 |
-| 10 | example-org/private-repo-2 | 15 |
-| 11 | ivuorinen/base-configs-browserslist | 15 |
-| 12 | ivuorinen/base-configs-eslint | 15 |
-| 13 | ivuorinen/config-checker | 14 |
-| 14 | ivuorinen/base-configs-commitlint | 13 |
-| 15 | ivuorinen/base-configs-prettier | 13 |
+| # | Repository | Visibility | Events |
+|---|------------|------------|--------|
+| 1 | ivuorinen/skills | public | 78 |
+| 2 | example-org/private-repo-1 | private | 34 |
+| 3 | ivuorinen/base-configs-semantic-release | public | 34 |
+| 4 | ivuorinen/actions | public | 26 |
+| 5 | ivuorinen/a | public | 21 |
+| 6 | ivuorinen/base-configs | public | 20 |
+| 7 | ivuorinen/tree-sitter-shellspec | public | 18 |
+| 8 | ivuorinen/private-repo-1 | private | 18 |
+| 9 | ivuorinen/base-configs-stylelint | public | 16 |
+| 10 | example-org/private-repo-2 | private | 15 |
+| 11 | ivuorinen/base-configs-browserslist | public | 15 |
+| 12 | ivuorinen/base-configs-eslint | public | 15 |
+| 13 | ivuorinen/config-checker | public | 14 |
+| 14 | ivuorinen/base-configs-commitlint | public | 13 |
+| 15 | ivuorinen/base-configs-prettier | public | 13 |

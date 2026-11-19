@@ -60,20 +60,26 @@ func (c *Client) GetAuthenticatedUser() (string, error) {
 	return resp.Viewer.Login, nil
 }
 
-// CheckUserExists checks if a GitHub user exists.
-func (c *Client) CheckUserExists(username string) (bool, error) {
+// LookupUser reports whether a GitHub user exists and returns the account's own
+// spelling of its login. GitHub matches logins case-insensitively, so the
+// returned login can differ from username in case; callers report under the
+// returned one, or a report for "OCTOCAT" is labelled with the caller's typing.
+func (c *Client) LookupUser(username string) (login string, exists bool, err error) {
 	var resp struct {
 		User *struct{ Login string }
 	}
-	err := c.gqlClient.Do(`query($login: String!) { user(login: $login) { login } }`,
+	err = c.gqlClient.Do(`query($login: String!) { user(login: $login) { login } }`,
 		map[string]any{"login": username}, &resp)
 	if err != nil {
 		if isNotFound(err) {
-			return false, nil
+			return "", false, nil
 		}
-		return false, fmt.Errorf("GraphQL user check: %w", err)
+		return "", false, fmt.Errorf("GraphQL user check: %w", err)
 	}
-	return resp.User != nil, nil
+	if resp.User == nil {
+		return "", false, nil
+	}
+	return resp.User.Login, true, nil
 }
 
 // isNotFound reports whether err is GitHub's structured NOT_FOUND response.
@@ -128,7 +134,7 @@ type contributionsResponse struct {
 			}
 
 			CommitContributionsByRepository []struct {
-				Repository    struct{ NameWithOwner string }
+				Repository    repoRef
 				Contributions struct{ TotalCount int }
 			}
 
@@ -164,7 +170,7 @@ type prContributionNode struct {
 		CreatedAt  time.Time
 		ClosedAt   *time.Time
 		MergedAt   *time.Time
-		Repository struct{ NameWithOwner string }
+		Repository repoRef
 	}
 }
 
@@ -176,7 +182,7 @@ type issueContributionNode struct {
 		CreatedAt  time.Time
 		ClosedAt   *time.Time
 		State      string
-		Repository struct{ NameWithOwner string }
+		Repository repoRef
 	}
 }
 
@@ -188,7 +194,7 @@ type reviewContributionNode struct {
 		PullRequest struct {
 			Number     int
 			Title      string
-			Repository struct{ NameWithOwner string }
+			Repository repoRef
 		}
 	}
 }
@@ -196,9 +202,20 @@ type reviewContributionNode struct {
 type repoContributionNode struct {
 	OccurredAt time.Time
 	Repository struct {
-		NameWithOwner string
-		Description   string
+		repoRef
+		Description string
 	}
+}
+
+// repoRef is the repository a contribution node points at. It is one named
+// type rather than an anonymous struct per node so that a field added here
+// reaches every node at once, instead of reaching some node types and being
+// missed on others.
+type repoRef struct {
+	NameWithOwner string
+	// IsPrivate is GitHub's isPrivate, which is also true for internal
+	// repositories on GitHub Enterprise.
+	IsPrivate bool
 }
 
 type pageInfo struct {
@@ -227,7 +244,7 @@ query($login: String!, $from: DateTime!, $to: DateTime!) {
       }
 
       commitContributionsByRepository(maxRepositories: 100) {
-        repository { nameWithOwner }
+        repository { nameWithOwner isPrivate }
         contributions { totalCount }
       }
 
@@ -236,7 +253,7 @@ query($login: String!, $from: DateTime!, $to: DateTime!) {
           occurredAt
           pullRequest {
             number title state createdAt closedAt mergedAt
-            repository { nameWithOwner }
+            repository { nameWithOwner isPrivate }
           }
         }
         pageInfo { endCursor hasNextPage }
@@ -247,7 +264,7 @@ query($login: String!, $from: DateTime!, $to: DateTime!) {
           occurredAt
           issue {
             number title createdAt closedAt state
-            repository { nameWithOwner }
+            repository { nameWithOwner isPrivate }
           }
         }
         pageInfo { endCursor hasNextPage }
@@ -260,7 +277,7 @@ query($login: String!, $from: DateTime!, $to: DateTime!) {
             state submittedAt
             pullRequest {
               number title
-              repository { nameWithOwner }
+              repository { nameWithOwner isPrivate }
             }
           }
         }
@@ -270,7 +287,7 @@ query($login: String!, $from: DateTime!, $to: DateTime!) {
       repositoryContributions(first: 100) {
         nodes {
           occurredAt
-          repository { nameWithOwner description }
+          repository { nameWithOwner isPrivate description }
         }
         pageInfo { endCursor hasNextPage }
       }
@@ -290,7 +307,7 @@ query($login: String!, $from: DateTime!, $to: DateTime!, $after: String!) {
           occurredAt
           pullRequest {
             number title state createdAt closedAt mergedAt
-            repository { nameWithOwner }
+            repository { nameWithOwner isPrivate }
           }
         }
         pageInfo { endCursor hasNextPage }
@@ -308,7 +325,7 @@ query($login: String!, $from: DateTime!, $to: DateTime!, $after: String!) {
           occurredAt
           issue {
             number title createdAt closedAt state
-            repository { nameWithOwner }
+            repository { nameWithOwner isPrivate }
           }
         }
         pageInfo { endCursor hasNextPage }
@@ -328,7 +345,7 @@ query($login: String!, $from: DateTime!, $to: DateTime!, $after: String!) {
             state submittedAt
             pullRequest {
               number title
-              repository { nameWithOwner }
+              repository { nameWithOwner isPrivate }
             }
           }
         }
@@ -380,7 +397,7 @@ query($login: String!, $from: DateTime!, $to: DateTime!, $after: String!) {
       repositoryContributions(first: 100, after: $after) {
         nodes {
           occurredAt
-          repository { nameWithOwner description }
+          repository { nameWithOwner isPrivate description }
         }
         pageInfo { endCursor hasNextPage }
       }
@@ -460,15 +477,18 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 
 	for _, n := range allPRs {
 		repo := n.PullRequest.Repository.NameWithOwner
+		private := n.PullRequest.Repository.IsPrivate
 		events = append(events, models.Event{
 			ID:               fmt.Sprintf("gql-pr-opened-%d-%s", n.PullRequest.Number, repo),
 			Type:             "PullRequestEvent",
 			Repo:             repo,
+			RepoPrivate:      private,
 			Action:           models.ActionOpened,
 			CreatedAt:        n.OccurredAt,
 			Number:           n.PullRequest.Number,
 			Title:            n.PullRequest.Title,
 			SubjectCreatedAt: n.PullRequest.CreatedAt,
+			SubjectState:     n.PullRequest.State,
 		})
 
 		if (n.PullRequest.State == "CLOSED" || n.PullRequest.State == "MERGED") && n.PullRequest.ClosedAt != nil {
@@ -478,12 +498,14 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 					ID:               fmt.Sprintf("gql-pr-closed-%d-%s", n.PullRequest.Number, repo),
 					Type:             "PullRequestEvent",
 					Repo:             repo,
+					RepoPrivate:      private,
 					Action:           models.ActionClosed,
 					Merged:           n.PullRequest.MergedAt != nil,
 					CreatedAt:        closedAt,
 					Number:           n.PullRequest.Number,
 					Title:            n.PullRequest.Title,
 					SubjectCreatedAt: n.PullRequest.CreatedAt,
+					SubjectState:     n.PullRequest.State,
 				})
 			}
 		}
@@ -491,15 +513,18 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 
 	for _, n := range allIssues {
 		repo := n.Issue.Repository.NameWithOwner
+		private := n.Issue.Repository.IsPrivate
 		events = append(events, models.Event{
 			ID:               fmt.Sprintf("gql-issue-opened-%d-%s", n.Issue.Number, repo),
 			Type:             "IssuesEvent",
 			Repo:             repo,
+			RepoPrivate:      private,
 			Action:           models.ActionOpened,
 			CreatedAt:        n.OccurredAt,
 			Number:           n.Issue.Number,
 			Title:            n.Issue.Title,
 			SubjectCreatedAt: n.Issue.CreatedAt,
+			SubjectState:     n.Issue.State,
 		})
 
 		if n.Issue.State == "CLOSED" && n.Issue.ClosedAt != nil {
@@ -509,11 +534,13 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 					ID:               fmt.Sprintf("gql-issue-closed-%d-%s", n.Issue.Number, repo),
 					Type:             "IssuesEvent",
 					Repo:             repo,
+					RepoPrivate:      private,
 					Action:           models.ActionClosed,
 					CreatedAt:        closedAt,
 					Number:           n.Issue.Number,
 					Title:            n.Issue.Title,
 					SubjectCreatedAt: n.Issue.CreatedAt,
+					SubjectState:     n.Issue.State,
 				})
 			}
 		}
@@ -521,11 +548,13 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 
 	for _, n := range allReviews {
 		repo := n.PullRequestReview.PullRequest.Repository.NameWithOwner
+		private := n.PullRequestReview.PullRequest.Repository.IsPrivate
 		submittedAt := n.PullRequestReview.SubmittedAt.Format(time.RFC3339)
 		events = append(events, models.Event{
 			ID:          fmt.Sprintf("gql-review-%s-%d-%s", submittedAt, n.PullRequestReview.PullRequest.Number, repo),
 			Type:        "PullRequestReviewEvent",
 			Repo:        repo,
+			RepoPrivate: private,
 			CreatedAt:   n.OccurredAt,
 			Number:      n.PullRequestReview.PullRequest.Number,
 			Title:       n.PullRequestReview.PullRequest.Title,
@@ -535,10 +564,12 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 
 	for _, n := range allRepos {
 		repo := n.Repository.NameWithOwner
+		private := n.Repository.IsPrivate
 		events = append(events, models.Event{
 			ID:          fmt.Sprintf("gql-repo-created-%s", repo),
 			Type:        "CreateEvent",
 			Repo:        repo,
+			RepoPrivate: private,
 			CreatedAt:   n.OccurredAt,
 			Description: n.Repository.Description,
 		})
@@ -562,8 +593,9 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 	commitsByRepo := make([]models.RepoCount, 0, len(cc.CommitContributionsByRepository))
 	for _, r := range cc.CommitContributionsByRepository {
 		commitsByRepo = append(commitsByRepo, models.RepoCount{
-			Repo:  r.Repository.NameWithOwner,
-			Count: r.Contributions.TotalCount,
+			Repo:    r.Repository.NameWithOwner,
+			Count:   r.Contributions.TotalCount,
+			Private: r.Repository.IsPrivate,
 		})
 	}
 
@@ -676,7 +708,7 @@ query($login: String!, $after: String) {
         id
         createdAt
         updatedAt
-        repository { nameWithOwner }
+        repository { nameWithOwner isPrivate }
       }
       pageInfo { endCursor hasNextPage }
     }
@@ -690,7 +722,7 @@ type issueCommentNode struct {
 	ID         string
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
-	Repository struct{ NameWithOwner string }
+	Repository repoRef
 }
 
 type issueCommentsResponse struct {
@@ -743,11 +775,13 @@ func (c *Client) FetchIssueComments(username string, dr daterange.DateRange) ([]
 				continue
 			}
 			repo := n.Repository.NameWithOwner
+			private := n.Repository.IsPrivate
 			events = append(events, models.Event{
-				ID:        "gql-comment-" + n.ID,
-				Type:      "IssueCommentEvent",
-				Repo:      repo,
-				CreatedAt: n.CreatedAt,
+				ID:          "gql-comment-" + n.ID,
+				Type:        "IssueCommentEvent",
+				Repo:        repo,
+				RepoPrivate: private,
+				CreatedAt:   n.CreatedAt,
 			})
 		}
 		if exhausted {

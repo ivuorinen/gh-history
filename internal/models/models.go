@@ -31,12 +31,15 @@ const (
 // payload map: every producer is in-process, so there is no serialization
 // boundary that would require one.
 type Event struct {
-	ID        string
-	Type      string
-	Repo      string
-	Action    string // ActionOpened, ActionClosed, or "" when not applicable
-	Merged    bool   // Only meaningful for a closed PullRequestEvent
-	CreatedAt time.Time
+	ID   string
+	Type string
+	Repo string
+	// RepoPrivate is Repo's visibility as GitHub reported it at fetch time.
+	// Internal repositories on GitHub Enterprise count as private.
+	RepoPrivate bool
+	Action      string // ActionOpened, ActionClosed, or "" when not applicable
+	Merged      bool   // Only meaningful for a closed PullRequestEvent
+	CreatedAt   time.Time
 
 	// Detail surfaced by the JSON format. Empty when the event type does not
 	// carry the field.
@@ -45,6 +48,10 @@ type Event struct {
 	Description      string    // Repository description, for CreateEvent
 	ReviewState      string    // APPROVED, CHANGES_REQUESTED, COMMENTED, …
 	SubjectCreatedAt time.Time // When the PR or issue itself was created
+	// SubjectState is the PR's or issue's state when it was fetched (OPEN,
+	// CLOSED, or MERGED for a PR), not when the event happened. The merge and
+	// close rates count opened items by it.
+	SubjectState string
 }
 
 // Date returns the event date (without time).
@@ -88,18 +95,30 @@ type Statistics struct {
 	EventsByCategory map[Category]int
 	EventsByType     map[string]int
 	EventsByRepo     map[string]int
-	EventsByDate     map[string]int // Keys are "2006-01-02" formatted date strings
-	EventsByWeekday  map[int]int    // 0=Monday, 6=Sunday
-	EventsByHour     map[int]int
-	Streaks          *StreakInfo
-	Calendar         *ContributionCalendar
-	CommitCount      int
-	PROpened         int
-	PRMerged         int // Mutually exclusive with PRClosed (merged is not also counted as closed)
-	PRClosed         int // Closed without merge
-	IssuesOpened     int
-	IssuesClosed     int
-	ReviewsCount     int
+	// RepoPrivate maps every repository the report names to its visibility.
+	// EventsByRepo keys carry no visibility of their own, so TopRepos reads it
+	// from here.
+	RepoPrivate     map[string]bool
+	EventsByDate    map[string]int // Keys are "2006-01-02" formatted date strings
+	EventsByWeekday map[int]int    // 0=Monday, 6=Sunday
+	EventsByHour    map[int]int
+	Streaks         *StreakInfo
+	Calendar        *ContributionCalendar
+	CommitCount     int
+	PROpened        int
+	PRMerged        int // Mutually exclusive with PRClosed (merged is not also counted as closed)
+	PRClosed        int // Closed without merge
+	IssuesOpened    int
+	IssuesClosed    int
+	ReviewsCount    int
+	// PROpenedMerged and IssuesOpenedClosed count, among the PRs and issues
+	// opened in the range, those merged or closed by fetch time. They are the
+	// rates' numerators because they count the opened items themselves, so a
+	// rate cannot exceed 100% whatever events Calculate is given. PRMerged and
+	// IssuesClosed count close events inside the range instead, which leaves
+	// out an item merged or closed after the range ends.
+	PROpenedMerged     int
+	IssuesOpenedClosed int
 
 	// Detail surfaced by the JSON format only.
 	Events        []Event            // The events the statistics were computed from
@@ -113,13 +132,16 @@ type Statistics struct {
 // Ties break on the repository name: the slice is built from map iteration, so
 // without a tie-break the order, and which tied repositories make the cut,
 // changed between identical runs.
+//
+// Each entry's Private comes from RepoPrivate; a repository missing from it
+// reads as public.
 func (s Statistics) TopRepos(n int) []RepoCount {
 	if n <= 0 {
 		return nil
 	}
 	repos := make([]RepoCount, 0, len(s.EventsByRepo))
 	for repo, count := range s.EventsByRepo {
-		repos = append(repos, RepoCount{Repo: repo, Count: count})
+		repos = append(repos, RepoCount{Repo: repo, Count: count, Private: s.RepoPrivate[repo]})
 	}
 	sort.Slice(repos, func(i, j int) bool {
 		if repos[i].Count != repos[j].Count {
@@ -133,20 +155,26 @@ func (s Statistics) TopRepos(n int) []RepoCount {
 	return repos
 }
 
-// PRMergeRate returns the pull request merge rate as a percentage.
+// PRMergeRate returns the percentage of PRs opened in the range that were merged
+// by fetch time. It divides PROpenedMerged, not PRMerged: see PROpenedMerged.
 func (s Statistics) PRMergeRate() float64 {
-	return ghutil.SafeDiv(s.PRMerged, s.PROpened) * 100
+	return ghutil.SafeDiv(s.PROpenedMerged, s.PROpened) * 100
 }
 
-// IssueCloseRate returns the issue close rate as a percentage.
+// IssueCloseRate returns the percentage of issues opened in the range that were
+// closed by fetch time, for the same reason dividing IssuesOpenedClosed rather
+// than IssuesClosed.
 func (s Statistics) IssueCloseRate() float64 {
-	return ghutil.SafeDiv(s.IssuesClosed, s.IssuesOpened) * 100
+	return ghutil.SafeDiv(s.IssuesOpenedClosed, s.IssuesOpened) * 100
 }
 
 // RepoCount pairs a repository name with its event count.
 type RepoCount struct {
 	Repo  string
 	Count int
+	// Private is the repository's visibility, so every table of repositories
+	// can mark the private ones.
+	Private bool
 }
 
 // ContributionDay represents a single day from GitHub's contributionCalendar.

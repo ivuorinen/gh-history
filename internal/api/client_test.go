@@ -2,6 +2,8 @@ package api
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -45,7 +47,32 @@ func TestGetAuthenticatedUserGraphQL(t *testing.T) {
 	}
 }
 
-func TestCheckUserExistsGraphQL(t *testing.T) {
+// GitHub matches logins case-insensitively and answers with the account's own
+// spelling. That spelling is what the report must carry, not the caller's.
+func TestLookupUser_ReturnsCanonicalLogin(t *testing.T) {
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			if !strings.EqualFold(variables["login"].(string), "octocat") {
+				return &GraphQLError{Errors: []GraphQLErrorItem{{Type: "NOT_FOUND"}}}
+			}
+			resp := response.(*struct {
+				User *struct{ Login string }
+			})
+			resp.User = &struct{ Login string }{Login: "octocat"}
+			return nil
+		},
+	}
+
+	login, exists, err := newTestClient(mock).LookupUser("OCTOCAT")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !exists || login != "octocat" {
+		t.Errorf("LookupUser(%q) = (%q, %v), want (%q, true)", "OCTOCAT", login, exists, "octocat")
+	}
+}
+
+func TestLookupUserGraphQL(t *testing.T) {
 	mock := &mockGQLClient{
 		doFunc: func(query string, variables map[string]any, response any) error {
 			login := variables["login"].(string)
@@ -70,7 +97,7 @@ func TestCheckUserExistsGraphQL(t *testing.T) {
 
 	c := newTestClient(mock)
 
-	exists, err := c.CheckUserExists("testuser")
+	_, exists, err := c.LookupUser("testuser")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,7 +105,7 @@ func TestCheckUserExistsGraphQL(t *testing.T) {
 		t.Error("expected user to exist")
 	}
 
-	exists, err = c.CheckUserExists("nobody")
+	_, exists, err = c.LookupUser("nobody")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,7 +114,7 @@ func TestCheckUserExistsGraphQL(t *testing.T) {
 	}
 }
 
-func TestCheckUserExistsGraphQLError(t *testing.T) {
+func TestLookupUserGraphQLError(t *testing.T) {
 	mock := &mockGQLClient{
 		doFunc: func(query string, variables map[string]any, response any) error {
 			return fmt.Errorf("network timeout")
@@ -95,7 +122,7 @@ func TestCheckUserExistsGraphQLError(t *testing.T) {
 	}
 
 	c := newTestClient(mock)
-	_, err := c.CheckUserExists("testuser")
+	_, _, err := c.LookupUser("testuser")
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
@@ -122,11 +149,11 @@ func TestFetchContributions(t *testing.T) {
 						CreatedAt  time.Time
 						ClosedAt   *time.Time
 						MergedAt   *time.Time
-						Repository struct{ NameWithOwner string }
+						Repository repoRef
 					}{
 						Number: 1, Title: "Open PR", State: "OPEN",
 						CreatedAt:  time.Date(2024, 1, 10, 10, 0, 0, 0, time.UTC),
-						Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo1"},
+						Repository: repoRef{NameWithOwner: "user/repo1"},
 					},
 				},
 				{
@@ -138,12 +165,12 @@ func TestFetchContributions(t *testing.T) {
 						CreatedAt  time.Time
 						ClosedAt   *time.Time
 						MergedAt   *time.Time
-						Repository struct{ NameWithOwner string }
+						Repository repoRef
 					}{
 						Number: 2, Title: "Merged PR", State: "MERGED",
 						CreatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
 						ClosedAt:  &closedAt, MergedAt: &mergedAt,
-						Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo2"},
+						Repository: repoRef{NameWithOwner: "user/repo2"},
 					},
 				},
 			}
@@ -156,11 +183,11 @@ func TestFetchContributions(t *testing.T) {
 						CreatedAt  time.Time
 						ClosedAt   *time.Time
 						State      string
-						Repository struct{ NameWithOwner string }
+						Repository repoRef
 					}{
 						Number: 5, Title: "Open issue", State: "OPEN",
 						CreatedAt:  time.Date(2024, 1, 12, 10, 0, 0, 0, time.UTC),
-						Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo1"},
+						Repository: repoRef{NameWithOwner: "user/repo1"},
 					},
 				},
 				{
@@ -171,12 +198,12 @@ func TestFetchContributions(t *testing.T) {
 						CreatedAt  time.Time
 						ClosedAt   *time.Time
 						State      string
-						Repository struct{ NameWithOwner string }
+						Repository repoRef
 					}{
 						Number: 6, Title: "Closed issue", State: "CLOSED",
 						CreatedAt:  time.Date(2024, 1, 18, 10, 0, 0, 0, time.UTC),
 						ClosedAt:   &issueClosedAt,
-						Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo2"},
+						Repository: repoRef{NameWithOwner: "user/repo2"},
 					},
 				},
 			}
@@ -189,7 +216,7 @@ func TestFetchContributions(t *testing.T) {
 						PullRequest struct {
 							Number     int
 							Title      string
-							Repository struct{ NameWithOwner string }
+							Repository repoRef
 						}
 					}{
 						State:       "APPROVED",
@@ -197,10 +224,10 @@ func TestFetchContributions(t *testing.T) {
 						PullRequest: struct {
 							Number     int
 							Title      string
-							Repository struct{ NameWithOwner string }
+							Repository repoRef
 						}{
 							Number: 3, Title: "Some PR",
-							Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo1"},
+							Repository: repoRef{NameWithOwner: "user/repo1"},
 						},
 					},
 				},
@@ -209,11 +236,11 @@ func TestFetchContributions(t *testing.T) {
 				{
 					OccurredAt: time.Date(2024, 1, 5, 10, 0, 0, 0, time.UTC),
 					Repository: struct {
-						NameWithOwner string
-						Description   string
+						repoRef
+						Description string
 					}{
-						NameWithOwner: "user/new-repo",
-						Description:   "A new repository",
+						repoRef:     repoRef{NameWithOwner: "user/new-repo"},
+						Description: "A new repository",
 					},
 				},
 			}
@@ -307,11 +334,11 @@ func TestFetchContributions_WiresQueriedDetail(t *testing.T) {
 			cc.TotalRepositoryContributions = 55
 			cc.ContributionCalendar.TotalContributions = 66
 			cc.CommitContributionsByRepository = []struct {
-				Repository    struct{ NameWithOwner string }
+				Repository    repoRef
 				Contributions struct{ TotalCount int }
 			}{
 				{
-					Repository:    struct{ NameWithOwner string }{NameWithOwner: "user/private"},
+					Repository:    repoRef{NameWithOwner: "user/private"},
 					Contributions: struct{ TotalCount int }{TotalCount: 99},
 				},
 			}
@@ -324,11 +351,11 @@ func TestFetchContributions_WiresQueriedDetail(t *testing.T) {
 					CreatedAt  time.Time
 					ClosedAt   *time.Time
 					MergedAt   *time.Time
-					Repository struct{ NameWithOwner string }
+					Repository repoRef
 				}{
 					Number: 42, Title: "Fix the thing", State: "OPEN",
 					CreatedAt:  time.Date(2024, 1, 9, 8, 0, 0, 0, time.UTC),
-					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo1"},
+					Repository: repoRef{NameWithOwner: "user/repo1"},
 				},
 			}}
 			cc.PullRequestReviewContributions.Nodes = []reviewContributionNode{{
@@ -339,7 +366,7 @@ func TestFetchContributions_WiresQueriedDetail(t *testing.T) {
 					PullRequest struct {
 						Number     int
 						Title      string
-						Repository struct{ NameWithOwner string }
+						Repository repoRef
 					}
 				}{
 					State:       "CHANGES_REQUESTED",
@@ -347,19 +374,19 @@ func TestFetchContributions_WiresQueriedDetail(t *testing.T) {
 					PullRequest: struct {
 						Number     int
 						Title      string
-						Repository struct{ NameWithOwner string }
+						Repository repoRef
 					}{
 						Number: 7, Title: "Someone else's PR",
-						Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo2"},
+						Repository: repoRef{NameWithOwner: "user/repo2"},
 					},
 				},
 			}}
 			cc.RepositoryContributions.Nodes = []repoContributionNode{{
 				OccurredAt: time.Date(2024, 1, 5, 10, 0, 0, 0, time.UTC),
 				Repository: struct {
-					NameWithOwner string
-					Description   string
-				}{NameWithOwner: "user/new-repo", Description: "A brand new repo"},
+					repoRef
+					Description string
+				}{repoRef: repoRef{NameWithOwner: "user/new-repo"}, Description: "A brand new repo"},
 			}}
 			return nil
 		},
@@ -407,7 +434,187 @@ func TestFetchContributions_WiresQueriedDetail(t *testing.T) {
 	}
 }
 
-func TestCheckUserExists_NotFoundUsesStructuredError(t *testing.T) {
+// Every node type carries its repository's visibility into the events it
+// produces, and the per-repository commit counts carry it too, so a report can
+// mark private repositories. Each node type appears once on a private and once
+// on a public repository: a mapping that drops the flag fails the private one,
+// and one that hard-codes it fails the public one.
+func TestFetchContributions_WiresRepoVisibility(t *testing.T) {
+	priv := repoRef{NameWithOwner: "user/private", IsPrivate: true}
+	pub := repoRef{NameWithOwner: "user/public"}
+	at := time.Date(2024, 1, 10, 10, 0, 0, 0, time.UTC)
+	closed := time.Date(2024, 1, 12, 10, 0, 0, 0, time.UTC)
+
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			cc := &response.(*contributionsResponse).User.ContributionsCollection
+			for i, repo := range []repoRef{priv, pub} {
+				var commits struct {
+					Repository    repoRef
+					Contributions struct{ TotalCount int }
+				}
+				commits.Repository = repo
+				commits.Contributions.TotalCount = 5
+				cc.CommitContributionsByRepository = append(cc.CommitContributionsByRepository, commits)
+
+				var pr prContributionNode
+				pr.OccurredAt = at
+				pr.PullRequest.Number = i + 1
+				pr.PullRequest.State = "MERGED"
+				pr.PullRequest.ClosedAt = &closed
+				pr.PullRequest.MergedAt = &closed
+				pr.PullRequest.Repository = repo
+				cc.PullRequestContributions.Nodes = append(cc.PullRequestContributions.Nodes, pr)
+
+				var issue issueContributionNode
+				issue.OccurredAt = at
+				issue.Issue.Number = i + 1
+				issue.Issue.State = "CLOSED"
+				issue.Issue.ClosedAt = &closed
+				issue.Issue.Repository = repo
+				cc.IssueContributions.Nodes = append(cc.IssueContributions.Nodes, issue)
+
+				var review reviewContributionNode
+				review.OccurredAt = at
+				review.PullRequestReview.SubmittedAt = at
+				review.PullRequestReview.PullRequest.Number = i + 1
+				review.PullRequestReview.PullRequest.Repository = repo
+				cc.PullRequestReviewContributions.Nodes = append(cc.PullRequestReviewContributions.Nodes, review)
+
+				var created repoContributionNode
+				created.OccurredAt = at
+				created.Repository.repoRef = repo
+				cc.RepositoryContributions.Nodes = append(cc.RepositoryContributions.Nodes, created)
+			}
+			return nil
+		},
+	}
+
+	dr := daterange.DateRange{
+		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+	}
+	result, err := newTestClient(mock).FetchContributions("user", dr, dr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Per repository: PR opened + closed, issue opened + closed, review, created.
+	if len(result.Events) != 12 {
+		t.Fatalf("expected 12 events, got %d", len(result.Events))
+	}
+	for _, e := range result.Events {
+		if want := e.Repo == "user/private"; e.RepoPrivate != want {
+			t.Errorf("%s %s on %s: RepoPrivate = %v, want %v",
+				e.Type, e.Action, e.Repo, e.RepoPrivate, want)
+		}
+	}
+	wantCommits := []models.RepoCount{
+		{Repo: "user/private", Count: 5, Private: true},
+		{Repo: "user/public", Count: 5},
+	}
+	if !slices.Equal(result.CommitsByRepo, wantCommits) {
+		t.Errorf("CommitsByRepo = %+v, want %+v", result.CommitsByRepo, wantCommits)
+	}
+}
+
+// The state GitHub reports for a PR or issue reaches both its opened and its
+// closed event, so the merge and close rates can count opened items by state.
+func TestFetchContributions_WiresSubjectState(t *testing.T) {
+	at := time.Date(2024, 1, 10, 10, 0, 0, 0, time.UTC)
+	closed := time.Date(2024, 1, 12, 10, 0, 0, 0, time.UTC)
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			cc := &response.(*contributionsResponse).User.ContributionsCollection
+			for i, state := range []string{"OPEN", "MERGED"} {
+				var pr prContributionNode
+				pr.OccurredAt = at
+				pr.PullRequest.Number = i + 1
+				pr.PullRequest.State = state
+				pr.PullRequest.Repository = repoRef{NameWithOwner: "user/repo"}
+				if state == "MERGED" {
+					pr.PullRequest.ClosedAt = &closed
+					pr.PullRequest.MergedAt = &closed
+				}
+				cc.PullRequestContributions.Nodes = append(cc.PullRequestContributions.Nodes, pr)
+			}
+			for i, state := range []string{"OPEN", "CLOSED"} {
+				var issue issueContributionNode
+				issue.OccurredAt = at
+				issue.Issue.Number = i + 1
+				issue.Issue.State = state
+				issue.Issue.Repository = repoRef{NameWithOwner: "user/repo"}
+				if state == "CLOSED" {
+					issue.Issue.ClosedAt = &closed
+				}
+				cc.IssueContributions.Nodes = append(cc.IssueContributions.Nodes, issue)
+			}
+			return nil
+		},
+	}
+
+	dr := daterange.DateRange{
+		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+	}
+	result, err := newTestClient(mock).FetchContributions("user", dr, dr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	got := map[string]string{}
+	for _, e := range result.Events {
+		got[fmt.Sprintf("%s %s #%d", e.Type, e.Action, e.Number)] = e.SubjectState
+	}
+	want := map[string]string{
+		"PullRequestEvent opened #1": "OPEN",
+		"PullRequestEvent opened #2": "MERGED",
+		"PullRequestEvent closed #2": "MERGED",
+		"IssuesEvent opened #1":      "OPEN",
+		"IssuesEvent opened #2":      "CLOSED",
+		"IssuesEvent closed #2":      "CLOSED",
+	}
+	if !maps.Equal(got, want) {
+		t.Errorf("SubjectState by event = %v, want %v", got, want)
+	}
+}
+
+// Issue comments carry their repository's visibility the same way the
+// contribution events do.
+func TestFetchIssueComments_WiresRepoVisibility(t *testing.T) {
+	at := time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC)
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			resp := response.(*issueCommentsResponse)
+			resp.User.IssueComments.Nodes = []issueCommentNode{
+				{ID: "c1", CreatedAt: at, UpdatedAt: at,
+					Repository: repoRef{NameWithOwner: "user/private", IsPrivate: true}},
+				{ID: "c2", CreatedAt: at, UpdatedAt: at,
+					Repository: repoRef{NameWithOwner: "user/public"}},
+			}
+			return nil
+		},
+	}
+
+	dr := daterange.DateRange{
+		Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+		End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+	}
+	events, err := newTestClient(mock).FetchIssueComments("user", dr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(events) != 2 {
+		t.Fatalf("expected 2 comments, got %d", len(events))
+	}
+	for _, e := range events {
+		if want := e.Repo == "user/private"; e.RepoPrivate != want {
+			t.Errorf("comment on %s: RepoPrivate = %v, want %v", e.Repo, e.RepoPrivate, want)
+		}
+	}
+}
+
+func TestLookupUser_NotFoundUsesStructuredError(t *testing.T) {
 	mock := &mockGQLClient{
 		doFunc: func(query string, variables map[string]any, response any) error {
 			return &GraphQLError{
@@ -418,7 +625,7 @@ func TestCheckUserExists_NotFoundUsesStructuredError(t *testing.T) {
 			}
 		},
 	}
-	exists, err := newTestClient(mock).CheckUserExists("nobody")
+	_, exists, err := newTestClient(mock).LookupUser("nobody")
 	if err != nil {
 		t.Fatalf("NOT_FOUND should not be an error, got %v", err)
 	}
@@ -427,7 +634,7 @@ func TestCheckUserExists_NotFoundUsesStructuredError(t *testing.T) {
 	}
 }
 
-func TestCheckUserExists_NotFoundIndependentOfWording(t *testing.T) {
+func TestLookupUser_NotFoundIndependentOfWording(t *testing.T) {
 	// Detection must survive GitHub rewording its message.
 	mock := &mockGQLClient{
 		doFunc: func(query string, variables map[string]any, response any) error {
@@ -439,7 +646,7 @@ func TestCheckUserExists_NotFoundIndependentOfWording(t *testing.T) {
 			}
 		},
 	}
-	exists, err := newTestClient(mock).CheckUserExists("nobody")
+	_, exists, err := newTestClient(mock).LookupUser("nobody")
 	if err != nil {
 		t.Fatalf("expected nil error, got %v", err)
 	}
@@ -448,7 +655,7 @@ func TestCheckUserExists_NotFoundIndependentOfWording(t *testing.T) {
 	}
 }
 
-func TestCheckUserExists_OtherGraphQLErrorIsReturned(t *testing.T) {
+func TestLookupUser_OtherGraphQLErrorIsReturned(t *testing.T) {
 	mock := &mockGQLClient{
 		doFunc: func(query string, variables map[string]any, response any) error {
 			return &GraphQLError{
@@ -456,7 +663,7 @@ func TestCheckUserExists_OtherGraphQLErrorIsReturned(t *testing.T) {
 			}
 		},
 	}
-	if _, err := newTestClient(mock).CheckUserExists("someone"); err == nil {
+	if _, _, err := newTestClient(mock).LookupUser("someone"); err == nil {
 		t.Fatal("expected a non-NOT_FOUND GraphQL error to be returned")
 	}
 }
@@ -596,13 +803,13 @@ func TestFetchIssueComments_FiltersToRange(t *testing.T) {
 			resp.User.IssueComments.Nodes = []issueCommentNode{
 				// Edited recently, created after the range → excluded.
 				{CreatedAt: afterRange, UpdatedAt: afterRange,
-					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo1"}},
+					Repository: repoRef{NameWithOwner: "user/repo1"}},
 				// In range → included.
 				{CreatedAt: inRange, UpdatedAt: inRange,
-					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo2"}},
+					Repository: repoRef{NameWithOwner: "user/repo2"}},
 				// Created before the range but edited inside it → excluded by createdAt.
 				{CreatedAt: beforeRange, UpdatedAt: inRange,
-					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo3"}},
+					Repository: repoRef{NameWithOwner: "user/repo3"}},
 			}
 			resp.User.IssueComments.PageInfo = pageInfo{HasNextPage: false}
 			return nil
@@ -632,7 +839,7 @@ func TestFetchIssueComments_FiltersToRange(t *testing.T) {
 // old time+repo ID made them collide and dedup dropped one.
 func TestFetchIssueComments_SameSecondCommentsHaveDistinctIDs(t *testing.T) {
 	at := time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC)
-	repo := struct{ NameWithOwner string }{NameWithOwner: "user/repo"}
+	repo := repoRef{NameWithOwner: "user/repo"}
 	mock := &mockGQLClient{
 		doFunc: func(query string, variables map[string]any, response any) error {
 			resp := response.(*issueCommentsResponse)
@@ -675,7 +882,7 @@ func TestFetchIssueComments_StopsOnceUpdatedAtPredatesRange(t *testing.T) {
 			resp := response.(*issueCommentsResponse)
 			resp.User.IssueComments.Nodes = []issueCommentNode{
 				{CreatedAt: old, UpdatedAt: old,
-					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo"}},
+					Repository: repoRef{NameWithOwner: "user/repo"}},
 			}
 			resp.User.IssueComments.PageInfo = pageInfo{EndCursor: &cursor, HasNextPage: true}
 			return nil
@@ -712,7 +919,7 @@ func TestFetchIssueComments_ReturnsPartialResultsOnError(t *testing.T) {
 			resp := response.(*issueCommentsResponse)
 			resp.User.IssueComments.Nodes = []issueCommentNode{
 				{CreatedAt: inRange, UpdatedAt: inRange,
-					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo"}},
+					Repository: repoRef{NameWithOwner: "user/repo"}},
 			}
 			resp.User.IssueComments.PageInfo = pageInfo{EndCursor: &cursor, HasNextPage: true}
 			return nil
@@ -753,7 +960,7 @@ func TestFetchIssueComments_FollowsEveryPage(t *testing.T) {
 			resp := response.(*issueCommentsResponse)
 			resp.User.IssueComments.Nodes = []issueCommentNode{
 				{ID: cursor, CreatedAt: inRange, UpdatedAt: inRange,
-					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo"}},
+					Repository: repoRef{NameWithOwner: "user/repo"}},
 			}
 			resp.User.IssueComments.PageInfo = pageInfo{EndCursor: &cursor, HasNextPage: calls < pages}
 			return nil
@@ -790,7 +997,7 @@ func TestFetchIssueComments_RepeatedCursorIsAnError(t *testing.T) {
 			resp := response.(*issueCommentsResponse)
 			resp.User.IssueComments.Nodes = []issueCommentNode{
 				{ID: fmt.Sprintf("IC_%d", calls), CreatedAt: inRange, UpdatedAt: inRange,
-					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo"}},
+					Repository: repoRef{NameWithOwner: "user/repo"}},
 			}
 			resp.User.IssueComments.PageInfo = pageInfo{EndCursor: &cursor, HasNextPage: true}
 			return nil
@@ -833,10 +1040,10 @@ func TestFetchContributionsPagination(t *testing.T) {
 							CreatedAt  time.Time
 							ClosedAt   *time.Time
 							MergedAt   *time.Time
-							Repository struct{ NameWithOwner string }
+							Repository repoRef
 						}{
 							Number: 1, Title: "PR 1", State: "OPEN",
-							Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo"},
+							Repository: repoRef{NameWithOwner: "user/repo"},
 						},
 					},
 				}
@@ -858,10 +1065,10 @@ func TestFetchContributionsPagination(t *testing.T) {
 						CreatedAt  time.Time
 						ClosedAt   *time.Time
 						MergedAt   *time.Time
-						Repository struct{ NameWithOwner string }
+						Repository repoRef
 					}{
 						Number: 2, Title: "PR 2", State: "OPEN",
-						Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo"},
+						Repository: repoRef{NameWithOwner: "user/repo"},
 					},
 				},
 			}
@@ -937,10 +1144,10 @@ func TestFetchContributions_CloseMatchedAgainstReportRange(t *testing.T) {
 					CreatedAt  time.Time
 					ClosedAt   *time.Time
 					MergedAt   *time.Time
-					Repository struct{ NameWithOwner string }
+					Repository repoRef
 				}{
 					Number: 9, State: "MERGED", ClosedAt: &mergedAt, MergedAt: &mergedAt,
-					Repository: struct{ NameWithOwner string }{NameWithOwner: "user/repo"},
+					Repository: repoRef{NameWithOwner: "user/repo"},
 				},
 			}}
 			return nil

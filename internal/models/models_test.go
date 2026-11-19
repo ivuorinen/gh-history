@@ -1,6 +1,7 @@
 package models
 
 import (
+	"slices"
 	"testing"
 	"time"
 )
@@ -13,6 +14,24 @@ func TestTopRepos_TiesBreakOnName(t *testing.T) {
 		if got[0].Repo != "u/z" || got[1].Repo != "u/a" || got[2].Repo != "u/b" {
 			t.Fatalf("TopRepos(3) = %+v, want u/z, u/a, u/b", got)
 		}
+	}
+}
+
+// Top repositories carry the visibility recorded for them, so every format's
+// repository table can mark the private ones. A repository with no recorded
+// visibility reads as public.
+func TestTopRepos_CarriesVisibility(t *testing.T) {
+	s := Statistics{
+		EventsByRepo: map[string]int{"u/priv": 3, "u/pub": 2, "u/unknown": 1},
+		RepoPrivate:  map[string]bool{"u/priv": true, "u/pub": false},
+	}
+	want := []RepoCount{
+		{Repo: "u/priv", Count: 3, Private: true},
+		{Repo: "u/pub", Count: 2},
+		{Repo: "u/unknown", Count: 1},
+	}
+	if got := s.TopRepos(3); !slices.Equal(got, want) {
+		t.Errorf("TopRepos(3) = %+v, want %+v", got, want)
 	}
 }
 
@@ -102,21 +121,25 @@ func TestTopRepos(t *testing.T) {
 	}
 }
 
+// The merge rate is the share of PRs opened in the range that are merged,
+// counted from the opened PRs themselves. PRMerged is not its numerator, so no
+// combination of counts reads above 100%; with PRMerged, 5 merged against 2
+// opened would read 250%.
 func TestPRMergeRate(t *testing.T) {
 	tests := []struct {
-		name           string
-		merged, opened int
-		want           float64
+		name                         string
+		openedMerged, opened, merged int
+		want                         float64
 	}{
-		{"half", 5, 10, 50},
-		{"all", 10, 10, 100},
-		{"none merged", 0, 10, 0},
-		{"no PRs opened does not divide by zero", 0, 0, 0},
-		{"merged without opened in range", 3, 0, 0},
+		{"half of the opened PRs merged", 5, 10, 5, 50},
+		{"all", 10, 10, 10, 100},
+		{"none merged", 0, 10, 0, 0},
+		{"no PRs opened does not divide by zero", 0, 0, 3, 0},
+		{"PRMerged is not the numerator", 1, 2, 5, 50},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			s := Statistics{PRMerged: tc.merged, PROpened: tc.opened}
+			s := Statistics{PROpenedMerged: tc.openedMerged, PROpened: tc.opened, PRMerged: tc.merged}
 			if got := s.PRMergeRate(); got != tc.want {
 				t.Errorf("PRMergeRate() = %.1f, want %.1f", got, tc.want)
 			}
@@ -124,19 +147,21 @@ func TestPRMergeRate(t *testing.T) {
 	}
 }
 
+// The close rate is the share of issues opened in the range that are closed,
+// counted from the opened issues themselves; IssuesClosed is not its numerator.
 func TestIssueCloseRate(t *testing.T) {
 	tests := []struct {
-		name           string
-		closed, opened int
-		want           float64
+		name                         string
+		openedClosed, opened, closed int
+		want                         float64
 	}{
-		{"half", 5, 10, 50},
-		{"none opened does not divide by zero", 0, 0, 0},
-		{"closed without opened in range", 4, 0, 0},
+		{"half of the opened issues closed", 5, 10, 5, 50},
+		{"none opened does not divide by zero", 0, 0, 4, 0},
+		{"IssuesClosed is not the numerator", 1, 4, 6, 25},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			s := Statistics{IssuesClosed: tc.closed, IssuesOpened: tc.opened}
+			s := Statistics{IssuesOpenedClosed: tc.openedClosed, IssuesOpened: tc.opened, IssuesClosed: tc.closed}
 			if got := s.IssueCloseRate(); got != tc.want {
 				t.Errorf("IssueCloseRate() = %.1f, want %.1f", got, tc.want)
 			}

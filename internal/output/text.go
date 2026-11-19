@@ -106,6 +106,7 @@ func FormatTextTo(out io.Writer, isTTY bool, width int, stats models.Statistics)
 		for i, rc := range topRepos {
 			tp2.AddField(fmt.Sprintf("%d.", i+1))
 			tp2.AddField(rc.Repo)
+			tp2.AddField(visibilityLabel(rc.Private))
 			tp2.AddField(fmt.Sprintf("%s events", fmtInt(rc.Count)))
 			tp2.EndRow()
 		}
@@ -129,6 +130,16 @@ func padRight(width int, s string) string {
 		return s + strings.Repeat(" ", pad)
 	}
 	return s
+}
+
+// visibilityLabel is the word every human-readable format prints for a
+// repository's visibility. One function, so text, Markdown and HTML cannot
+// drift apart on the wording. JSON carries the boolean instead.
+func visibilityLabel(private bool) string {
+	if private {
+		return "private"
+	}
+	return "public"
 }
 
 // pluralize renders "1 day" / "2 days". The naive "s" suffix matches every noun

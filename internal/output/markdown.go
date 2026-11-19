@@ -60,10 +60,10 @@ func FormatMarkdown(stats models.Statistics) string {
 	topRepos := stats.TopRepos(15)
 	if len(topRepos) > 0 {
 		b.WriteString("\n## Top Repositories\n\n")
-		b.WriteString("| # | Repository | Events |\n")
-		b.WriteString("|---|------------|--------|\n")
+		b.WriteString("| # | Repository | Visibility | Events |\n")
+		b.WriteString("|---|------------|------------|--------|\n")
 		for i, rc := range topRepos {
-			fmt.Fprintf(&b, "| %d | %s | %d |\n", i+1, rc.Repo, rc.Count)
+			fmt.Fprintf(&b, "| %d | %s | %s | %d |\n", i+1, rc.Repo, visibilityLabel(rc.Private), rc.Count)
 		}
 	}
 

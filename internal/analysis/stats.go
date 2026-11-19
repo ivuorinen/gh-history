@@ -1,6 +1,8 @@
 package analysis
 
 import (
+	"slices"
+
 	"github.com/ivuorinen/gh-history/internal/daterange"
 	"github.com/ivuorinen/gh-history/internal/ghutil"
 	"github.com/ivuorinen/gh-history/internal/models"
@@ -25,6 +27,7 @@ func (c *Calculator) Calculate(events []models.Event) models.Statistics {
 		EventsByCategory: make(map[models.Category]int),
 		EventsByType:     make(map[string]int),
 		EventsByRepo:     make(map[string]int),
+		RepoPrivate:      make(map[string]bool),
 		EventsByDate:     make(map[string]int),
 		EventsByWeekday:  make(map[int]int),
 		EventsByHour:     make(map[int]int),
@@ -39,6 +42,11 @@ func (c *Calculator) Calculate(events []models.Event) models.Statistics {
 		stats.EventsByCategory[cat]++
 		stats.EventsByType[event.Type]++
 		stats.EventsByRepo[event.Repo]++
+		// GitHub reports visibility as of each query, so a repository whose
+		// visibility changes mid-run is seen both ways. One private
+		// observation makes it private: the rule is order-independent, so the
+		// result no longer depends on which source wrote last.
+		stats.RepoPrivate[event.Repo] = stats.RepoPrivate[event.Repo] || event.RepoPrivate
 		stats.EventsByDate[event.Date().Format(ghutil.DateFormat)]++
 
 		// Convert Go weekday (0=Sunday) to Python-style (0=Monday)
@@ -77,7 +85,18 @@ func (c *Calculator) Calculate(events []models.Event) models.Statistics {
 	// Detail carried through for the JSON format.
 	stats.Events = events
 	stats.Totals = c.Totals
-	stats.CommitsByRepo = c.CommitsByRepo
+	// A repository can have commits and no listed event, so the commit counts
+	// are a visibility source of their own, merged by the same rule as events.
+	for _, rc := range c.CommitsByRepo {
+		stats.RepoPrivate[rc.Repo] = stats.RepoPrivate[rc.Repo] || rc.Private
+	}
+	// The commit rows then take the merged visibility, so commits_by_repo and
+	// the top-repositories tables cannot disagree about a repository. They are
+	// a copy: the caller's slice stays as fetched.
+	stats.CommitsByRepo = slices.Clone(c.CommitsByRepo)
+	for i := range stats.CommitsByRepo {
+		stats.CommitsByRepo[i].Private = stats.RepoPrivate[stats.CommitsByRepo[i].Repo]
+	}
 
 	// Build calendar on stats
 	if len(filteredDays) > 0 {
@@ -100,6 +119,9 @@ func trackDetailedStats(stats *models.Statistics, event models.Event) {
 		switch event.Action {
 		case models.ActionOpened:
 			stats.PROpened++
+			if event.SubjectState == "MERGED" {
+				stats.PROpenedMerged++
+			}
 		case models.ActionClosed:
 			// Merged and closed-without-merge are mutually exclusive.
 			if event.Merged {
@@ -112,6 +134,9 @@ func trackDetailedStats(stats *models.Statistics, event models.Event) {
 		switch event.Action {
 		case models.ActionOpened:
 			stats.IssuesOpened++
+			if event.SubjectState == "CLOSED" {
+				stats.IssuesOpenedClosed++
+			}
 		case models.ActionClosed:
 			stats.IssuesClosed++
 		}

@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -216,10 +217,10 @@ func TestBrowserCommand_LeadingDashPathIsNotAFlag(t *testing.T) {
 
 func TestSortedRepoCounts(t *testing.T) {
 	// Counts accumulated across year chunks: repo1 appears in two chunks.
-	got := sortedRepoCounts(map[string]int{
-		"u/repo1": 30 + 20,
-		"u/repo2": 40,
-		"u/repo3": 40,
+	got := sortedRepoCounts(map[string]models.RepoCount{
+		"u/repo1": {Repo: "u/repo1", Count: 30 + 20},
+		"u/repo2": {Repo: "u/repo2", Count: 40},
+		"u/repo3": {Repo: "u/repo3", Count: 40},
 	})
 	want := []models.RepoCount{
 		{Repo: "u/repo1", Count: 50},
@@ -237,7 +238,7 @@ func TestSortedRepoCounts(t *testing.T) {
 }
 
 func TestSortedRepoCounts_Empty(t *testing.T) {
-	if got := sortedRepoCounts(map[string]int{}); len(got) != 0 {
+	if got := sortedRepoCounts(map[string]models.RepoCount{}); len(got) != 0 {
 		t.Errorf("expected empty slice, got %v", got)
 	}
 }
@@ -526,6 +527,40 @@ func TestFetchEvents_AggregatesChunks(t *testing.T) {
 		if r != dr {
 			t.Errorf("chunk %d fetched with report range %v, want the whole range %v", i, r, dr)
 		}
+	}
+}
+
+// Merging per-repository commit counts across year chunks keeps each
+// repository's visibility; summing counts alone dropped it. A repository one
+// chunk saw private stays private when a later chunk sees it public, rather
+// than taking whichever chunk came last.
+func TestFetchEvents_MergedCommitsKeepVisibility(t *testing.T) {
+	dr := daterange.DateRange{Start: d(2023, 1, 1), End: d(2024, 12, 31)}
+	f := &fakeFetcher{
+		chunks: []api.ContributionResult{
+			{CommitsByRepo: []models.RepoCount{
+				{Repo: "u/priv", Count: 4, Private: true},
+				{Repo: "u/pub", Count: 6},
+				{Repo: "u/flipped", Count: 1, Private: true},
+			}},
+			{CommitsByRepo: []models.RepoCount{
+				{Repo: "u/priv", Count: 5, Private: true},
+				{Repo: "u/flipped", Count: 2},
+			}},
+		},
+	}
+
+	got, err := fetchEvents(&config{}, f, dr, "u")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []models.RepoCount{
+		{Repo: "u/priv", Count: 9, Private: true},
+		{Repo: "u/pub", Count: 6},
+		{Repo: "u/flipped", Count: 3, Private: true},
+	}
+	if !slices.Equal(got.CommitsByRepo, want) {
+		t.Errorf("CommitsByRepo = %+v, want %+v", got.CommitsByRepo, want)
 	}
 }
 

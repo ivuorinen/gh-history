@@ -22,8 +22,10 @@ func BuildSummary(stats models.Statistics) []SummaryRow {
 		{"PRs Opened", fmtInt(stats.PROpened)},
 		{"PRs Merged", fmtInt(stats.PRMerged)},
 		{"PRs Closed", fmtInt(stats.PRClosed)},
+		{"PR Merge Rate", fmt.Sprintf("%.1f%%", stats.PRMergeRate())},
 		{"Issues Opened", fmtInt(stats.IssuesOpened)},
 		{"Issues Closed", fmtInt(stats.IssuesClosed)},
+		{"Issue Close Rate", fmt.Sprintf("%.1f%%", stats.IssueCloseRate())},
 		{"Code Reviews", fmtInt(stats.ReviewsCount)},
 	}
 	if s := stats.Streaks; s != nil {

@@ -4,17 +4,19 @@ GitHub Activity Report: ivuorinen
 
 Summary
 --------------------------------------------------
-Total Events    533
-Commits         229
-PRs Opened      96
-PRs Merged      87
-PRs Closed      1
-Issues Opened   2
-Issues Closed   1
-Code Reviews    261
-Active Days     30 / 30 (100.0%)
-Longest Streak  30 days
-Current Streak  0 days
+Total Events      533
+Commits           236
+PRs Opened        96
+PRs Merged        87
+PRs Closed        1
+PR Merge Rate     99.0%
+Issues Opened     2
+Issues Closed     1
+Issue Close Rate  50.0%
+Code Reviews      261
+Active Days       30 / 30 (100.0%)
+Longest Streak    30 days
+Current Streak    0 days
 
 Activity by Category
 --------------------------------------------------
@@ -63,18 +65,18 @@ Activity by Hour (UTC)
 
 Top Repositories
 --------------------------------------------------
-1.   ivuorinen/skills                         78 events
-2.   example-org/private-repo-3                   34 events
-3.   ivuorinen/base-configs-semantic-release  34 events
-4.   ivuorinen/actions                        26 events
-5.   ivuorinen/a                              21 events
-6.   ivuorinen/base-configs                   20 events
-7.   ivuorinen/tree-sitter-shellspec          18 events
-8.   ivuorinen/private-repo-4                            18 events
-9.   ivuorinen/base-configs-stylelint         16 events
-10.  example-org/private-repo-2                              15 events
-11.  ivuorinen/base-configs-browserslist      15 events
-12.  ivuorinen/base-configs-eslint            15 events
-13.  ivuorinen/config-checker                 14 events
-14.  ivuorinen/base-configs-commitlint        13 events
-15.  ivuorinen/base-configs-prettier          13 events
+1.   ivuorinen/skills                         public   78 events
+2.   example-org/private-repo-1               private  34 events
+3.   ivuorinen/base-configs-semantic-release  public   34 events
+4.   ivuorinen/actions                        public   26 events
+5.   ivuorinen/a                              public   21 events
+6.   ivuorinen/base-configs                   public   20 events
+7.   ivuorinen/tree-sitter-shellspec          public   18 events
+8.   ivuorinen/private-repo-1                 private  18 events
+9.   ivuorinen/base-configs-stylelint         public   16 events
+10.  example-org/private-repo-2               private  15 events
+11.  ivuorinen/base-configs-browserslist      public   15 events
+12.  ivuorinen/base-configs-eslint            public   15 events
+13.  ivuorinen/config-checker                 public   14 events
+14.  ivuorinen/base-configs-commitlint        public   13 events
+15.  ivuorinen/base-configs-prettier          public   13 events

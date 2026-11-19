@@ -75,7 +75,7 @@ detail the human-readable formats deliberately omit.
 |                                                          | text / markdown / html | json                  |
 |----------------------------------------------------------|------------------------|-----------------------|
 | Summary (events, commits, PRs, issues, reviews, streaks) | yes                    | yes                   |
-| Top 15 repositories                                      | yes                    | yes                   |
+| Top 15 repositories, marked public or private            | yes                    | yes                   |
 | Category, weekday and hour distributions                 | yes                    | yes                   |
 | Full per-repository event counts                         | —                      | `events_by_repo`      |
 | Per-day event counts                                     | heatmap only           | `events_by_date`      |
@@ -89,6 +89,20 @@ detail the human-readable formats deliberately omit.
 are counted from the contributions the token can list. Reporting on yourself
 with full access, the two agree. They diverge when the token cannot see some of
 the user's repositories.
+
+Every repository is marked public or private. Text, Markdown and HTML show it as
+a Visibility column in the top-repositories table; JSON carries `private` on
+each `top_repos` and `commits_by_repo` entry and `repo_private` on each event.
+The flag is GitHub's `isPrivate`, so an internal repository on GitHub Enterprise
+shows as private.
+
+The summary's PR merge rate and issue close rate are the share of the PRs and
+issues opened in the period that were merged or closed by the time the report
+ran. GitHub lists PR and issue contributions by when the item was opened, so
+only items opened in the period are collected: a PR or issue opened before the
+period and merged or closed during it is not counted, neither in the rates nor
+under "PRs Merged" and "Issues Closed". JSON carries each PR's and issue's state
+at that time as `subject_state` on its events.
 
 `--format html` always writes to a file and opens it in your default browser. With
 no `--output` the file is `<username>-report.html` in the current directory; with

@@ -121,7 +121,7 @@ func TestGraphQLClientDo_DecodesNestedCamelCaseAndTimes(t *testing.T) {
 		_, _ = w.Write([]byte(`{"data":{"user":{"contributionsCollection":{
 			"totalCommitContributions": 7,
 			"contributionCalendar":{"totalContributions":9,"weeks":[{"contributionDays":[{"date":"2024-01-02","contributionCount":3}]}]},
-			"pullRequestContributions":{"nodes":[{"occurredAt":"2024-01-10T10:00:00Z","pullRequest":{"number":42,"title":"T","state":"OPEN","createdAt":"2024-01-09T08:00:00Z","repository":{"nameWithOwner":"a/b"}}}],"pageInfo":{"endCursor":"c1","hasNextPage":true}}
+			"pullRequestContributions":{"nodes":[{"occurredAt":"2024-01-10T10:00:00Z","pullRequest":{"number":42,"title":"T","state":"OPEN","createdAt":"2024-01-09T08:00:00Z","repository":{"nameWithOwner":"a/b","isPrivate":true}}}],"pageInfo":{"endCursor":"c1","hasNextPage":true}}
 		}}}}`))
 	})
 
@@ -154,6 +154,9 @@ func TestGraphQLClientDo_DecodesNestedCamelCaseAndTimes(t *testing.T) {
 	if nodes[0].PullRequest.Number != 42 || nodes[0].PullRequest.Repository.NameWithOwner != "a/b" {
 		t.Errorf("pr = %+v", nodes[0].PullRequest)
 	}
+	if !nodes[0].PullRequest.Repository.IsPrivate {
+		t.Errorf("repository.isPrivate not decoded: %+v", nodes[0].PullRequest.Repository)
+	}
 	pi := cc.PullRequestContributions.PageInfo
 	if pi.EndCursor == nil || *pi.EndCursor != "c1" || !pi.HasNextPage {
 		t.Errorf("pageInfo = %+v", pi)
@@ -161,7 +164,7 @@ func TestGraphQLClientDo_DecodesNestedCamelCaseAndTimes(t *testing.T) {
 }
 
 // A missing user comes back as HTTP 200 with an errors array, which is what
-// CheckUserExists depends on.
+// LookupUser depends on.
 func TestGraphQLClientDo_GraphQLErrorsBecomeGraphQLError(t *testing.T) {
 	c := testClient(t, func(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte(`{"data":{"user":null},"errors":[{"type":"NOT_FOUND","message":"Could not resolve to a User","path":["user"]}]}`))
