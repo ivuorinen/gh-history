@@ -19,13 +19,14 @@ func visibilityStats() models.Statistics {
 		DateRange:    testutil.SampleDateRange(),
 		EventsByRepo: map[string]int{"u/priv": 3, "u/pub": 2},
 		RepoPrivate:  map[string]bool{"u/priv": true, "u/pub": false},
+		RepoID:       map[string]int64{"u/priv": 101, "u/pub": 202},
 		CommitsByRepo: []models.RepoCount{
-			{Repo: "u/priv", Count: 4, Private: true},
-			{Repo: "u/pub", Count: 1},
+			{Repo: "u/priv", Count: 4, Private: true, ID: 101},
+			{Repo: "u/pub", Count: 1, ID: 202},
 		},
 		Events: []models.Event{
-			{ID: "1", Type: "IssueCommentEvent", Repo: "u/priv", RepoPrivate: true, CreatedAt: at},
-			{ID: "2", Type: "IssueCommentEvent", Repo: "u/pub", CreatedAt: at},
+			{ID: "1", Type: "IssueCommentEvent", Repo: "u/priv", RepoPrivate: true, RepoID: 101, CreatedAt: at},
+			{ID: "2", Type: "IssueCommentEvent", Repo: "u/pub", RepoID: 202, CreatedAt: at},
 		},
 	}
 }
@@ -72,7 +73,9 @@ func TestGenerateHTML_MarksRepoVisibility(t *testing.T) {
 	}
 }
 
-func TestFormatJSON_MarksRepoVisibility(t *testing.T) {
+// JSON gives every repository its database ID next to its visibility: id on
+// each repository entry, repo_id on each event.
+func TestFormatJSON_MarksRepoVisibilityAndID(t *testing.T) {
 	out := decodeJSON(t, visibilityStats())
 
 	for key, wantCounts := range map[string][2]float64{
@@ -84,8 +87,8 @@ func TestFormatJSON_MarksRepoVisibility(t *testing.T) {
 			t.Fatalf("%s: expected 2 entries, got %d", key, len(entries))
 		}
 		for i, want := range []map[string]any{
-			{"repo": "u/priv", "count": wantCounts[0], "private": true},
-			{"repo": "u/pub", "count": wantCounts[1], "private": false},
+			{"repo": "u/priv", "count": wantCounts[0], "private": true, "id": float64(101)},
+			{"repo": "u/pub", "count": wantCounts[1], "private": false, "id": float64(202)},
 		} {
 			got := entries[i].(map[string]any)
 			for k, v := range want {
@@ -96,11 +99,15 @@ func TestFormatJSON_MarksRepoVisibility(t *testing.T) {
 		}
 	}
 
+	ids := map[any]float64{"u/priv": 101, "u/pub": 202}
 	for _, raw := range out["events"].([]any) {
 		e := raw.(map[string]any)
 		want := e["repo"] == "u/priv"
 		if got, ok := e["repo_private"].(bool); !ok || got != want {
 			t.Errorf("event on %v: repo_private = %v, want %v", e["repo"], e["repo_private"], want)
+		}
+		if got, ok := e["repo_id"].(float64); !ok || got != ids[e["repo"]] {
+			t.Errorf("event on %v: repo_id = %v, want %v", e["repo"], e["repo_id"], ids[e["repo"]])
 		}
 	}
 }

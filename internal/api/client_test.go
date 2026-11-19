@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"maps"
 	"slices"
@@ -434,14 +435,16 @@ func TestFetchContributions_WiresQueriedDetail(t *testing.T) {
 	}
 }
 
-// Every node type carries its repository's visibility into the events it
-// produces, and the per-repository commit counts carry it too, so a report can
-// mark private repositories. Each node type appears once on a private and once
-// on a public repository: a mapping that drops the flag fails the private one,
-// and one that hard-codes it fails the public one.
-func TestFetchContributions_WiresRepoVisibility(t *testing.T) {
-	priv := repoRef{NameWithOwner: "user/private", IsPrivate: true}
-	pub := repoRef{NameWithOwner: "user/public"}
+// Every node type carries its repository's visibility and database ID into the
+// events it produces, and the per-repository commit counts carry them too, so a
+// report can mark private repositories and a consumer can label them by a
+// stable ID instead of the name. Each node type appears once on a private and
+// once on a public repository: a mapping that drops the flag fails the private
+// one, one that hard-codes it fails the public one, and the two IDs differ.
+func TestFetchContributions_WiresRepoRef(t *testing.T) {
+	priv := repoRef{NameWithOwner: "user/private", IsPrivate: true, DatabaseID: 101}
+	pub := repoRef{NameWithOwner: "user/public", DatabaseID: 202}
+	ids := map[string]int64{"user/private": 101, "user/public": 202}
 	at := time.Date(2024, 1, 10, 10, 0, 0, 0, time.UTC)
 	closed := time.Date(2024, 1, 12, 10, 0, 0, 0, time.UTC)
 
@@ -508,10 +511,13 @@ func TestFetchContributions_WiresRepoVisibility(t *testing.T) {
 			t.Errorf("%s %s on %s: RepoPrivate = %v, want %v",
 				e.Type, e.Action, e.Repo, e.RepoPrivate, want)
 		}
+		if e.RepoID != ids[e.Repo] {
+			t.Errorf("%s %s on %s: RepoID = %d, want %d", e.Type, e.Action, e.Repo, e.RepoID, ids[e.Repo])
+		}
 	}
 	wantCommits := []models.RepoCount{
-		{Repo: "user/private", Count: 5, Private: true},
-		{Repo: "user/public", Count: 5},
+		{Repo: "user/private", Count: 5, Private: true, ID: 101},
+		{Repo: "user/public", Count: 5, ID: 202},
 	}
 	if !slices.Equal(result.CommitsByRepo, wantCommits) {
 		t.Errorf("CommitsByRepo = %+v, want %+v", result.CommitsByRepo, wantCommits)
@@ -579,18 +585,19 @@ func TestFetchContributions_WiresSubjectState(t *testing.T) {
 	}
 }
 
-// Issue comments carry their repository's visibility the same way the
-// contribution events do.
-func TestFetchIssueComments_WiresRepoVisibility(t *testing.T) {
+// Issue comments carry their repository's visibility and database ID the same
+// way the contribution events do.
+func TestFetchIssueComments_WiresRepoRef(t *testing.T) {
 	at := time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC)
+	ids := map[string]int64{"user/private": 101, "user/public": 202}
 	mock := &mockGQLClient{
 		doFunc: func(query string, variables map[string]any, response any) error {
 			resp := response.(*issueCommentsResponse)
 			resp.User.IssueComments.Nodes = []issueCommentNode{
 				{ID: "c1", CreatedAt: at, UpdatedAt: at,
-					Repository: repoRef{NameWithOwner: "user/private", IsPrivate: true}},
+					Repository: repoRef{NameWithOwner: "user/private", IsPrivate: true, DatabaseID: 101}},
 				{ID: "c2", CreatedAt: at, UpdatedAt: at,
-					Repository: repoRef{NameWithOwner: "user/public"}},
+					Repository: repoRef{NameWithOwner: "user/public", DatabaseID: 202}},
 			}
 			return nil
 		},
@@ -610,6 +617,50 @@ func TestFetchIssueComments_WiresRepoVisibility(t *testing.T) {
 	for _, e := range events {
 		if want := e.Repo == "user/private"; e.RepoPrivate != want {
 			t.Errorf("comment on %s: RepoPrivate = %v, want %v", e.Repo, e.RepoPrivate, want)
+		}
+		if e.RepoID != ids[e.Repo] {
+			t.Errorf("comment on %s: RepoID = %d, want %d", e.Repo, e.RepoID, ids[e.Repo])
+		}
+	}
+}
+
+// GitHub sends fullDatabaseId, a BigInt, as a JSON string, so repoRef decodes
+// it from one. The ID is past what a 32-bit integer holds, the reason to read
+// fullDatabaseId rather than databaseId.
+func TestRepoRef_DecodesFullDatabaseID(t *testing.T) {
+	var got repoRef
+	body := `{"nameWithOwner": "user/repo", "isPrivate": true, "fullDatabaseId": "3000000000"}`
+	if err := json.Unmarshal([]byte(body), &got); err != nil {
+		t.Fatal(err)
+	}
+	want := repoRef{NameWithOwner: "user/repo", IsPrivate: true, DatabaseID: 3000000000}
+	if got != want {
+		t.Errorf("decoded %+v, want %+v", got, want)
+	}
+}
+
+// Every query selects its repositories through the repoRef fragment, so every
+// repository node requests every field repoRef decodes. A selection written out
+// field by field would leave a field missing from that node, and GitHub returns
+// no error for a field that was never requested.
+func TestQueries_SelectRepositoriesThroughRepoRef(t *testing.T) {
+	for name, query := range map[string]string{
+		"contributionsQuery":   contributionsQuery,
+		"paginatePRsQuery":     paginatePRsQuery,
+		"paginateIssuesQuery":  paginateIssuesQuery,
+		"paginateReviewsQuery": paginateReviewsQuery,
+		"paginateReposQuery":   paginateReposQuery,
+		"issueCommentsQuery":   issueCommentsQuery,
+	} {
+		selections := strings.Count(query, "repository {")
+		if selections == 0 {
+			t.Errorf("%s selects no repository; the test needs one", name)
+		}
+		if spread := strings.Count(query, "repository { ...repoRef"); spread != selections {
+			t.Errorf("%s: %d of %d repository selections use ...repoRef", name, spread, selections)
+		}
+		if !strings.Contains(query, "fullDatabaseId") {
+			t.Errorf("%s does not request fullDatabaseId", name)
 		}
 	}
 }

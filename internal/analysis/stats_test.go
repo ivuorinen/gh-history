@@ -2,6 +2,7 @@ package analysis
 
 import (
 	"maps"
+	"slices"
 	"testing"
 	"time"
 
@@ -269,25 +270,40 @@ func TestCalculate_CommitCountFromGraphQLTotal(t *testing.T) {
 	}
 }
 
-// The calculator records each repository's visibility from the events and from
-// the per-repository commit counts. A repository with commits but no listed
-// event still needs its visibility, or the commit table cannot mark it.
-func TestCalculate_RecordsRepoVisibility(t *testing.T) {
+// The calculator records each repository's visibility and database ID from the
+// events and from the per-repository commit counts. A repository with commits
+// but no listed event still needs both, or the commit table cannot mark it. A
+// source without an ID (0) does not erase one another source reported, and the
+// commit rows take the recorded ID like they take the recorded visibility.
+func TestCalculate_RecordsRepoVisibilityAndID(t *testing.T) {
 	at := time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC)
 	calc := &Calculator{
 		DateRange: testutil.SampleDateRange(),
 		CommitsByRepo: []models.RepoCount{
-			{Repo: "u/commits-only", Count: 2, Private: true},
+			{Repo: "u/commits-only", Count: 2, Private: true, ID: 3},
+			{Repo: "u/priv", Count: 1, Private: true},
 		},
 	}
 	stats := calc.Calculate([]models.Event{
-		{ID: "1", Type: "IssueCommentEvent", Repo: "u/priv", RepoPrivate: true, CreatedAt: at},
-		{ID: "2", Type: "IssueCommentEvent", Repo: "u/pub", CreatedAt: at},
+		{ID: "1", Type: "IssueCommentEvent", Repo: "u/priv", RepoPrivate: true, RepoID: 1, CreatedAt: at},
+		{ID: "2", Type: "IssueCommentEvent", Repo: "u/pub", RepoID: 2, CreatedAt: at},
+		{ID: "3", Type: "IssueCommentEvent", Repo: "u/pub", CreatedAt: at},
 	})
 
-	want := map[string]bool{"u/priv": true, "u/pub": false, "u/commits-only": true}
-	if !maps.Equal(stats.RepoPrivate, want) {
-		t.Errorf("RepoPrivate = %v, want %v", stats.RepoPrivate, want)
+	wantPrivate := map[string]bool{"u/priv": true, "u/pub": false, "u/commits-only": true}
+	if !maps.Equal(stats.RepoPrivate, wantPrivate) {
+		t.Errorf("RepoPrivate = %v, want %v", stats.RepoPrivate, wantPrivate)
+	}
+	wantID := map[string]int64{"u/priv": 1, "u/pub": 2, "u/commits-only": 3}
+	if !maps.Equal(stats.RepoID, wantID) {
+		t.Errorf("RepoID = %v, want %v", stats.RepoID, wantID)
+	}
+	wantCommits := []models.RepoCount{
+		{Repo: "u/commits-only", Count: 2, Private: true, ID: 3},
+		{Repo: "u/priv", Count: 1, Private: true, ID: 1},
+	}
+	if !slices.Equal(stats.CommitsByRepo, wantCommits) {
+		t.Errorf("CommitsByRepo = %+v, want %+v", stats.CommitsByRepo, wantCommits)
 	}
 }
 

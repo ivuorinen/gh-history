@@ -531,21 +531,21 @@ func TestFetchEvents_AggregatesChunks(t *testing.T) {
 }
 
 // Merging per-repository commit counts across year chunks keeps each
-// repository's visibility; summing counts alone dropped it. A repository one
-// chunk saw private stays private when a later chunk sees it public, rather
-// than taking whichever chunk came last.
-func TestFetchEvents_MergedCommitsKeepVisibility(t *testing.T) {
+// repository's visibility and database ID; summing counts alone dropped them. A
+// repository one chunk saw private stays private when a later chunk sees it
+// public, rather than taking whichever chunk came last.
+func TestFetchEvents_MergedCommitsKeepVisibilityAndID(t *testing.T) {
 	dr := daterange.DateRange{Start: d(2023, 1, 1), End: d(2024, 12, 31)}
 	f := &fakeFetcher{
 		chunks: []api.ContributionResult{
 			{CommitsByRepo: []models.RepoCount{
-				{Repo: "u/priv", Count: 4, Private: true},
-				{Repo: "u/pub", Count: 6},
-				{Repo: "u/flipped", Count: 1, Private: true},
+				{Repo: "u/priv", Count: 4, Private: true, ID: 1},
+				{Repo: "u/pub", Count: 6, ID: 2},
+				{Repo: "u/flipped", Count: 1, Private: true, ID: 3},
 			}},
 			{CommitsByRepo: []models.RepoCount{
-				{Repo: "u/priv", Count: 5, Private: true},
-				{Repo: "u/flipped", Count: 2},
+				{Repo: "u/priv", Count: 5, Private: true, ID: 1},
+				{Repo: "u/flipped", Count: 2, ID: 3},
 			}},
 		},
 	}
@@ -555,9 +555,9 @@ func TestFetchEvents_MergedCommitsKeepVisibility(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := []models.RepoCount{
-		{Repo: "u/priv", Count: 9, Private: true},
-		{Repo: "u/pub", Count: 6},
-		{Repo: "u/flipped", Count: 3, Private: true},
+		{Repo: "u/priv", Count: 9, Private: true, ID: 1},
+		{Repo: "u/pub", Count: 6, ID: 2},
+		{Repo: "u/flipped", Count: 3, Private: true, ID: 3},
 	}
 	if !slices.Equal(got.CommitsByRepo, want) {
 		t.Errorf("CommitsByRepo = %+v, want %+v", got.CommitsByRepo, want)

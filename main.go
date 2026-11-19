@@ -194,8 +194,10 @@ func fetchEvents(cfg *config, client contributionFetcher, dr daterange.DateRange
 		for _, rc := range result.CommitsByRepo {
 			acc := commitsByRepo[rc.Repo]
 			acc.Repo = rc.Repo
-			// Private if any chunk saw it private, the rule Calculate applies.
+			// Private if any chunk saw it private, and the ID any chunk reported:
+			// the rules Calculate applies.
 			acc.Private = acc.Private || rc.Private
+			acc.ID = max(acc.ID, rc.ID)
 			acc.Count += rc.Count
 			commitsByRepo[rc.Repo] = acc
 		}

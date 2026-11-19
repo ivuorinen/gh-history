@@ -37,6 +37,7 @@ type Event struct {
 	// RepoPrivate is Repo's visibility as GitHub reported it at fetch time.
 	// Internal repositories on GitHub Enterprise count as private.
 	RepoPrivate bool
+	RepoID      int64  // Repo's GitHub database ID; see RepoCount.ID
 	Action      string // ActionOpened, ActionClosed, or "" when not applicable
 	Merged      bool   // Only meaningful for a closed PullRequestEvent
 	CreatedAt   time.Time
@@ -95,10 +96,11 @@ type Statistics struct {
 	EventsByCategory map[Category]int
 	EventsByType     map[string]int
 	EventsByRepo     map[string]int
-	// RepoPrivate maps every repository the report names to its visibility.
-	// EventsByRepo keys carry no visibility of their own, so TopRepos reads it
-	// from here.
+	// RepoPrivate and RepoID map every repository the report names to its
+	// visibility and database ID. EventsByRepo keys carry neither, so TopRepos
+	// reads them from here.
 	RepoPrivate     map[string]bool
+	RepoID          map[string]int64
 	EventsByDate    map[string]int // Keys are "2006-01-02" formatted date strings
 	EventsByWeekday map[int]int    // 0=Monday, 6=Sunday
 	EventsByHour    map[int]int
@@ -133,15 +135,15 @@ type Statistics struct {
 // without a tie-break the order, and which tied repositories make the cut,
 // changed between identical runs.
 //
-// Each entry's Private comes from RepoPrivate; a repository missing from it
-// reads as public.
+// Each entry's Private comes from RepoPrivate and its ID from RepoID; a
+// repository missing from them reads as public, with ID 0.
 func (s Statistics) TopRepos(n int) []RepoCount {
 	if n <= 0 {
 		return nil
 	}
 	repos := make([]RepoCount, 0, len(s.EventsByRepo))
 	for repo, count := range s.EventsByRepo {
-		repos = append(repos, RepoCount{Repo: repo, Count: count, Private: s.RepoPrivate[repo]})
+		repos = append(repos, RepoCount{Repo: repo, Count: count, Private: s.RepoPrivate[repo], ID: s.RepoID[repo]})
 	}
 	sort.Slice(repos, func(i, j int) bool {
 		if repos[i].Count != repos[j].Count {
@@ -175,6 +177,10 @@ type RepoCount struct {
 	// Private is the repository's visibility, so every table of repositories
 	// can mark the private ones.
 	Private bool
+	// ID is the repository's GitHub database ID. Unlike the name it stays the
+	// same through renames and reveals nothing about a private repository, so
+	// a consumer can label one by it across reports.
+	ID int64
 }
 
 // ContributionDay represents a single day from GitHub's contributionCalendar.
