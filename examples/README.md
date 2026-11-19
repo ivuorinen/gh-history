@@ -26,17 +26,22 @@ will not necessarily match these files exactly.
 ## Private repositories are renamed
 
 The reports were run with a token that can see the account's private
-repositories, so the raw output named them. Before committing:
+repositories, so the raw output named them. Before committing, every repository
+the report itself marks private (`repo_private` on its events, `private` in
+`commits_by_repo`) was anonymised:
 
-- every private repository was renamed: those owned by `ivuorinen` became
-  `ivuorinen/private-repo-1` to `-4`, and those owned by other accounts became
-  `example-org/private-repo-1` to `-4`;
+- each was renamed, numbered by event count: those owned by `ivuorinen` became
+  `ivuorinen/private-repo-1` to `-5`, and those owned by other accounts became
+  `example-org/private-repo-1` to `-4`. Event IDs that end in the repository
+  name carry the new name;
 - in `report.json`, the pull request and issue titles and the repository
   descriptions of events in those repositories were replaced with
   "Private pull request", "Private issue" and "Private repository";
 - in `report.json`, the IDs of comment events in those repositories were
   replaced with `gql-comment-private-N`: a GitHub comment node ID encodes the
-  repository's database ID, which would identify the renamed repository.
+  repository's database ID, which would identify the renamed repository;
+- in `report.txt`, the top-repositories table was re-padded so its columns line
+  up with the new names.
 
 Public repositories, and the titles of public pull requests and issues, are
 unchanged. All counts are unchanged.
