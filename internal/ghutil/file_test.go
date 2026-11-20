@@ -55,6 +55,51 @@ func TestWriteOwnerOnly(t *testing.T) {
 	}
 }
 
+// An --output naming a directory is an error, and the directory keeps its mode.
+// Changing it to 0600 before the write failed took away its search permission.
+func TestWriteOwnerOnly_DirectoryIsLeftAlone(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows has no Unix permission bits")
+	}
+	dir := t.TempDir()
+	before, err := os.Stat(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := WriteOwnerOnly(dir, []byte("report")); err == nil {
+		t.Error("want an error for a directory")
+	}
+	after, err := os.Stat(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if after.Mode().Perm() != before.Mode().Perm() {
+		t.Errorf("directory mode = %o, want it unchanged at %o", after.Mode().Perm(), before.Mode().Perm())
+	}
+}
+
+// A device such as /dev/null is written to as before, without a permission
+// change: the mode of a file the report is not stored in is not the report's.
+func TestWriteOwnerOnly_DeviceIsWrittenWithoutChmod(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("no /dev/null on Windows")
+	}
+	before, err := os.Stat(os.DevNull)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := WriteOwnerOnly(os.DevNull, []byte("report")); err != nil {
+		t.Fatalf("writing to %s: %v", os.DevNull, err)
+	}
+	after, err := os.Stat(os.DevNull)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if after.Mode().Perm() != before.Mode().Perm() {
+		t.Errorf("%s mode = %o, want it unchanged at %o", os.DevNull, after.Mode().Perm(), before.Mode().Perm())
+	}
+}
+
 func TestWriteOwnerOnly_MissingDirectoryIsAnError(t *testing.T) {
 	if err := WriteOwnerOnly(filepath.Join(t.TempDir(), "missing", "report"), []byte("x")); err == nil {
 		t.Error("want an error for a directory that does not exist")
