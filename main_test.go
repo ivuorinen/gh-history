@@ -640,6 +640,74 @@ func TestFetchEvents_MergedCommitsKeepVisibilityAndID(t *testing.T) {
 	}
 }
 
+// captureStderr returns what fn writes to os.Stderr.
+func captureStderr(t *testing.T, fn func()) string {
+	t.Helper()
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer r.Close()
+	stderr := os.Stderr
+	os.Stderr = w
+	defer func() { os.Stderr = stderr }()
+	fn()
+	w.Close()
+	out, err := io.ReadAll(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(out)
+}
+
+// A day with commits in more than 100 repositories cannot be fetched whole: GitHub
+// lists at most 100 per window. The shortfall against GitHub's commit total is the
+// only sign of it, and fetchEvents warns about it.
+func TestFetchEvents_WarnsWhenCommitsByRepoFallShort(t *testing.T) {
+	dr := daterange.DateRange{Start: d(2023, 1, 1), End: d(2024, 12, 31)}
+	f := &fakeFetcher{
+		chunks: []api.ContributionResult{
+			{
+				Totals:        models.ContributionTotals{Commits: 10},
+				CommitsByRepo: []models.RepoCount{{Repo: "u/x", Count: 4}, {Repo: "u/y", Count: 6}},
+			},
+			{
+				Totals:        models.ContributionTotals{Commits: 8},
+				CommitsByRepo: []models.RepoCount{{Repo: "u/x", Count: 5}},
+			},
+		},
+	}
+
+	var err error
+	stderr := captureStderr(t, func() { _, err = fetchEvents(&config{}, f, dr, "u") })
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "Warning: commits_by_repo counts 15 of 18 commits: GitHub did not list every repository\n"
+	if stderr != want {
+		t.Errorf("stderr = %q, want %q", stderr, want)
+	}
+}
+
+func TestFetchEvents_NoWarningWhenCommitsByRepoAddUp(t *testing.T) {
+	dr := daterange.DateRange{Start: d(2024, 1, 1), End: d(2024, 12, 31)}
+	f := &fakeFetcher{
+		chunks: []api.ContributionResult{{
+			Totals:        models.ContributionTotals{Commits: 10},
+			CommitsByRepo: []models.RepoCount{{Repo: "u/x", Count: 4}, {Repo: "u/y", Count: 6}},
+		}},
+	}
+
+	var err error
+	stderr := captureStderr(t, func() { _, err = fetchEvents(&config{}, f, dr, "u") })
+	if err != nil {
+		t.Fatal(err)
+	}
+	if stderr != "" {
+		t.Errorf("stderr = %q, want nothing", stderr)
+	}
+}
+
 // --output was silently dropped for the text format.
 func TestWriteOutput_TextHonoursOutputFile(t *testing.T) {
 	dir := t.TempDir()

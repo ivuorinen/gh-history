@@ -109,6 +109,14 @@ are counted from the contributions the token can list. Reporting on yourself
 with full access, the two agree. They diverge when the token cannot see some of
 the user's repositories.
 
+GitHub lists at most 100 repositories in one query of per-repository commit
+counts. When a period's list is cut off at 100 and falls short of its commit
+total, gh-history fetches the period again in shorter periods, down to single
+days, which recovers the repositories the limit left out. Whenever
+`commits_by_repo` still adds up to less than `summary.commits`, gh-history
+prints a warning on stderr. A single day with commits in more than 100
+repositories is one cause: it cannot be split further.
+
 Every repository is marked public or private. Text, Markdown and HTML show it as
 a Visibility column in the top-repositories table; JSON carries `private` on
 each `top_repos` and `commits_by_repo` entry and `repo_private` on each event.

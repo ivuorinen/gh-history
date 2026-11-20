@@ -174,7 +174,7 @@ func fetchEvents(cfg *config, client contributionFetcher, dr daterange.DateRange
 	var allEvents []models.Event
 	var allCalendarDays []models.ContributionDay
 	var totals models.ContributionTotals
-	var calendarTotal int
+	var calendarTotal, listedCommits int
 	commitsByRepo := map[string]models.RepoCount{}
 
 	logVerbose(cfg.verbose, "Fetching %s to %s...",
@@ -207,7 +207,17 @@ func fetchEvents(cfg *config, client contributionFetcher, dr daterange.DateRange
 			acc.ID = max(acc.ID, rc.ID)
 			acc.Count += rc.Count
 			commitsByRepo[rc.Repo] = acc
+			listedCommits += rc.Count
 		}
+	}
+
+	// FetchContributions splits a window cut off at GitHub's 100-repository
+	// limit, down to single days. Whatever is still missing after that, such as
+	// a day with commits in more than 100 repositories, shows only as a
+	// shortfall against GitHub's commit total.
+	if listedCommits < totals.Commits {
+		fmt.Fprintf(os.Stderr, "Warning: commits_by_repo counts %d of %d commits: GitHub did not list every repository\n",
+			listedCommits, totals.Commits)
 	}
 
 	// Keep whatever was retrieved and warn regardless of verbosity: a report

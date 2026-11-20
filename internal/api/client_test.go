@@ -1,6 +1,7 @@
 package api
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"maps"
@@ -646,6 +647,7 @@ func TestRepoRef_DecodesFullDatabaseID(t *testing.T) {
 func TestQueries_SelectRepositoriesThroughRepoRef(t *testing.T) {
 	for name, query := range map[string]string{
 		"contributionsQuery":   contributionsQuery,
+		"commitsByRepoQuery":   commitsByRepoQuery,
 		"paginatePRsQuery":     paginatePRsQuery,
 		"paginateIssuesQuery":  paginateIssuesQuery,
 		"paginateReviewsQuery": paginateReviewsQuery,
@@ -1153,6 +1155,154 @@ func TestFetchContributionsPagination(t *testing.T) {
 	}
 	if callCount != 2 {
 		t.Errorf("expected 2 GraphQL calls, got %d", callCount)
+	}
+}
+
+// commitsServer answers contributionsCollection the way GitHub does for commits.
+// commits[day][repo] is the user's commits; a window counts the days from its
+// `from` through its `to`, and commitContributionsByRepository lists at most 100
+// repositories, most commits first. It counts the queries it answers.
+type commitsServer struct {
+	commits map[time.Time]map[string]int
+	queries int
+}
+
+func (s *commitsServer) Do(_ string, variables map[string]any, response any) error {
+	s.queries++
+	from, err := time.Parse(time.RFC3339, variables["from"].(string))
+	if err != nil {
+		return err
+	}
+	to, err := time.Parse(time.RFC3339, variables["to"].(string))
+	if err != nil {
+		return err
+	}
+	perRepo := map[string]int{}
+	total := 0
+	for day, repos := range s.commits {
+		if day.Before(from) || day.After(to) {
+			continue
+		}
+		for repo, n := range repos {
+			perRepo[repo] += n
+			total += n
+		}
+	}
+	names := slices.Sorted(maps.Keys(perRepo))
+	slices.SortStableFunc(names, func(a, b string) int { return cmp.Compare(perRepo[b], perRepo[a]) })
+	limit := 100
+	if requested, ok := variables["maxRepositories"].(int); ok {
+		limit = min(requested, limit)
+	}
+	cc := &response.(*contributionsResponse).User.ContributionsCollection
+	cc.TotalCommitContributions = total
+	for _, name := range names[:min(limit, len(names))] {
+		var rc struct {
+			Repository    repoRef
+			Contributions struct{ TotalCount int }
+		}
+		rc.Repository = repoRef{NameWithOwner: name}
+		rc.Contributions.TotalCount = perRepo[name]
+		cc.CommitContributionsByRepository = append(cc.CommitContributionsByRepository, rc)
+	}
+	return nil
+}
+
+// commitsPerRepo sums CommitsByRepo by repository.
+func commitsPerRepo(counts []models.RepoCount) map[string]int {
+	out := map[string]int{}
+	for _, rc := range counts {
+		out[rc.Repo] += rc.Count
+	}
+	return out
+}
+
+// GitHub lists at most 100 repositories per window and cannot paginate the list,
+// so a window with commits in more is fetched again in shorter windows, which
+// each list fewer. Here every day has commits in 61 repositories: the 4-day
+// window lists 241, each 2-day half 121, and each single day all 61.
+func TestFetchContributions_SplitsWindowPastRepositoryLimit(t *testing.T) {
+	start := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+	server := &commitsServer{commits: map[time.Time]map[string]int{}}
+	want := map[string]int{}
+	for i := range 4 {
+		day := map[string]int{"u/every-day": 2}
+		for j := range 60 {
+			day[fmt.Sprintf("u/day%d-repo%d", i, j)] = 1
+		}
+		server.commits[start.AddDate(0, 0, i)] = day
+		for repo, n := range day {
+			want[repo] += n
+		}
+	}
+	dr := daterange.DateRange{Start: start, End: start.AddDate(0, 0, 3)}
+
+	got, err := newTestClient(server).FetchContributions("u", dr, dr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Totals.Commits != 248 {
+		t.Errorf("Totals.Commits = %d, want 248", got.Totals.Commits)
+	}
+	if per := commitsPerRepo(got.CommitsByRepo); !maps.Equal(per, want) {
+		t.Errorf("got commits in %d repositories, want %d; u/every-day = %d, want 8",
+			len(per), len(want), per["u/every-day"])
+	}
+	// The 4-day window, its two halves, and the four days.
+	if server.queries != 7 {
+		t.Errorf("answered %d queries, want 7", server.queries)
+	}
+}
+
+// A single day cannot be split, so one with commits in more than 100
+// repositories keeps the 100 GitHub lists. fetchEvents warns about the rest.
+func TestFetchContributions_DayPastRepositoryLimitIsNotSplit(t *testing.T) {
+	day := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+	repos := map[string]int{}
+	for j := range 150 {
+		repos[fmt.Sprintf("u/repo%d", j)] = 1
+	}
+	server := &commitsServer{commits: map[time.Time]map[string]int{day: repos}}
+	dr := daterange.DateRange{Start: day, End: day}
+
+	got, err := newTestClient(server).FetchContributions("u", dr, dr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got.CommitsByRepo) != 100 || server.queries != 1 {
+		t.Errorf("got %d repositories from %d queries, want 100 from 1", len(got.CommitsByRepo), server.queries)
+	}
+}
+
+// Only a window that lists the full 100 repositories was cut by the limit. One
+// that lists fewer and still falls short of its total is short for another
+// reason, and splitting it would query every day of the year without finding
+// the missing commits.
+func TestFetchContributions_ShortListUnderLimitIsNotSplit(t *testing.T) {
+	queries := 0
+	mock := &mockGQLClient{
+		doFunc: func(_ string, _ map[string]any, response any) error {
+			queries++
+			cc := &response.(*contributionsResponse).User.ContributionsCollection
+			cc.TotalCommitContributions = 10
+			var rc struct {
+				Repository    repoRef
+				Contributions struct{ TotalCount int }
+			}
+			rc.Repository = repoRef{NameWithOwner: "u/x"}
+			rc.Contributions.TotalCount = 5
+			cc.CommitContributionsByRepository = append(cc.CommitContributionsByRepository, rc)
+			return nil
+		},
+	}
+	dr := daterange.DateRange{Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC), End: time.Date(2024, 12, 31, 0, 0, 0, 0, time.UTC)}
+
+	got, err := newTestClient(mock).FetchContributions("u", dr, dr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if queries != 1 || len(got.CommitsByRepo) != 1 {
+		t.Errorf("got %d repositories from %d queries, want 1 from 1", len(got.CommitsByRepo), queries)
 	}
 }
 

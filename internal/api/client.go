@@ -110,7 +110,9 @@ type ContributionResult struct {
 	// private repositories. Callers querying multiple windows must sum them.
 	Totals models.ContributionTotals
 	// CommitsByRepo is GitHub's per-repository commit breakdown, private repos
-	// included. Callers querying multiple windows must merge by repository.
+	// included. A window past GitHub's repository limit is fetched in shorter
+	// windows, and a repository is listed once per window it has commits in, so
+	// callers merge by repository, as they do across their own windows.
 	CommitsByRepo []models.RepoCount
 	// CalendarTotal is GitHub's reported calendar total for the query window.
 	CalendarTotal int
@@ -239,8 +241,12 @@ type pageInfo struct {
 	HasNextPage bool
 }
 
+// maxCommitRepositories is the most repositories commitContributionsByRepository
+// lists, GitHub's own maximum. The list has no pagination.
+const maxCommitRepositories = 100
+
 const contributionsQuery = `
-query($login: String!, $from: DateTime!, $to: DateTime!) {
+query($login: String!, $from: DateTime!, $to: DateTime!, $maxRepositories: Int!) {
   user(login: $login) {
     contributionsCollection(from: $from, to: $to) {
       totalCommitContributions
@@ -259,7 +265,7 @@ query($login: String!, $from: DateTime!, $to: DateTime!) {
         }
       }
 
-      commitContributionsByRepository(maxRepositories: 100) {
+      commitContributionsByRepository(maxRepositories: $maxRepositories) {
         repository { ...repoRef }
         contributions { totalCount }
       }
@@ -309,6 +315,21 @@ query($login: String!, $from: DateTime!, $to: DateTime!) {
       }
 
 }
+  }
+}` + repoRefFragment
+
+// commitsByRepoQuery is contributionsQuery's commit breakdown on its own, for
+// the shorter windows repoCommitCounts fetches.
+const commitsByRepoQuery = `
+query($login: String!, $from: DateTime!, $to: DateTime!, $maxRepositories: Int!) {
+  user(login: $login) {
+    contributionsCollection(from: $from, to: $to) {
+      totalCommitContributions
+      commitContributionsByRepository(maxRepositories: $maxRepositories) {
+        repository { ...repoRef }
+        contributions { totalCount }
+      }
+    }
   }
 }` + repoRefFragment
 
@@ -440,19 +461,12 @@ type paginateReposResponse struct {
 // so its close is matched against report rather than dr: otherwise one opened
 // late in a chunk and closed in the next is never counted as closed or merged.
 func (c *Client) FetchContributions(username string, dr, report daterange.DateRange) (ContributionResult, error) {
-	// The range's own midnights, in the zone the Time-Zone header names, so the
-	// fetched days are the days GitHub buckets the calendar into.
-	from := dr.StartTime().Format(time.RFC3339)
-	// GitHub treats `to` as inclusive at day granularity: sending the next
-	// midnight counts the whole following day in every total and node list
-	// (measured: 41 commits for a one-day range whose day held 25). The last
-	// second of End is the boundary that matches the range.
-	to := dr.EndDateTime().Add(-time.Second).Format(time.RFC3339)
-
+	from, to := queryWindow(dr)
 	vars := map[string]any{
-		"login": username,
-		"from":  from,
-		"to":    to,
+		"login":           username,
+		"from":            from,
+		"to":              to,
+		"maxRepositories": maxCommitRepositories,
 	}
 
 	var resp contributionsResponse
@@ -618,14 +632,9 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 		}
 	}
 
-	commitsByRepo := make([]models.RepoCount, 0, len(cc.CommitContributionsByRepository))
-	for _, r := range cc.CommitContributionsByRepository {
-		commitsByRepo = append(commitsByRepo, models.RepoCount{
-			Repo:    r.Repository.NameWithOwner,
-			Count:   r.Contributions.TotalCount,
-			Private: r.Repository.IsPrivate,
-			ID:      r.Repository.DatabaseID,
-		})
+	commitsByRepo, err := c.repoCommitCounts(username, dr, resp)
+	if err != nil {
+		return ContributionResult{}, fmt.Errorf("commit contributions by repository: %w", err)
 	}
 
 	c.logf("  GraphQL: %d PRs, %d issues, %d reviews, %d repos, %d calendar days\n",
@@ -644,6 +653,77 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 		CommitsByRepo: commitsByRepo,
 		CalendarTotal: cc.ContributionCalendar.TotalContributions,
 	}, nil
+}
+
+// queryWindow returns contributionsCollection's `from` and `to` for dr.
+func queryWindow(dr daterange.DateRange) (from, to string) {
+	// The range's own midnights, in the zone the Time-Zone header names, so the
+	// fetched days are the days GitHub buckets the calendar into.
+	from = dr.StartTime().Format(time.RFC3339)
+	// GitHub treats `to` as inclusive at day granularity: sending the next
+	// midnight counts the whole following day in every total and node list
+	// (measured: 41 commits for a one-day range whose day held 25). The last
+	// second of End is the boundary that matches the range.
+	to = dr.EndDateTime().Add(-time.Second).Format(time.RFC3339)
+	return from, to
+}
+
+// repoCommitCounts returns dr's per-repository commit counts from resp, GitHub's
+// answer for dr. A window that lists maxCommitRepositories repositories and
+// falls short of its commit total was cut off by the limit, so its two halves
+// are fetched instead, each splitting again while it is cut off the same way,
+// down to single days. A window counts only its own days, so the windows'
+// counts add up to dr's, and a repository with commits in several windows is
+// listed once for each. A shortfall that is left, from a single day past the
+// limit or a shorter list, is fetchEvents' to report.
+func (c *Client) repoCommitCounts(username string, dr daterange.DateRange, resp contributionsResponse) ([]models.RepoCount, error) {
+	cc := resp.User.ContributionsCollection
+	counts := make([]models.RepoCount, 0, len(cc.CommitContributionsByRepository))
+	listed := 0
+	for _, r := range cc.CommitContributionsByRepository {
+		counts = append(counts, models.RepoCount{
+			Repo:    r.Repository.NameWithOwner,
+			Count:   r.Contributions.TotalCount,
+			Private: r.Repository.IsPrivate,
+			ID:      r.Repository.DatabaseID,
+		})
+		listed += r.Contributions.TotalCount
+	}
+	// A shorter list falling short is not the limit: splitting it would query
+	// every day of the window without finding the missing commits.
+	cut := len(counts) == maxCommitRepositories && listed < cc.TotalCommitContributions
+	if !cut || !dr.Start.Before(dr.End) {
+		return counts, nil
+	}
+	c.logf("  GraphQL: %s to %s lists %d repositories with %d of %d commits; fetching each half\n",
+		dr.Start.Format(time.DateOnly), dr.End.Format(time.DateOnly),
+		len(counts), listed, cc.TotalCommitContributions)
+
+	mid := dr.Start.AddDate(0, 0, int(dr.End.Sub(dr.Start)/(24*time.Hour))/2)
+	counts = nil
+	for _, half := range []daterange.DateRange{
+		{Start: dr.Start, End: mid, Loc: dr.Loc},
+		{Start: mid.AddDate(0, 0, 1), End: dr.End, Loc: dr.Loc},
+	} {
+		from, to := queryWindow(half)
+		vars := map[string]any{
+			"login":           username,
+			"from":            from,
+			"to":              to,
+			"maxRepositories": maxCommitRepositories,
+		}
+		var halfResp contributionsResponse
+		if err := c.gqlClient.Do(commitsByRepoQuery, vars, &halfResp); err != nil {
+			return nil, fmt.Errorf("%s to %s: %w",
+				half.Start.Format(time.DateOnly), half.End.Format(time.DateOnly), err)
+		}
+		halfCounts, err := c.repoCommitCounts(username, half, halfResp)
+		if err != nil {
+			return nil, err
+		}
+		counts = append(counts, halfCounts...)
+	}
+	return counts, nil
 }
 
 // paginateGQL is a generic paginator for GraphQL contribution sub-collections.
