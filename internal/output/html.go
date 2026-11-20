@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
-	"os"
 	"sort"
 	"strings"
 	"time"
@@ -324,13 +323,13 @@ var reportTemplate = template.Must(template.New("report").Parse(`<!DOCTYPE html>
 
 // GenerateHTML creates an HTML report with embedded Plotly charts. It creates
 // no directory, as --output does for every other format, and the file is
-// readable by its owner only: a report can name private repositories.
+// readable by its owner only (see ghutil.WriteOwnerOnly).
 func GenerateHTML(stats models.Statistics, outputPath string) error {
 	html, err := buildHTML(stats)
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(outputPath, []byte(html), 0o600)
+	return ghutil.WriteOwnerOnly(outputPath, []byte(html))
 }
 
 func buildHTML(stats models.Statistics) (string, error) {

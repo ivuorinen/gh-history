@@ -275,13 +275,13 @@ func sortedRepoCounts(counts map[string]models.RepoCount) []models.RepoCount {
 // ending it with exactly one newline either way. JSON comes without one and
 // Markdown with one, so neither os.WriteFile nor fmt.Println alone gets both
 // right: the same report differed between --output and a redirect. The file is
-// readable by its owner only: a report can name private repositories.
+// readable by its owner only (see ghutil.WriteOwnerOnly).
 func writeToFileOrStdout(data []byte, outputFile string) {
 	if !bytes.HasSuffix(data, []byte("\n")) {
 		data = append(data, '\n')
 	}
 	if outputFile != "" {
-		if err := os.WriteFile(outputFile, data, 0o600); err != nil {
+		if err := ghutil.WriteOwnerOnly(outputFile, data); err != nil {
 			fatal("writing file: %v", err)
 		}
 		fmt.Fprintf(os.Stderr, "Saved to: %s\n", outputFile)

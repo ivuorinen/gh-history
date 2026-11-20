@@ -748,19 +748,27 @@ func TestWriteOutput_TextHonoursOutputFile(t *testing.T) {
 }
 
 // A report can name private repositories and their pull request titles, so an
-// --output file is readable by its owner only.
+// --output file is readable by its owner only, including one written over an
+// existing file at another mode (write-only here; see ghutil.TestWriteOwnerOnly).
 func TestWriteToFileOrStdout_WritesOwnerOnlyFile(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("Windows has no Unix permission bits")
 	}
-	path := filepath.Join(t.TempDir(), "report.json")
-	writeToFileOrStdout([]byte("{}"), path)
-	info, err := os.Stat(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if perm := info.Mode().Perm(); perm != 0o600 {
-		t.Errorf("report mode = %o, want 600", perm)
+	for _, existing := range []bool{false, true} {
+		path := filepath.Join(t.TempDir(), "report.json")
+		if existing {
+			if err := os.WriteFile(path, []byte("old report"), 0o200); err != nil {
+				t.Fatal(err)
+			}
+		}
+		writeToFileOrStdout([]byte("{}"), path)
+		info, err := os.Stat(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if perm := info.Mode().Perm(); perm != 0o600 {
+			t.Errorf("existing file %v: report mode = %o, want 600", existing, perm)
+		}
 	}
 }
 
