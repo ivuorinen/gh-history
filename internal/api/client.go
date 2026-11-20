@@ -36,15 +36,17 @@ func (c *Client) logf(format string, args ...any) {
 
 // NewClient creates a Client for the given host and token. An empty host means
 // github.com. An empty token is allowed — unauthenticated requests fail at the
-// API, which reports the reason better than a local guess would.
-func NewClient(host, token string) (*Client, error) {
+// API, which reports the reason better than a local guess would. timeZone is
+// the IANA name sent as every request's Time-Zone header: the zone the report's
+// DateRange counts days in.
+func NewClient(host, token, timeZone string) (*Client, error) {
 	if host == "" {
 		host = hostGitHub
 	}
 	return &Client{gqlClient: &graphQLClient{
 		endpoint: GraphQLEndpoint(host),
 		token:    token,
-		timeZone: LocalTimeZone(),
+		timeZone: timeZone,
 		http:     &http.Client{Timeout: RequestTimeout},
 	}}, nil
 }
@@ -438,7 +440,9 @@ type paginateReposResponse struct {
 // so its close is matched against report rather than dr: otherwise one opened
 // late in a chunk and closed in the next is never counted as closed or merged.
 func (c *Client) FetchContributions(username string, dr, report daterange.DateRange) (ContributionResult, error) {
-	from := dr.Start.Format(time.RFC3339)
+	// The range's own midnights, in the zone the Time-Zone header names, so the
+	// fetched days are the days GitHub buckets the calendar into.
+	from := dr.StartTime().Format(time.RFC3339)
 	// GitHub treats `to` as inclusive at day granularity: sending the next
 	// midnight counts the whole following day in every total and node list
 	// (measured: 41 commits for a one-day range whose day held 25). The last
@@ -509,7 +513,7 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 
 		if (n.PullRequest.State == "CLOSED" || n.PullRequest.State == "MERGED") && n.PullRequest.ClosedAt != nil {
 			closedAt := *n.PullRequest.ClosedAt
-			if !closedAt.Before(report.Start) && closedAt.Before(report.EndDateTime()) {
+			if !closedAt.Before(report.StartTime()) && closedAt.Before(report.EndDateTime()) {
 				events = append(events, models.Event{
 					ID:               fmt.Sprintf("gql-pr-closed-%d-%s", n.PullRequest.Number, repo),
 					Type:             "PullRequestEvent",
@@ -548,7 +552,7 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 
 		if n.Issue.State == "CLOSED" && n.Issue.ClosedAt != nil {
 			closedAt := *n.Issue.ClosedAt
-			if !closedAt.Before(report.Start) && closedAt.Before(report.EndDateTime()) {
+			if !closedAt.Before(report.StartTime()) && closedAt.Before(report.EndDateTime()) {
 				events = append(events, models.Event{
 					ID:               fmt.Sprintf("gql-issue-closed-%d-%s", n.Issue.Number, repo),
 					Type:             "IssuesEvent",
@@ -770,7 +774,7 @@ type issueCommentsResponse struct {
 // returns a second time ends the walk with an error, as in paginateGQL.
 func (c *Client) FetchIssueComments(username string, dr daterange.DateRange) ([]models.Event, error) {
 	var events []models.Event
-	startDT := dr.Start
+	startDT := dr.StartTime()
 	endDT := dr.EndDateTime()
 
 	var cursor *string

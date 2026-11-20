@@ -19,9 +19,10 @@ gh history ivuorinen --from 2026-09-01 --to 2026-09-30 --format json > report.js
 BROWSER=true gh history ivuorinen --from 2026-09-01 --to 2026-09-30 --format html -o report.html
 ```
 
-`BROWSER=true` stops the HTML run from opening a browser. GitHub's figures for a
-past month can change after the fact (September's commit count did), so a re-run
-will not necessarily match these files exactly.
+`BROWSER=true` stops the HTML run from opening a browser. The runs had no `TZ`
+and no `--time-zone`, so their days and hours are in UTC, as each report records.
+GitHub's figures for a past month can change after the fact (September's commit
+count did), so a re-run will not necessarily match these files exactly.
 
 ## Private repositories are renamed
 

@@ -52,6 +52,23 @@ With no date flags, the last 90 days are used. Date range options are mutually
 exclusive, and a year that has not started yet is rejected. A start date before
 2008 is rejected, and an end date after today is treated as today.
 
+### Time zone
+
+Every day and hour in a report is counted in one time zone: `--time-zone` if
+given, otherwise `TZ` if it names an IANA zone, otherwise UTC. The date flags,
+"today", GitHub's contribution calendar, the streaks and the weekday and hour
+charts all use it, and every format records it next to the date range.
+
+```bash
+gh history --last-month --time-zone Europe/Berlin
+TZ=America/New_York gh history --last-month
+```
+
+`--time-zone` takes an IANA name such as `Europe/Berlin` or `UTC`, and anything
+else is an error. A `TZ` that is not an IANA name, such as the POSIX form
+`CET-1CEST,M3.5.0`, falls back to UTC with a warning. The machine's own zone
+setting is not read, so the same command gives the same report on every machine.
+
 ### Output formats
 
 ```bash
@@ -125,6 +142,7 @@ cannot write to stdout.
 | `--year`         | `-y`  | Full year shorthand                               |
 | `--last-month`   |       | Previous calendar month                           |
 | `--last-90-days` |       | Last 90 days                                      |
+| `--time-zone`    |       | IANA zone days are counted in (default `TZ`, UTC) |
 | `--output`       | `-o`  | Output file path                                  |
 | `--format`       |       | `text`, `json`, `markdown` (default), or `html`   |
 | `--verbose`      | `-v`  | Progress and diagnostics (written to stderr)      |
@@ -158,9 +176,6 @@ token` (which covers the `gh` config file and any system keyring). For a GitHub
 Enterprise host, `GH_ENTERPRISE_TOKEN` and `GITHUB_ENTERPRISE_TOKEN` are used
 instead, so a github.com token is never sent to an internal instance.
 
-Contribution counts are bucketed into days by your local time zone, matching what
-github.com shows. Set `TZ` to report against a different one.
-
 ## Environment
 
 | Variable                                         | Effect                                                                 |
@@ -171,7 +186,7 @@ github.com shows. Set `TZ` to report against a different one.
 | `GH_CONFIG_DIR`, `XDG_CONFIG_HOME`               | Where `hosts.yml` is read from (default `~/.config/gh`)                |
 | `BROWSER`                                        | Command that opens the HTML report instead of the platform opener      |
 | `GH_FORCE_TTY`                                   | Force the terminal `text` layout; a value of `100` or `80%` sets width |
-| `TZ`                                             | Time zone that contribution days are bucketed by                       |
+| `TZ`                                             | Time zone days are counted in when `--time-zone` is not given          |
 
 ## Development
 

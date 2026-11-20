@@ -194,15 +194,32 @@ func TestStreakInfoActivityRate(t *testing.T) {
 // Streak arithmetic compares dates for an exact 24h delta, which only holds if
 // every date is normalized to UTC midnight. Asserting the exact day matters:
 // a local timestamp can fall on a different UTC date than it appears to.
-func TestEventDateTruncatesToUTCDay(t *testing.T) {
+// An event's date is the day it falls on in the report's zone, whatever zone
+// its CreatedAt carries, returned as midnight UTC like every date in a report.
+func TestEventDate_DayInReportZone(t *testing.T) {
 	east5 := time.FixedZone("east5", 5*3600)
 	west8 := time.FixedZone("west8", -8*3600)
 
 	tests := []struct {
 		name string
 		in   time.Time
+		loc  *time.Location // the report's zone; UTC when nil
 		want time.Time
 	}{
+		{
+			// 20:00 UTC is 01:00 the next day at +05:00.
+			name: "report zone east of UTC, crosses forward a day",
+			in:   time.Date(2024, 3, 15, 20, 0, 0, 0, time.UTC),
+			loc:  east5,
+			want: time.Date(2024, 3, 16, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			// 04:00 UTC is 20:00 the previous day at -08:00.
+			name: "report zone west of UTC, crosses back a day",
+			in:   time.Date(2024, 3, 15, 4, 0, 0, 0, time.UTC),
+			loc:  west8,
+			want: time.Date(2024, 3, 14, 0, 0, 0, 0, time.UTC),
+		},
 		{
 			name: "already UTC midnight",
 			in:   time.Date(2024, 3, 15, 0, 0, 0, 0, time.UTC),
@@ -235,9 +252,13 @@ func TestEventDateTruncatesToUTCDay(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			got := Event{CreatedAt: tc.in}.Date()
+			loc := tc.loc
+			if loc == nil {
+				loc = time.UTC
+			}
+			got := Event{CreatedAt: tc.in}.Date(loc)
 			if !got.Equal(tc.want) {
-				t.Errorf("Date() = %v, want %v", got, tc.want)
+				t.Errorf("Date(%v) = %v, want %v", loc, got, tc.want)
 			}
 			if got.Location() != time.UTC {
 				t.Errorf("expected UTC location, got %v", got.Location())

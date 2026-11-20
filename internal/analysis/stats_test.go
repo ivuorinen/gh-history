@@ -270,6 +270,45 @@ func TestCalculate_CommitCountFromGraphQLTotal(t *testing.T) {
 	}
 }
 
+// The hour, weekday and date buckets, and the streaks drawn from events, count
+// each event where it falls in the report's zone. 23:30 UTC on Monday 15
+// January is 01:30 on Tuesday the 16th in Helsinki; counted in UTC it lands on
+// the wrong hour, weekday and date there.
+func TestCalculate_BucketsInReportZone(t *testing.T) {
+	helsinki, err := time.LoadLocation("Europe/Helsinki")
+	if err != nil {
+		t.Fatal(err)
+	}
+	at := time.Date(2024, 1, 15, 23, 30, 0, 0, time.UTC)
+	for _, tc := range []struct {
+		loc     *time.Location
+		date    string
+		weekday int
+		hour    int
+	}{
+		{time.UTC, "2024-01-15", 0, 23},
+		{helsinki, "2024-01-16", 1, 1},
+	} {
+		dr := testutil.SampleDateRange()
+		dr.Loc = tc.loc
+		calc := &Calculator{DateRange: dr}
+		stats := calc.Calculate([]models.Event{{ID: "1", Type: "IssueCommentEvent", Repo: "u/r", CreatedAt: at}})
+
+		if want := map[string]int{tc.date: 1}; !maps.Equal(stats.EventsByDate, want) {
+			t.Errorf("%v: EventsByDate = %v, want %v", tc.loc, stats.EventsByDate, want)
+		}
+		if want := map[int]int{tc.weekday: 1}; !maps.Equal(stats.EventsByWeekday, want) {
+			t.Errorf("%v: EventsByWeekday = %v, want %v", tc.loc, stats.EventsByWeekday, want)
+		}
+		if want := map[int]int{tc.hour: 1}; !maps.Equal(stats.EventsByHour, want) {
+			t.Errorf("%v: EventsByHour = %v, want %v", tc.loc, stats.EventsByHour, want)
+		}
+		if got := stats.Streaks.LongestStreakStart; got == nil || got.Format(time.DateOnly) != tc.date {
+			t.Errorf("%v: longest streak starts %v, want %s", tc.loc, got, tc.date)
+		}
+	}
+}
+
 // The calculator records each repository's visibility and database ID from the
 // events and from the per-repository commit counts. A repository with commits
 // but no listed event still needs both, or the commit table cannot mark it. A

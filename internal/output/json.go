@@ -18,9 +18,11 @@ import (
 func FormatJSON(stats models.Statistics) ([]byte, error) {
 	data := map[string]any{
 		"username": stats.Username,
+		// time_zone is the zone every day and hour in the report is counted in.
 		"date_range": map[string]string{
-			"start": stats.DateRange.Start.Format(ghutil.DateFormat),
-			"end":   stats.DateRange.End.Format(ghutil.DateFormat),
+			"start":     stats.DateRange.Start.Format(ghutil.DateFormat),
+			"end":       stats.DateRange.End.Format(ghutil.DateFormat),
+			"time_zone": stats.DateRange.Location().String(),
 		},
 		// The rates are unrounded percentages, like streaks.activity_rate; the
 		// other formats print them to one decimal.

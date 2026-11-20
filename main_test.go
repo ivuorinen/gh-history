@@ -304,6 +304,15 @@ func TestParseFlags(t *testing.T) {
 			},
 		},
 		{
+			name: "--time-zone",
+			args: []string{"octocat", "--time-zone", "Europe/Helsinki"},
+			check: func(t *testing.T, c *config) {
+				if c.timeZone != "Europe/Helsinki" {
+					t.Errorf("timeZone = %q", c.timeZone)
+				}
+			},
+		},
+		{
 			name: "format is lowercased",
 			args: []string{"--format", "JSON"},
 			check: func(t *testing.T, c *config) {
@@ -395,6 +404,73 @@ func TestParseFlags(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.check(t, parseFlags(tc.args))
 		})
+	}
+}
+
+// The zone comes from --time-zone, then TZ when it names an IANA zone, then
+// UTC, never from the machine's /etc/localtime, so the same command counts the
+// same days everywhere. A bad --time-zone is an error, since it was asked for;
+// a TZ that is not an IANA name falls back to UTC with a warning, since GitHub
+// would not understand it.
+func TestResolveTimeZone(t *testing.T) {
+	tests := []struct {
+		name     string
+		flag, tz string
+		want     string // the zone's name; empty when an error is wanted
+		warns    bool
+	}{
+		{name: "flag", flag: "Europe/Helsinki", tz: "America/Los_Angeles", want: "Europe/Helsinki"},
+		{name: "flag wins over a bad TZ, unwarned", flag: "UTC", tz: "CET-1CEST,M3.5.0", want: "UTC"},
+		{name: "bad flag", flag: "Mars/Olympus_Mons"},
+		{name: "POSIX flag", flag: "CET-1CEST,M3.5.0"},
+		{name: "Local is not a zone name", flag: "Local"},
+		// Debian's tzdata links zoneinfo/localtime to /etc/localtime, so
+		// time.LoadLocation would load the machine's zone under this name.
+		{name: "localtime is not a zone name", flag: "localtime"},
+		{name: "TZ", tz: "America/Los_Angeles", want: "America/Los_Angeles"},
+		{name: "TZ with the POSIX leading colon", tz: ":Europe/Berlin", want: "Europe/Berlin"},
+		{name: "POSIX TZ falls back to UTC", tz: "CET-1CEST,M3.5.0,M10.5.0/3", want: "UTC", warns: true},
+		{name: "TZ=localtime falls back to UTC", tz: "localtime", want: "UTC", warns: true},
+		{name: "unset TZ is UTC", want: "UTC"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			loc, warning, err := resolveTimeZone(tt.flag, tt.tz)
+			if tt.want == "" {
+				if err == nil {
+					t.Fatalf("--time-zone %q resolved to %v, want an error", tt.flag, loc)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if loc.String() != tt.want {
+				t.Errorf("zone = %v, want %s", loc, tt.want)
+			}
+			if (warning != "") != tt.warns {
+				t.Errorf("warning = %q, want one: %v", warning, tt.warns)
+			}
+		})
+	}
+}
+
+// Every year chunk keeps the range's zone, so each chunk's from/to fall on
+// the zone's midnights like the range's own.
+func TestSplitIntoYearChunks_KeepsZone(t *testing.T) {
+	loc, err := time.LoadLocation("Europe/Helsinki")
+	if err != nil {
+		t.Fatal(err)
+	}
+	dr := daterange.DateRange{Start: d(2023, 6, 1), End: d(2024, 12, 31), Loc: loc}
+	chunks := splitIntoYearChunks(dr)
+	if len(chunks) != 2 {
+		t.Fatalf("expected 2 chunks, got %d", len(chunks))
+	}
+	for i, c := range chunks {
+		if c.Location() != loc {
+			t.Errorf("chunk %d is in %v, want %v", i, c.Location(), loc)
+		}
 	}
 }
 

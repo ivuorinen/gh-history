@@ -59,8 +59,16 @@ Source lives in `internal/` with seven packages:
 - **The `Time-Zone` request header is load-bearing.** GitHub buckets
   `contributionsCollection` by it, so omitting it changes every count in the report —
   measured on a one-day query: 1 review without the header, 2 with the local zone.
-  `api.LocalTimeZone` recovers the IANA name from `TZ` or the `/etc/localtime` symlink,
-  because Go's `time.Local` only reports "Local". Keep it, and keep its tests.
+  `main.resolveTimeZone` picks the zone: `--time-zone`, then `TZ` when it names an IANA
+  zone, then UTC. It does not read the machine's local zone, so two machines given the
+  same flags and `TZ` produce the same report. Every request sends the zone, and the
+  `DateRange` carries it to every day boundary: GitHub's `from`/`to`, the close and
+  comment filters, the date, weekday and hour buckets, "today" and the streaks. Dates
+  themselves stay midnight-UTC values, so they compare and step by 24 hours with no
+  daylight-saving day; only `DateRange.StartTime`, `EndDateTime` and
+  `ghutil.TruncateToDay` turn instants into days and back. `time/tzdata` is embedded
+  for machines without a zone database (Windows without Go). Keep the `InRangeZone`,
+  `FollowsZone`, `ReportZone` and `TimeZone` tests.
 - **`contributionsCollection`'s `to` is inclusive by day.** GitHub counts the whole day
   `to` falls on, so `FetchContributions` sends the last second of `End`
   (`EndDateTime() - 1s`). Sending the next midnight added a day to every total —

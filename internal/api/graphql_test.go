@@ -231,23 +231,6 @@ func TestGraphQLClientDo_SendsTimeZoneHeader(t *testing.T) {
 	}
 }
 
-func TestGraphQLClientDo_OmitsEmptyTimeZone(t *testing.T) {
-	var present bool
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, present = r.Header["Time-Zone"]
-		_, _ = w.Write([]byte(`{"data":{}}`))
-	}))
-	defer srv.Close()
-
-	c := &graphQLClient{endpoint: srv.URL, http: srv.Client()}
-	if err := c.Do("q", nil, &struct{}{}); err != nil {
-		t.Fatal(err)
-	}
-	if present {
-		t.Error("an undeterminable zone must omit the header, not send an empty one")
-	}
-}
-
 // noRetryDelay makes retries immediate for the duration of a test.
 func noRetryDelay(t *testing.T) {
 	t.Helper()
@@ -312,42 +295,6 @@ func TestGraphQLClientDo_DoesNotRetryClientError(t *testing.T) {
 	}
 }
 
-func TestLocalTimeZone(t *testing.T) {
-	t.Run("TZ is used", func(t *testing.T) {
-		t.Setenv("TZ", "Europe/Berlin")
-		if got := LocalTimeZone(); got != "Europe/Berlin" {
-			t.Errorf("got %q", got)
-		}
-	})
-	t.Run("leading colon is stripped", func(t *testing.T) {
-		t.Setenv("TZ", ":Europe/Berlin")
-		if got := LocalTimeZone(); got != "Europe/Berlin" {
-			t.Errorf("got %q", got)
-		}
-	})
-	t.Run("POSIX TZ is rejected, not forwarded", func(t *testing.T) {
-		// GitHub would not understand this form; falling through to the
-		// zoneinfo symlink (or to no header) is correct.
-		t.Setenv("TZ", "CET-1CEST,M3.5.0,M10.5.0/3")
-		if got := LocalTimeZone(); got == "CET-1CEST,M3.5.0,M10.5.0/3" {
-			t.Error("a POSIX TZ spec must not be sent as an IANA zone")
-		}
-	})
-}
-
-func TestValidZone(t *testing.T) {
-	for _, name := range []string{"Europe/Berlin", "UTC", "America/Los_Angeles"} {
-		if !validZone(name) {
-			t.Errorf("validZone(%q) = false, want true", name)
-		}
-	}
-	for _, name := range []string{"", "Local", "CET-1CEST,M3.5.0", "Not/AZone"} {
-		if validZone(name) {
-			t.Errorf("validZone(%q) = true, want false", name)
-		}
-	}
-}
-
 func TestGraphQLClientDo_NoTokenOmitsAuthHeader(t *testing.T) {
 	var hadAuth bool
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -374,8 +321,11 @@ func TestGraphQLClientDo_MalformedJSON(t *testing.T) {
 	}
 }
 
-func TestNewClient_UsesHostEndpoint(t *testing.T) {
-	c, err := NewClient("github.example.com", "tok")
+// The client sends the zone it is given, whatever zone the machine is in, so
+// the same command buckets days the same way everywhere.
+func TestNewClient_UsesHostEndpointAndZone(t *testing.T) {
+	t.Setenv("TZ", "America/Los_Angeles")
+	c, err := NewClient("github.example.com", "tok", "Europe/Helsinki")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -389,10 +339,13 @@ func TestNewClient_UsesHostEndpoint(t *testing.T) {
 	if gql.http.Timeout != RequestTimeout {
 		t.Errorf("timeout = %v, want %v", gql.http.Timeout, RequestTimeout)
 	}
+	if gql.timeZone != "Europe/Helsinki" {
+		t.Errorf("timeZone = %q, want Europe/Helsinki", gql.timeZone)
+	}
 }
 
 func TestNewClient_EmptyHostDefaultsToGitHub(t *testing.T) {
-	c, _ := NewClient("", "")
+	c, _ := NewClient("", "", "UTC")
 	gql := c.gqlClient.(*graphQLClient)
 	if gql.endpoint != "https://api.github.com/graphql" {
 		t.Errorf("endpoint = %q", gql.endpoint)

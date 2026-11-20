@@ -38,6 +38,10 @@ func (c *Calculator) Calculate(events []models.Event) models.Statistics {
 	// TotalCommitContributions are independent of the event list (they include
 	// commits and contributions the token cannot list), so bailing out here
 	// would zero the report for a user whose activity the token cannot see.
+	//
+	// The date, weekday and hour buckets read each event in the report's zone,
+	// the zone GitHub's calendar uses, so every figure counts the same days.
+	loc := c.DateRange.Location()
 	for _, event := range events {
 		cat := CategorizeEvent(event.Type)
 		stats.EventsByCategory[cat]++
@@ -51,13 +55,14 @@ func (c *Calculator) Calculate(events []models.Event) models.Statistics {
 		// Every source reports the same ID for a repository, or 0 when it has
 		// none. max keeps a 0 from erasing a real ID, in any order.
 		stats.RepoID[event.Repo] = max(stats.RepoID[event.Repo], event.RepoID)
-		stats.EventsByDate[event.Date().Format(ghutil.DateFormat)]++
+		stats.EventsByDate[event.Date(loc).Format(ghutil.DateFormat)]++
 
+		local := event.CreatedAt.In(loc)
 		// Convert Go weekday (0=Sunday) to Python-style (0=Monday)
-		wd := int(event.CreatedAt.Weekday())
+		wd := int(local.Weekday())
 		wd = (wd + 6) % 7 // Sunday=6, Monday=0, ...
 		stats.EventsByWeekday[wd]++
-		stats.EventsByHour[event.CreatedAt.Hour()]++
+		stats.EventsByHour[local.Hour()]++
 
 		trackDetailedStats(&stats, event)
 	}

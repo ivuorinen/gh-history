@@ -1179,6 +1179,115 @@ func TestFetchContributions_ToIsLastSecondOfEnd(t *testing.T) {
 	}
 }
 
+func loadZone(t *testing.T, name string) *time.Location {
+	t.Helper()
+	loc, err := time.LoadLocation(name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return loc
+}
+
+// A range in another zone is fetched from that zone's midnight to the last
+// second of End there: the days the Time-Zone header buckets by. UTC
+// boundaries would cut two hours into the neighbouring days in Helsinki.
+func TestFetchContributions_FromToInRangeZone(t *testing.T) {
+	var gotFrom, gotTo any
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			gotFrom, gotTo = variables["from"], variables["to"]
+			return nil
+		},
+	}
+	day := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
+	dr := daterange.DateRange{Start: day, End: day, Loc: loadZone(t, "Europe/Helsinki")}
+	if _, err := newTestClient(mock).FetchContributions("user", dr, dr); err != nil {
+		t.Fatal(err)
+	}
+	if gotFrom != "2025-01-01T00:00:00+02:00" {
+		t.Errorf("from = %v, want 2025-01-01T00:00:00+02:00", gotFrom)
+	}
+	if gotTo != "2025-01-01T23:59:59+02:00" {
+		t.Errorf("to = %v, want 2025-01-01T23:59:59+02:00", gotTo)
+	}
+}
+
+// Closes and merges are matched against the report's days in its zone. A PR
+// merged at 23:30 UTC on 31 January was merged on 1 February in Helsinki, so a
+// January report counts the merge in UTC and leaves it out in Helsinki.
+func TestFetchContributions_CloseMatchedInRangeZone(t *testing.T) {
+	merged := time.Date(2024, 1, 31, 23, 30, 0, 0, time.UTC)
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			var pr prContributionNode
+			pr.OccurredAt = time.Date(2024, 1, 10, 9, 0, 0, 0, time.UTC)
+			pr.PullRequest.Number = 1
+			pr.PullRequest.State = "MERGED"
+			pr.PullRequest.ClosedAt = &merged
+			pr.PullRequest.MergedAt = &merged
+			pr.PullRequest.Repository = repoRef{NameWithOwner: "user/repo"}
+			cc := &response.(*contributionsResponse).User.ContributionsCollection
+			cc.PullRequestContributions.Nodes = []prContributionNode{pr}
+			return nil
+		},
+	}
+	for _, tc := range []struct {
+		loc    *time.Location
+		closed int
+	}{{time.UTC, 1}, {loadZone(t, "Europe/Helsinki"), 0}} {
+		dr := daterange.DateRange{
+			Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+			End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+			Loc:   tc.loc,
+		}
+		result, err := newTestClient(mock).FetchContributions("user", dr, dr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		closed := 0
+		for _, e := range result.Events {
+			if e.Action == models.ActionClosed {
+				closed++
+			}
+		}
+		if closed != tc.closed {
+			t.Errorf("January in %v: %d merge events, want %d", tc.loc, closed, tc.closed)
+		}
+	}
+}
+
+// Comments are matched against the report's days in its zone: one posted at
+// 23:30 UTC on 31 December was posted on 1 January in Helsinki.
+func TestFetchIssueComments_FiltersInRangeZone(t *testing.T) {
+	at := time.Date(2023, 12, 31, 23, 30, 0, 0, time.UTC)
+	mock := &mockGQLClient{
+		doFunc: func(query string, variables map[string]any, response any) error {
+			resp := response.(*issueCommentsResponse)
+			resp.User.IssueComments.Nodes = []issueCommentNode{
+				{ID: "c1", CreatedAt: at, UpdatedAt: at, Repository: repoRef{NameWithOwner: "user/repo"}},
+			}
+			return nil
+		},
+	}
+	for _, tc := range []struct {
+		loc      *time.Location
+		comments int
+	}{{time.UTC, 0}, {loadZone(t, "Europe/Helsinki"), 1}} {
+		dr := daterange.DateRange{
+			Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+			End:   time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+			Loc:   tc.loc,
+		}
+		events, err := newTestClient(mock).FetchIssueComments("user", dr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(events) != tc.comments {
+			t.Errorf("January in %v: %d comments, want %d", tc.loc, len(events), tc.comments)
+		}
+	}
+}
+
 // A PR opened in one year chunk and merged in the next is a contribution of the
 // first chunk only, so its merge must be matched against the report range.
 func TestFetchContributions_CloseMatchedAgainstReportRange(t *testing.T) {

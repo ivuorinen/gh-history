@@ -5,15 +5,15 @@ import (
 	"time"
 
 	"github.com/ivuorinen/gh-history/internal/daterange"
-	"github.com/ivuorinen/gh-history/internal/ghutil"
 	"github.com/ivuorinen/gh-history/internal/models"
 )
 
 // CalculateStreaks computes streak information from events within a date range.
+// An event's day is its day in the range's zone.
 func CalculateStreaks(events []models.Event, dr daterange.DateRange) models.StreakInfo {
 	dateSet := make(map[string]time.Time)
 	for _, e := range events {
-		d := e.Date()
+		d := e.Date(dr.Location())
 		dateSet[d.Format(time.DateOnly)] = d
 	}
 	return calculateStreaksFromDates(sortedDates(dateSet), dr)
@@ -92,8 +92,8 @@ func calculateStreaksFromDates(activeDates []time.Time, dr daterange.DateRange) 
 		TotalDays:          totalDays,
 	}
 
-	// Current streak: check from today backwards
-	today := ghutil.TruncateToDay(time.Now().UTC())
+	// Current streak: check from today, in the range's zone, backwards
+	today := daterange.Today(dr.Location())
 	if !end.Before(today) {
 		lastActive := activeDates[len(activeDates)-1]
 		yesterday := today.AddDate(0, 0, -1)
