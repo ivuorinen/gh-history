@@ -168,10 +168,13 @@ func ParseDateRange(fromDate, toDate string, year int, lastMonth, last90 bool, l
 	if fromDate == "" && toDate == "" {
 		return LastNDays(90, loc), nil
 	}
+	return fromToRange(fromDate, toDate, loc)
+}
 
+// fromToRange is the range --from and --to give when at least one is set: a
+// missing --from is a year before today, and a missing or future --to is today.
+func fromToRange(fromDate, toDate string, loc *time.Location) (DateRange, error) {
 	today := Today(loc)
-	var start, end time.Time
-
 	start, err := parseDateInput("start", fromDate)
 	if err != nil {
 		return DateRange{}, err
@@ -187,7 +190,7 @@ func ParseDateRange(fromDate, toDate string, year int, lastMonth, last90 bool, l
 			start.Format(ghutil.DateFormat), FirstGitHubYear)
 	}
 
-	end, err = parseDateInput("end", toDate)
+	end, err := parseDateInput("end", toDate)
 	if err != nil {
 		return DateRange{}, err
 	}

@@ -131,6 +131,67 @@ func TestParseDateRange(t *testing.T) {
 	}
 }
 
+// Each range flag gives its constructor's range, no flag gives the last 90
+// days, and a --from/--to missing one side fills it in: a missing --from is a
+// year before today, and a missing --to is today.
+func TestParseDateRange_EachFlagPicksItsRange(t *testing.T) {
+	today := Today(time.UTC)
+	tenDaysAgo := today.AddDate(0, 0, -10)
+	for _, tc := range []struct {
+		name              string
+		from, to          string
+		lastMonth, last90 bool
+		want              DateRange
+	}{
+		{name: "last month", lastMonth: true, want: LastMonth(time.UTC)},
+		{name: "last 90 days", last90: true, want: LastNDays(90, time.UTC)},
+		{name: "no flag", want: LastNDays(90, time.UTC)},
+		{name: "to only", to: tenDaysAgo.Format(ghutil.DateFormat), want: DateRange{Start: today.AddDate(-1, 0, 0), End: tenDaysAgo}},
+		{name: "from only", from: tenDaysAgo.Format(ghutil.DateFormat), want: DateRange{Start: tenDaysAgo, End: today}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			dr, err := ParseDateRange(tc.from, tc.to, 0, tc.lastMonth, tc.last90, time.UTC)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !dr.Start.Equal(tc.want.Start) || !dr.End.Equal(tc.want.End) {
+				t.Errorf("got %v to %v, want %v to %v", dr.Start, dr.End, tc.want.Start, tc.want.End)
+			}
+		})
+	}
+}
+
+// Any two of --from/--to, --year, --last-month and --last-90-days conflict.
+func TestParseDateRange_RangeFlagsConflict(t *testing.T) {
+	for _, tc := range []struct {
+		name              string
+		from              string
+		year              int
+		lastMonth, last90 bool
+	}{
+		{name: "year and last month", year: 2024, lastMonth: true},
+		{name: "last month and last 90 days", lastMonth: true, last90: true},
+		{name: "from and last 90 days", from: "2024-01-01", last90: true},
+	} {
+		if _, err := ParseDateRange(tc.from, "", tc.year, tc.lastMonth, tc.last90, time.UTC); err == nil {
+			t.Errorf("%s: expected a conflict error", tc.name)
+		}
+	}
+}
+
+// A malformed date is an error naming the flag it came from.
+func TestParseDateRange_MalformedDateNamesItsFlag(t *testing.T) {
+	for _, tc := range []struct{ from, to, want string }{
+		{from: "2024-13-01", want: "invalid start date"},
+		{to: "2024/01/31", want: "invalid end date"},
+	} {
+		_, err := ParseDateRange(tc.from, tc.to, 0, false, false, time.UTC)
+		if err == nil || !strings.Contains(err.Error(), tc.want) {
+			t.Errorf("ParseDateRange(%q, %q) error = %v, want %q", tc.from, tc.to, err, tc.want)
+		}
+	}
+}
+
 // --from/--to get the bounds --year has: --from 0001-01-01 would otherwise
 // issue about two thousand chunk requests.
 func TestParseDateRange_FromBeforeGitHubIsRejected(t *testing.T) {
