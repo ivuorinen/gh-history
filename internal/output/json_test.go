@@ -2,8 +2,12 @@ package output
 
 import (
 	"encoding/json"
+	"fmt"
+	"strings"
 	"testing"
+	"time"
 
+	"github.com/ivuorinen/gh-history/internal/analysis"
 	"github.com/ivuorinen/gh-history/internal/models"
 	"github.com/ivuorinen/gh-history/internal/testutil"
 )
@@ -28,7 +32,7 @@ func TestFormatJSON_CarriesFullDetail(t *testing.T) {
 
 	for _, key := range []string{
 		"events", "contribution_totals", "commits_by_repo",
-		"events_by_repo", "events_by_date", "calendar",
+		"events_by_date", "calendar",
 	} {
 		if _, ok := out[key]; !ok {
 			t.Errorf("JSON is missing %q", key)
@@ -81,6 +85,57 @@ func TestFormatJSON_CarriesFullDetail(t *testing.T) {
 	day0 := days[0].(map[string]any) // 2024-01-10 is a Wednesday
 	if day0["weekday"].(float64) != 2 {
 		t.Errorf("2024-01-10 weekday = %v, want 2 (Wednesday, Monday=0)", day0["weekday"])
+	}
+}
+
+// JSON lists every repository, so a consumer gets each one's count and
+// visibility without regrouping the events, and a repository missing from the
+// list had no events. The other formats keep the top 15.
+func TestFormatJSON_TopReposListsEveryRepository(t *testing.T) {
+	at := time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC)
+	var events []models.Event
+	// u/repo00 has one event and u/repo19 twenty, so the counts fix the order;
+	// the even-numbered repositories are private.
+	for i := range 20 {
+		for range i + 1 {
+			events = append(events, models.Event{
+				Type: "IssueCommentEvent", Repo: fmt.Sprintf("u/repo%02d", i),
+				RepoPrivate: i%2 == 0, CreatedAt: at,
+			})
+		}
+	}
+	calc := analysis.Calculator{Username: "u", DateRange: testutil.SampleDateRange()}
+	stats := calc.Calculate(events)
+	out := decodeJSON(t, stats)
+
+	entries := out["top_repos"].([]any)
+	if len(entries) != 20 {
+		t.Fatalf("top_repos has %d entries, want one per repository in events (20)", len(entries))
+	}
+	sum := 0
+	for i, raw := range entries {
+		e := raw.(map[string]any)
+		n := 19 - i
+		want := map[string]any{"repo": fmt.Sprintf("u/repo%02d", n), "count": float64(n + 1), "private": n%2 == 0}
+		for k, v := range want {
+			if e[k] != v {
+				t.Errorf("top_repos[%d].%s = %v, want %v", i, k, e[k], v)
+			}
+		}
+		count, _ := e["count"].(float64)
+		sum += int(count)
+	}
+	if total := int(out["summary"].(map[string]any)["total_events"].(float64)); sum != total {
+		t.Errorf("top_repos counts sum to %d, want summary.total_events (%d)", sum, total)
+	}
+	// events_by_repo carried the same counts without visibility.
+	if _, ok := out["events_by_repo"]; ok {
+		t.Error("JSON still carries events_by_repo")
+	}
+
+	md := FormatMarkdown(stats)
+	if !strings.Contains(md, "| 15 | u/repo05 | public | 6 |") || strings.Contains(md, "u/repo04") {
+		t.Errorf("markdown should list the top 15 repositories, u/repo19 down to u/repo05:\n%s", md)
 	}
 }
 

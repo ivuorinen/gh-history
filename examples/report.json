@@ -258,6 +258,11 @@
     },
     {
       "count": 1,
+      "private": true,
+      "repo": "example-org/private-repo-4"
+    },
+    {
+      "count": 1,
       "private": false,
       "repo": "ivuorinen/a"
     },
@@ -295,11 +300,6 @@
       "count": 1,
       "private": false,
       "repo": "ivuorinen/sysvinit-service-generator"
-    },
-    {
-      "count": 1,
-      "private": true,
-      "repo": "example-org/private-repo-4"
     }
   ],
   "contribution_totals": {
@@ -5913,60 +5913,6 @@
     "8": 19,
     "9": 26
   },
-  "events_by_repo": {
-    "example-org/private-repo-3": 2,
-    "airano-ir/skillhub": 1,
-    "example-org/private-repo-2": 15,
-    "example-org/private-repo-1": 34,
-    "ivuorinen/a": 21,
-    "ivuorinen/actions": 26,
-    "ivuorinen/aeonview": 6,
-    "ivuorinen/base-configs": 20,
-    "ivuorinen/base-configs-browserslist": 15,
-    "ivuorinen/base-configs-commitlint": 13,
-    "ivuorinen/base-configs-eslint": 15,
-    "ivuorinen/base-configs-markdownlint": 12,
-    "ivuorinen/base-configs-prettier": 13,
-    "ivuorinen/base-configs-semantic-release": 34,
-    "ivuorinen/base-configs-stylelint": 16,
-    "ivuorinen/branch-usage-checker": 13,
-    "ivuorinen/coderabbit": 1,
-    "ivuorinen/config-checker": 14,
-    "ivuorinen/private-repo-2": 5,
-    "ivuorinen/docker-php-with-imagick": 2,
-    "ivuorinen/dotfiles": 13,
-    "ivuorinen/emoji": 1,
-    "ivuorinen/f2b": 13,
-    "ivuorinen/generic-landing-page": 3,
-    "ivuorinen/gh-action-readme": 3,
-    "ivuorinen/gh-codeql-report": 2,
-    "ivuorinen/ghaw-auditor": 4,
-    "ivuorinen/gibidify": 3,
-    "ivuorinen/github-actions-runner-setup": 6,
-    "ivuorinen/github-base-template": 4,
-    "ivuorinen/go-test-sarif": 3,
-    "ivuorinen/homebrew-tap": 7,
-    "ivuorinen/ivuorinen": 6,
-    "ivuorinen/private-repo-4": 1,
-    "ivuorinen/private-repo-3": 3,
-    "ivuorinen/markdowndocs": 1,
-    "ivuorinen/monolog-gdpr-filter": 4,
-    "ivuorinen/nvim-shellspec": 8,
-    "ivuorinen/nvm-auto-use.fish": 2,
-    "ivuorinen/paperboy": 4,
-    "ivuorinen/phpenv.fish": 5,
-    "ivuorinen/pinboard-checker": 2,
-    "ivuorinen/renovate-config": 7,
-    "ivuorinen/semver-ranger": 13,
-    "ivuorinen/skills": 78,
-    "ivuorinen/ssh-audit": 5,
-    "ivuorinen/stylelint-a11y": 9,
-    "ivuorinen/sysvinit-service-generator": 5,
-    "ivuorinen/tree-sitter-shellspec": 18,
-    "ivuorinen/private-repo-1": 18,
-    "ivuorinen/uptime": 3,
-    "example-org/private-repo-4": 1
-  },
   "events_by_type": {
     "CreateEvent": 1,
     "IssueCommentEvent": 84,
@@ -6038,13 +5984,13 @@
     },
     {
       "count": 18,
-      "private": false,
-      "repo": "ivuorinen/tree-sitter-shellspec"
+      "private": true,
+      "repo": "ivuorinen/private-repo-1"
     },
     {
       "count": 18,
-      "private": true,
-      "repo": "ivuorinen/private-repo-1"
+      "private": false,
+      "repo": "ivuorinen/tree-sitter-shellspec"
     },
     {
       "count": 16,
@@ -6080,6 +6026,191 @@
       "count": 13,
       "private": false,
       "repo": "ivuorinen/base-configs-prettier"
+    },
+    {
+      "count": 13,
+      "private": false,
+      "repo": "ivuorinen/branch-usage-checker"
+    },
+    {
+      "count": 13,
+      "private": false,
+      "repo": "ivuorinen/dotfiles"
+    },
+    {
+      "count": 13,
+      "private": false,
+      "repo": "ivuorinen/f2b"
+    },
+    {
+      "count": 13,
+      "private": false,
+      "repo": "ivuorinen/semver-ranger"
+    },
+    {
+      "count": 12,
+      "private": false,
+      "repo": "ivuorinen/base-configs-markdownlint"
+    },
+    {
+      "count": 9,
+      "private": false,
+      "repo": "ivuorinen/stylelint-a11y"
+    },
+    {
+      "count": 8,
+      "private": false,
+      "repo": "ivuorinen/nvim-shellspec"
+    },
+    {
+      "count": 7,
+      "private": false,
+      "repo": "ivuorinen/homebrew-tap"
+    },
+    {
+      "count": 7,
+      "private": false,
+      "repo": "ivuorinen/renovate-config"
+    },
+    {
+      "count": 6,
+      "private": false,
+      "repo": "ivuorinen/aeonview"
+    },
+    {
+      "count": 6,
+      "private": false,
+      "repo": "ivuorinen/github-actions-runner-setup"
+    },
+    {
+      "count": 6,
+      "private": false,
+      "repo": "ivuorinen/ivuorinen"
+    },
+    {
+      "count": 5,
+      "private": false,
+      "repo": "ivuorinen/phpenv.fish"
+    },
+    {
+      "count": 5,
+      "private": true,
+      "repo": "ivuorinen/private-repo-2"
+    },
+    {
+      "count": 5,
+      "private": false,
+      "repo": "ivuorinen/ssh-audit"
+    },
+    {
+      "count": 5,
+      "private": false,
+      "repo": "ivuorinen/sysvinit-service-generator"
+    },
+    {
+      "count": 4,
+      "private": false,
+      "repo": "ivuorinen/ghaw-auditor"
+    },
+    {
+      "count": 4,
+      "private": false,
+      "repo": "ivuorinen/github-base-template"
+    },
+    {
+      "count": 4,
+      "private": false,
+      "repo": "ivuorinen/monolog-gdpr-filter"
+    },
+    {
+      "count": 4,
+      "private": false,
+      "repo": "ivuorinen/paperboy"
+    },
+    {
+      "count": 3,
+      "private": false,
+      "repo": "ivuorinen/generic-landing-page"
+    },
+    {
+      "count": 3,
+      "private": false,
+      "repo": "ivuorinen/gh-action-readme"
+    },
+    {
+      "count": 3,
+      "private": false,
+      "repo": "ivuorinen/gibidify"
+    },
+    {
+      "count": 3,
+      "private": false,
+      "repo": "ivuorinen/go-test-sarif"
+    },
+    {
+      "count": 3,
+      "private": true,
+      "repo": "ivuorinen/private-repo-3"
+    },
+    {
+      "count": 3,
+      "private": false,
+      "repo": "ivuorinen/uptime"
+    },
+    {
+      "count": 2,
+      "private": true,
+      "repo": "example-org/private-repo-3"
+    },
+    {
+      "count": 2,
+      "private": false,
+      "repo": "ivuorinen/docker-php-with-imagick"
+    },
+    {
+      "count": 2,
+      "private": false,
+      "repo": "ivuorinen/gh-codeql-report"
+    },
+    {
+      "count": 2,
+      "private": false,
+      "repo": "ivuorinen/nvm-auto-use.fish"
+    },
+    {
+      "count": 2,
+      "private": false,
+      "repo": "ivuorinen/pinboard-checker"
+    },
+    {
+      "count": 1,
+      "private": false,
+      "repo": "airano-ir/skillhub"
+    },
+    {
+      "count": 1,
+      "private": true,
+      "repo": "example-org/private-repo-4"
+    },
+    {
+      "count": 1,
+      "private": false,
+      "repo": "ivuorinen/coderabbit"
+    },
+    {
+      "count": 1,
+      "private": false,
+      "repo": "ivuorinen/emoji"
+    },
+    {
+      "count": 1,
+      "private": false,
+      "repo": "ivuorinen/markdowndocs"
+    },
+    {
+      "count": 1,
+      "private": true,
+      "repo": "ivuorinen/private-repo-4"
     }
   ],
   "username": "ivuorinen"
