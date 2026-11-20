@@ -152,53 +152,70 @@ func run(in, out string) error {
 		documented[f.path] = f.typ
 	}
 	found := map[string]bool{}
-	var problems []string
-	walk("", report, documented, found, &problems)
+	problems := map[string]bool{}
+	walk("", report, documented, found, problems)
 	for _, f := range fields {
 		if !found[f.path] {
-			problems = append(problems, "documented key missing from the report: "+f.path)
+			problems["documented key missing from the report: "+f.path] = true
 		}
 	}
 	if len(problems) > 0 {
-		sort.Strings(problems)
-		return errors.New(strings.Join(problems, "\n"))
+		list := make([]string, 0, len(problems))
+		for p := range problems {
+			list = append(list, p)
+		}
+		sort.Strings(list)
+		return errors.New(strings.Join(list, "\n"))
 	}
 	// Owner-only is enough: git records no permission but the executable bit.
 	return os.WriteFile(out, []byte(render()), 0o600)
 }
 
-// walk records every key path under prefix and reports undocumented keys and
-// type mismatches. It descends into an object only when its documented type
-// is a plain object, so the keys of events_by_date and the other count maps
-// (dates, hours, event types) are read as data, not as fields.
-func walk(prefix string, obj map[string]any, documented map[string]string, found map[string]bool, problems *[]string) {
+// walk records every key path under prefix and adds undocumented keys and type
+// mismatches to problems. Every occurrence is checked, the entries of an array
+// included; problems is a set, so a key wrong in many entries is reported once.
+// It descends into an object only when its documented type is a plain object,
+// so the keys of events_by_date and the other count maps (dates, hours, event
+// types) are read as data, not as fields.
+func walk(prefix string, obj map[string]any, documented map[string]string, found, problems map[string]bool) {
 	for key, value := range obj {
 		path := key
 		if prefix != "" {
 			path = prefix + "." + key
 		}
+		found[path] = true
 		typ, ok := documented[path]
 		if !ok {
-			if !found[path] {
-				*problems = append(*problems, "undocumented key: "+path)
-			}
-			found[path] = true
+			problems["undocumented key: "+path] = true
 			continue
 		}
-		if !typeMatches(typ, value) && !found[path] {
-			*problems = append(*problems, fmt.Sprintf("%s is a %s, documented as %s", path, jsonType(value), typ))
+		if !typeMatches(typ, value) {
+			problems[fmt.Sprintf("%s is a %s, documented as %s", path, jsonType(value), typ)] = true
 		}
-		found[path] = true
 		switch v := value.(type) {
 		case map[string]any:
-			if typ == "object" || typ == "object or null" {
+			switch {
+			case typ == "object" || typ == "object or null":
 				walk(path, v, documented, found, problems)
+			case strings.HasPrefix(typ, "object ("):
+				// A count map, documented as "object (date → number)": the keys
+				// are data, and every value has the type after the arrow.
+				_, valueType, _ := strings.Cut(strings.TrimSuffix(typ, ")"), "→ ")
+				for _, item := range v {
+					if !typeMatches(valueType, item) {
+						problems[fmt.Sprintf("%s has a %s value, documented as %s", path, jsonType(item), typ)] = true
+					}
+				}
 			}
 		case []any:
+			// Every array is documented as an array of objects.
 			for _, item := range v {
-				if entry, ok := item.(map[string]any); ok {
-					walk(path+"[]", entry, documented, found, problems)
+				entry, ok := item.(map[string]any)
+				if !ok {
+					problems[fmt.Sprintf("%s has a %s entry, documented as %s", path, jsonType(item), typ)] = true
+					continue
 				}
+				walk(path+"[]", entry, documented, found, problems)
 			}
 		}
 	}
