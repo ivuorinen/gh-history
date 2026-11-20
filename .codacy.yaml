@@ -1,10 +1,14 @@
 ---
 engines:
+  # "**/*_test.go" does not match a test file at the repository root, such as
+  # main_test.go, so "*_test.go" is listed beside it.
   revive:
     exclude_paths:
+      - "*_test.go"
       - "**/*_test.go"
   lizard:
     exclude_paths:
+      - "*_test.go"
       - "**/*_test.go"
   markdownlint:
     exclude_paths:
