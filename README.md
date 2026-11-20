@@ -95,6 +95,12 @@ each `top_repos` and `commits_by_repo` entry and `repo_private` on each event.
 The flag is GitHub's `isPrivate`, so an internal repository on GitHub Enterprise
 shows as private.
 
+JSON also gives every repository its GitHub database ID: `id` on each
+`top_repos` and `commits_by_repo` entry and `repo_id` on each event. Unlike the
+name, the ID stays the same when a repository is renamed, and looking it up
+(`GET /repositories/{id}`) without access returns 404. So it can label a private
+repository the same way in every report without naming it.
+
 The summary's PR merge rate and issue close rate are the share of the PRs and
 issues opened in the period that were merged or closed by the time the report
 ran. GitHub lists PR and issue contributions by when the item was opened, so

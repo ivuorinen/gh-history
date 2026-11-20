@@ -17,17 +17,18 @@ func TestTopRepos_TiesBreakOnName(t *testing.T) {
 	}
 }
 
-// Top repositories carry the visibility recorded for them, so every format's
-// repository table can mark the private ones. A repository with no recorded
-// visibility reads as public.
-func TestTopRepos_CarriesVisibility(t *testing.T) {
+// Top repositories carry the visibility and database ID recorded for them, so
+// every format's repository table can mark the private ones and JSON can give
+// each its ID. A repository with nothing recorded reads as public, with ID 0.
+func TestTopRepos_CarriesVisibilityAndID(t *testing.T) {
 	s := Statistics{
 		EventsByRepo: map[string]int{"u/priv": 3, "u/pub": 2, "u/unknown": 1},
 		RepoPrivate:  map[string]bool{"u/priv": true, "u/pub": false},
+		RepoID:       map[string]int64{"u/priv": 1, "u/pub": 2},
 	}
 	want := []RepoCount{
-		{Repo: "u/priv", Count: 3, Private: true},
-		{Repo: "u/pub", Count: 2},
+		{Repo: "u/priv", Count: 3, Private: true, ID: 1},
+		{Repo: "u/pub", Count: 2, ID: 2},
 		{Repo: "u/unknown", Count: 1},
 	}
 	if got := s.TopRepos(3); !slices.Equal(got, want) {

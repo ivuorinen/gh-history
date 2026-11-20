@@ -210,13 +210,27 @@ type repoContributionNode struct {
 // repoRef is the repository a contribution node points at. It is one named
 // type rather than an anonymous struct per node so that a field added here
 // reaches every node at once, instead of reaching some node types and being
-// missed on others.
+// missed on others. repoRefFragment requests the same fields in every query.
 type repoRef struct {
 	NameWithOwner string
 	// IsPrivate is GitHub's isPrivate, which is also true for internal
 	// repositories on GitHub Enterprise.
 	IsPrivate bool
+	// DatabaseID is GitHub's fullDatabaseId: the value databaseId holds, as a
+	// BigInt sent in a JSON string. databaseId is a 32-bit Int, and repository
+	// IDs already pass two-thirds of its range.
+	DatabaseID int64 `json:"fullDatabaseId,string"`
 }
+
+// repoRefFragment selects the fields repoRef decodes. Every query selects its
+// repositories as `repository { ...repoRef }` and ends with this fragment, so a
+// field added here reaches every query. Written into each query by hand, a
+// field could be missed in some, and GitHub reports no error for a field that
+// was never requested. A fragment is GraphQL's own way to share a selection. A
+// query that selects no repository must not append it: GitHub rejects a
+// fragment the query does not use.
+const repoRefFragment = `
+fragment repoRef on Repository { nameWithOwner isPrivate fullDatabaseId }`
 
 type pageInfo struct {
 	EndCursor   *string
@@ -244,7 +258,7 @@ query($login: String!, $from: DateTime!, $to: DateTime!) {
       }
 
       commitContributionsByRepository(maxRepositories: 100) {
-        repository { nameWithOwner isPrivate }
+        repository { ...repoRef }
         contributions { totalCount }
       }
 
@@ -253,7 +267,7 @@ query($login: String!, $from: DateTime!, $to: DateTime!) {
           occurredAt
           pullRequest {
             number title state createdAt closedAt mergedAt
-            repository { nameWithOwner isPrivate }
+            repository { ...repoRef }
           }
         }
         pageInfo { endCursor hasNextPage }
@@ -264,7 +278,7 @@ query($login: String!, $from: DateTime!, $to: DateTime!) {
           occurredAt
           issue {
             number title createdAt closedAt state
-            repository { nameWithOwner isPrivate }
+            repository { ...repoRef }
           }
         }
         pageInfo { endCursor hasNextPage }
@@ -277,7 +291,7 @@ query($login: String!, $from: DateTime!, $to: DateTime!) {
             state submittedAt
             pullRequest {
               number title
-              repository { nameWithOwner isPrivate }
+              repository { ...repoRef }
             }
           }
         }
@@ -287,14 +301,14 @@ query($login: String!, $from: DateTime!, $to: DateTime!) {
       repositoryContributions(first: 100) {
         nodes {
           occurredAt
-          repository { nameWithOwner isPrivate description }
+          repository { ...repoRef description }
         }
         pageInfo { endCursor hasNextPage }
       }
 
 }
   }
-}`
+}` + repoRefFragment
 
 // Pagination queries for individual sub-collections.
 
@@ -307,14 +321,14 @@ query($login: String!, $from: DateTime!, $to: DateTime!, $after: String!) {
           occurredAt
           pullRequest {
             number title state createdAt closedAt mergedAt
-            repository { nameWithOwner isPrivate }
+            repository { ...repoRef }
           }
         }
         pageInfo { endCursor hasNextPage }
       }
     }
   }
-}`
+}` + repoRefFragment
 
 const paginateIssuesQuery = `
 query($login: String!, $from: DateTime!, $to: DateTime!, $after: String!) {
@@ -325,14 +339,14 @@ query($login: String!, $from: DateTime!, $to: DateTime!, $after: String!) {
           occurredAt
           issue {
             number title createdAt closedAt state
-            repository { nameWithOwner isPrivate }
+            repository { ...repoRef }
           }
         }
         pageInfo { endCursor hasNextPage }
       }
     }
   }
-}`
+}` + repoRefFragment
 
 const paginateReviewsQuery = `
 query($login: String!, $from: DateTime!, $to: DateTime!, $after: String!) {
@@ -345,7 +359,7 @@ query($login: String!, $from: DateTime!, $to: DateTime!, $after: String!) {
             state submittedAt
             pullRequest {
               number title
-              repository { nameWithOwner isPrivate }
+              repository { ...repoRef }
             }
           }
         }
@@ -353,7 +367,7 @@ query($login: String!, $from: DateTime!, $to: DateTime!, $after: String!) {
       }
     }
   }
-}`
+}` + repoRefFragment
 
 // Pagination response types (only the relevant sub-collection).
 
@@ -397,13 +411,13 @@ query($login: String!, $from: DateTime!, $to: DateTime!, $after: String!) {
       repositoryContributions(first: 100, after: $after) {
         nodes {
           occurredAt
-          repository { nameWithOwner isPrivate description }
+          repository { ...repoRef description }
         }
         pageInfo { endCursor hasNextPage }
       }
     }
   }
-}`
+}` + repoRefFragment
 
 type paginateReposResponse struct {
 	User struct {
@@ -478,11 +492,13 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 	for _, n := range allPRs {
 		repo := n.PullRequest.Repository.NameWithOwner
 		private := n.PullRequest.Repository.IsPrivate
+		repoID := n.PullRequest.Repository.DatabaseID
 		events = append(events, models.Event{
 			ID:               fmt.Sprintf("gql-pr-opened-%d-%s", n.PullRequest.Number, repo),
 			Type:             "PullRequestEvent",
 			Repo:             repo,
 			RepoPrivate:      private,
+			RepoID:           repoID,
 			Action:           models.ActionOpened,
 			CreatedAt:        n.OccurredAt,
 			Number:           n.PullRequest.Number,
@@ -499,6 +515,7 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 					Type:             "PullRequestEvent",
 					Repo:             repo,
 					RepoPrivate:      private,
+					RepoID:           repoID,
 					Action:           models.ActionClosed,
 					Merged:           n.PullRequest.MergedAt != nil,
 					CreatedAt:        closedAt,
@@ -514,11 +531,13 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 	for _, n := range allIssues {
 		repo := n.Issue.Repository.NameWithOwner
 		private := n.Issue.Repository.IsPrivate
+		repoID := n.Issue.Repository.DatabaseID
 		events = append(events, models.Event{
 			ID:               fmt.Sprintf("gql-issue-opened-%d-%s", n.Issue.Number, repo),
 			Type:             "IssuesEvent",
 			Repo:             repo,
 			RepoPrivate:      private,
+			RepoID:           repoID,
 			Action:           models.ActionOpened,
 			CreatedAt:        n.OccurredAt,
 			Number:           n.Issue.Number,
@@ -535,6 +554,7 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 					Type:             "IssuesEvent",
 					Repo:             repo,
 					RepoPrivate:      private,
+					RepoID:           repoID,
 					Action:           models.ActionClosed,
 					CreatedAt:        closedAt,
 					Number:           n.Issue.Number,
@@ -549,12 +569,14 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 	for _, n := range allReviews {
 		repo := n.PullRequestReview.PullRequest.Repository.NameWithOwner
 		private := n.PullRequestReview.PullRequest.Repository.IsPrivate
+		repoID := n.PullRequestReview.PullRequest.Repository.DatabaseID
 		submittedAt := n.PullRequestReview.SubmittedAt.Format(time.RFC3339)
 		events = append(events, models.Event{
 			ID:          fmt.Sprintf("gql-review-%s-%d-%s", submittedAt, n.PullRequestReview.PullRequest.Number, repo),
 			Type:        "PullRequestReviewEvent",
 			Repo:        repo,
 			RepoPrivate: private,
+			RepoID:      repoID,
 			CreatedAt:   n.OccurredAt,
 			Number:      n.PullRequestReview.PullRequest.Number,
 			Title:       n.PullRequestReview.PullRequest.Title,
@@ -565,11 +587,13 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 	for _, n := range allRepos {
 		repo := n.Repository.NameWithOwner
 		private := n.Repository.IsPrivate
+		repoID := n.Repository.DatabaseID
 		events = append(events, models.Event{
 			ID:          fmt.Sprintf("gql-repo-created-%s", repo),
 			Type:        "CreateEvent",
 			Repo:        repo,
 			RepoPrivate: private,
+			RepoID:      repoID,
 			CreatedAt:   n.OccurredAt,
 			Description: n.Repository.Description,
 		})
@@ -596,6 +620,7 @@ func (c *Client) FetchContributions(username string, dr, report daterange.DateRa
 			Repo:    r.Repository.NameWithOwner,
 			Count:   r.Contributions.TotalCount,
 			Private: r.Repository.IsPrivate,
+			ID:      r.Repository.DatabaseID,
 		})
 	}
 
@@ -708,12 +733,12 @@ query($login: String!, $after: String) {
         id
         createdAt
         updatedAt
-        repository { nameWithOwner isPrivate }
+        repository { ...repoRef }
       }
       pageInfo { endCursor hasNextPage }
     }
   }
-}`
+}` + repoRefFragment
 
 // issueCommentNode is one comment. ID is GitHub's node id, the only field that
 // is unique per comment: creation time and repository collide for two comments
@@ -776,11 +801,13 @@ func (c *Client) FetchIssueComments(username string, dr daterange.DateRange) ([]
 			}
 			repo := n.Repository.NameWithOwner
 			private := n.Repository.IsPrivate
+			repoID := n.Repository.DatabaseID
 			events = append(events, models.Event{
 				ID:          "gql-comment-" + n.ID,
 				Type:        "IssueCommentEvent",
 				Repo:        repo,
 				RepoPrivate: private,
+				RepoID:      repoID,
 				CreatedAt:   n.CreatedAt,
 			})
 		}

@@ -117,15 +117,16 @@ func FormatJSON(stats models.Statistics) ([]byte, error) {
 func repoCounts(counts []models.RepoCount) []map[string]any {
 	out := make([]map[string]any, 0, len(counts))
 	for _, rc := range counts {
-		out = append(out, map[string]any{"repo": rc.Repo, "count": rc.Count, "private": rc.Private})
+		out = append(out, map[string]any{"repo": rc.Repo, "count": rc.Count, "private": rc.Private, "id": rc.ID})
 	}
 	return out
 }
 
 // jsonEvents renders the event list. Fields that do not apply to an event type
 // are omitted rather than emitted as zero values, so a consumer can distinguish
-// "no title" from "empty title". repo_private is always present: every event has
-// a repository, and false is a real answer ("public"), not a missing one.
+// "no title" from "empty title". repo_private and repo_id are always present:
+// every event has a repository, and false is a real answer ("public"), not a
+// missing one.
 func jsonEvents(events []models.Event) []map[string]any {
 	out := make([]map[string]any, 0, len(events))
 	for _, e := range events {
@@ -134,6 +135,7 @@ func jsonEvents(events []models.Event) []map[string]any {
 			"type":         e.Type,
 			"repo":         e.Repo,
 			"repo_private": e.RepoPrivate,
+			"repo_id":      e.RepoID,
 			"created_at":   e.CreatedAt.UTC().Format(time.RFC3339),
 		}
 		if e.Action != "" {

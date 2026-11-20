@@ -40,6 +40,9 @@ the report itself marks private (`repo_private` on its events, `private` in
 - in `report.json`, the IDs of comment events in those repositories were
   replaced with `gql-comment-private-N`: a GitHub comment node ID encodes the
   repository's database ID, which would identify the renamed repository;
+- in `report.json`, the database IDs of those repositories (`id` on their
+  `top_repos` and `commits_by_repo` entries, `repo_id` on their events) were
+  replaced with 0, for the same reason;
 - every list and table of repositories was re-sorted as the CLI sorts it, by
   count and then by name, so repositories with equal counts stay in name order
   under their new names. This also re-cuts the top 15 the other formats show,

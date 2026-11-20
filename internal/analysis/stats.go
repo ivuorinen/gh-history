@@ -28,6 +28,7 @@ func (c *Calculator) Calculate(events []models.Event) models.Statistics {
 		EventsByType:     make(map[string]int),
 		EventsByRepo:     make(map[string]int),
 		RepoPrivate:      make(map[string]bool),
+		RepoID:           make(map[string]int64),
 		EventsByDate:     make(map[string]int),
 		EventsByWeekday:  make(map[int]int),
 		EventsByHour:     make(map[int]int),
@@ -47,6 +48,9 @@ func (c *Calculator) Calculate(events []models.Event) models.Statistics {
 		// observation makes it private: the rule is order-independent, so the
 		// result no longer depends on which source wrote last.
 		stats.RepoPrivate[event.Repo] = stats.RepoPrivate[event.Repo] || event.RepoPrivate
+		// Every source reports the same ID for a repository, or 0 when it has
+		// none. max keeps a 0 from erasing a real ID, in any order.
+		stats.RepoID[event.Repo] = max(stats.RepoID[event.Repo], event.RepoID)
 		stats.EventsByDate[event.Date().Format(ghutil.DateFormat)]++
 
 		// Convert Go weekday (0=Sunday) to Python-style (0=Monday)
@@ -86,16 +90,20 @@ func (c *Calculator) Calculate(events []models.Event) models.Statistics {
 	stats.Events = events
 	stats.Totals = c.Totals
 	// A repository can have commits and no listed event, so the commit counts
-	// are a visibility source of their own, merged by the same rule as events.
+	// are a source of visibility and ID of their own, merged by the same rules
+	// as events.
 	for _, rc := range c.CommitsByRepo {
 		stats.RepoPrivate[rc.Repo] = stats.RepoPrivate[rc.Repo] || rc.Private
+		stats.RepoID[rc.Repo] = max(stats.RepoID[rc.Repo], rc.ID)
 	}
-	// The commit rows then take the merged visibility, so commits_by_repo and
-	// the top-repositories tables cannot disagree about a repository. They are
-	// a copy: the caller's slice stays as fetched.
+	// The commit rows then take the merged visibility and ID, so
+	// commits_by_repo and the top-repositories tables cannot disagree about a
+	// repository. They are a copy: the caller's slice stays as fetched.
 	stats.CommitsByRepo = slices.Clone(c.CommitsByRepo)
 	for i := range stats.CommitsByRepo {
-		stats.CommitsByRepo[i].Private = stats.RepoPrivate[stats.CommitsByRepo[i].Repo]
+		repo := stats.CommitsByRepo[i].Repo
+		stats.CommitsByRepo[i].Private = stats.RepoPrivate[repo]
+		stats.CommitsByRepo[i].ID = stats.RepoID[repo]
 	}
 
 	// Build calendar on stats
