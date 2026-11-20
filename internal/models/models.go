@@ -11,6 +11,9 @@ import (
 // Category represents an event category.
 type Category string
 
+// The categories every event falls into. The values are the keys of
+// events_by_category in JSON; CategoryOther holds any event type
+// analysis.EventCategories does not list.
 const (
 	CategoryPullRequests Category = "pull_requests"
 	CategoryIssues       Category = "issues"
