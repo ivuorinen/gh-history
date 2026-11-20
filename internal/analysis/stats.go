@@ -67,16 +67,7 @@ func (c *Calculator) Calculate(events []models.Event) models.Statistics {
 		trackDetailedStats(&stats, event)
 	}
 
-	// Filter calendar days to the requested date range. GitHub returns exactly
-	// the days from `from` through the day `to` falls on, so a caller that sends
-	// a later `to` gets extra days that would inflate active days and streaks.
-	// The API client sends the matching boundary; this keeps the guarantee here.
-	filteredDays := make([]models.ContributionDay, 0, len(c.CalendarDays))
-	for _, d := range c.CalendarDays {
-		if !d.Date.Before(c.DateRange.Start) && !d.Date.After(c.DateRange.End) {
-			filteredDays = append(filteredDays, d)
-		}
-	}
+	filteredDays := daysInRange(c.CalendarDays, c.DateRange)
 
 	// Prefer calendar-based streaks (includes private repos)
 	if len(filteredDays) > 0 {
@@ -94,36 +85,56 @@ func (c *Calculator) Calculate(events []models.Event) models.Statistics {
 	// Detail carried through for the JSON format.
 	stats.Events = events
 	stats.Totals = c.Totals
-	// A repository can have commits and no listed event, so the commit counts
-	// are a source of visibility and ID of their own, merged by the same rules
-	// as events.
-	for _, rc := range c.CommitsByRepo {
+	stats.CommitsByRepo = mergeCommitRows(&stats, c.CommitsByRepo)
+	stats.Calendar = calendarOf(filteredDays, c.CalendarTotal)
+	return stats
+}
+
+// daysInRange returns the calendar days inside dr. GitHub returns exactly the
+// days from `from` through the day `to` falls on, so a caller that sends a
+// later `to` gets extra days that would inflate active days and streaks. The
+// API client sends the matching boundary; this keeps the guarantee here.
+func daysInRange(days []models.ContributionDay, dr daterange.DateRange) []models.ContributionDay {
+	inRange := make([]models.ContributionDay, 0, len(days))
+	for _, d := range days {
+		if !d.Date.Before(dr.Start) && !d.Date.After(dr.End) {
+			inRange = append(inRange, d)
+		}
+	}
+	return inRange
+}
+
+// mergeCommitRows folds the commit rows' visibility and IDs into stats and
+// returns a copy of the rows carrying the merged values. A repository can have
+// commits and no listed event, so the rows are a source of visibility and ID of
+// their own, merged by the same rules as events. The rows then take the merged
+// values, so commits_by_repo and the top-repositories tables cannot disagree
+// about a repository. The caller's slice stays as fetched.
+func mergeCommitRows(stats *models.Statistics, rows []models.RepoCount) []models.RepoCount {
+	for _, rc := range rows {
 		stats.RepoPrivate[rc.Repo] = stats.RepoPrivate[rc.Repo] || rc.Private
 		stats.RepoID[rc.Repo] = max(stats.RepoID[rc.Repo], rc.ID)
 	}
-	// The commit rows then take the merged visibility and ID, so
-	// commits_by_repo and the top-repositories tables cannot disagree about a
-	// repository. They are a copy: the caller's slice stays as fetched.
-	stats.CommitsByRepo = slices.Clone(c.CommitsByRepo)
-	for i := range stats.CommitsByRepo {
-		repo := stats.CommitsByRepo[i].Repo
-		stats.CommitsByRepo[i].Private = stats.RepoPrivate[repo]
-		stats.CommitsByRepo[i].ID = stats.RepoID[repo]
+	merged := slices.Clone(rows)
+	for i := range merged {
+		merged[i].Private = stats.RepoPrivate[merged[i].Repo]
+		merged[i].ID = stats.RepoID[merged[i].Repo]
 	}
+	return merged
+}
 
-	// Build calendar on stats
-	if len(filteredDays) > 0 {
-		cal := &models.ContributionCalendar{
-			Days:          filteredDays,
-			ReportedTotal: c.CalendarTotal,
-		}
-		for _, d := range filteredDays {
-			cal.TotalContributions += d.ContributionCount
-		}
-		stats.Calendar = cal
+// calendarOf builds the report's calendar from the days in range, or returns
+// nil when there are none. TotalContributions is summed from those days;
+// reportedTotal is GitHub's own figure, kept beside it.
+func calendarOf(days []models.ContributionDay, reportedTotal int) *models.ContributionCalendar {
+	if len(days) == 0 {
+		return nil
 	}
-
-	return stats
+	cal := &models.ContributionCalendar{Days: days, ReportedTotal: reportedTotal}
+	for _, d := range days {
+		cal.TotalContributions += d.ContributionCount
+	}
+	return cal
 }
 
 func trackDetailedStats(stats *models.Statistics, event models.Event) {
