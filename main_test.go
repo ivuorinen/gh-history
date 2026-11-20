@@ -93,6 +93,26 @@ func TestConfiguredHosts_MissingFile(t *testing.T) {
 	}
 }
 
+// With no config directory to be found, there are no configured hosts. Joining
+// an empty directory with "hosts.yml" read the file of that name in the working
+// directory instead.
+func TestConfiguredHosts_NoConfigDirReadsNothing(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "hosts.yml"), []byte("stray.example.com:\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	t.Chdir(dir)
+	t.Setenv("GH_CONFIG_DIR", "")
+	t.Setenv("XDG_CONFIG_HOME", "")
+	t.Setenv("HOME", "")
+	if ghConfigDir() != "" {
+		t.Skip("a home directory was found without HOME; the empty-directory case cannot be set up here")
+	}
+	if got := configuredHosts(); len(got) != 0 {
+		t.Errorf("read hosts.yml from the working directory: %v", got)
+	}
+}
+
 // An Enterprise host must never be handed a github.com token, or vice versa.
 func TestTokenEnvVars(t *testing.T) {
 	if got := tokenEnvVars("github.com"); got[0] != "GH_TOKEN" || got[1] != "GITHUB_TOKEN" {
