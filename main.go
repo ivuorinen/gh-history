@@ -273,13 +273,14 @@ func sortedRepoCounts(counts map[string]models.RepoCount) []models.RepoCount {
 // writeToFileOrStdout writes data to a file, or to stdout when no file is given,
 // ending it with exactly one newline either way. JSON comes without one and
 // Markdown with one, so neither os.WriteFile nor fmt.Println alone gets both
-// right: the same report differed between --output and a redirect.
+// right: the same report differed between --output and a redirect. The file is
+// readable by its owner only: a report can name private repositories.
 func writeToFileOrStdout(data []byte, outputFile string) {
 	if !bytes.HasSuffix(data, []byte("\n")) {
 		data = append(data, '\n')
 	}
 	if outputFile != "" {
-		if err := os.WriteFile(outputFile, data, 0o644); err != nil {
+		if err := os.WriteFile(outputFile, data, 0o600); err != nil {
 			fatal("writing file: %v", err)
 		}
 		fmt.Fprintf(os.Stderr, "Saved to: %s\n", outputFile)

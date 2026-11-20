@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"testing"
@@ -723,6 +724,23 @@ func TestWriteOutput_TextHonoursOutputFile(t *testing.T) {
 	}
 	if !strings.Contains(string(data), "GitHub Activity Report: octocat") {
 		t.Errorf("unexpected file content:\n%s", data)
+	}
+}
+
+// A report can name private repositories and their pull request titles, so an
+// --output file is readable by its owner only.
+func TestWriteToFileOrStdout_WritesOwnerOnlyFile(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows has no Unix permission bits")
+	}
+	path := filepath.Join(t.TempDir(), "report.json")
+	writeToFileOrStdout([]byte("{}"), path)
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if perm := info.Mode().Perm(); perm != 0o600 {
+		t.Errorf("report mode = %o, want 600", perm)
 	}
 }
 

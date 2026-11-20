@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -323,18 +322,15 @@ var reportTemplate = template.Must(template.New("report").Parse(`<!DOCTYPE html>
 </body>
 </html>`))
 
-// GenerateHTML creates an HTML report with embedded Plotly charts.
+// GenerateHTML creates an HTML report with embedded Plotly charts. It creates
+// no directory, as --output does for every other format, and the file is
+// readable by its owner only: a report can name private repositories.
 func GenerateHTML(stats models.Statistics, outputPath string) error {
-	dir := filepath.Dir(outputPath)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return err
-	}
-
 	html, err := buildHTML(stats)
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(outputPath, []byte(html), 0o644)
+	return os.WriteFile(outputPath, []byte(html), 0o600)
 }
 
 func buildHTML(stats models.Statistics) (string, error) {
