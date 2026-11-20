@@ -92,6 +92,14 @@ match it (add the new key, delete the old one), then run `mise run docs`.
   a response that repeats a cursor would loop the walk, so both walks treat a cursor
   that comes back a second time as an error. Keep the `FollowsEveryPage` and
   `RepeatedCursorIsAnError` tests.
+- **`commitContributionsByRepository` lists at most 100 repositories** and has no
+  pagination. `repoCommitCounts` fetches a window that lists 100 and falls short of
+  `totalCommitContributions` again in halves, down to single days; a window counts
+  only its own days, so the halves add up. It splits only at the limit: a shorter
+  list that falls short has another cause, and splitting it would query every day of
+  the year. `fetchEvents` warns on stderr when the merged list still falls short.
+  Keep the `PastRepositoryLimit`, `ShortListUnderLimitIsNotSplit` and
+  `WarnsWhenCommitsByRepoFallShort` tests.
 - Markdown and JSON print verbatim, ending in exactly one newline whether they go to
   stdout or `--output`; only `text` adapts to the terminal.
 
