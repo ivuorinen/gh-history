@@ -128,7 +128,8 @@ type Statistics struct {
 	CommitsByRepo []RepoCount        // Commit counts per repository, private repos included
 	// GeneratedAt is when the report was made, just after its data was fetched.
 	// PROpenedMerged and IssuesOpenedClosed, and so the rates, count each item by
-	// its state then.
+	// its state when its chunk was fetched, which is no later than GeneratedAt:
+	// an item merged or closed after GeneratedAt is not counted as such.
 	GeneratedAt time.Time
 }
 
