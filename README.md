@@ -110,11 +110,12 @@ with full access, the two agree. They diverge when the token cannot see some of
 the user's repositories.
 
 GitHub lists at most 100 repositories in one query of per-repository commit
-counts. When a year has commits in more, gh-history fetches it again in shorter
-periods until each lists all its commits, so `commits_by_repo` adds up to
-`summary.commits`. A single day with commits in more than 100 repositories
-cannot be split further. gh-history then prints a warning on stderr, because
-`commits_by_repo` comes up short.
+counts. When a period's list is cut off at 100 and falls short of its commit
+total, gh-history fetches the period again in shorter periods, down to single
+days, which recovers the repositories the limit left out. Whenever
+`commits_by_repo` still adds up to less than `summary.commits`, gh-history
+prints a warning on stderr. A single day with commits in more than 100
+repositories is one cause: it cannot be split further.
 
 Every repository is marked public or private. Text, Markdown and HTML show it as
 a Visibility column in the top-repositories table; JSON carries `private` on

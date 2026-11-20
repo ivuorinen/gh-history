@@ -671,10 +671,11 @@ func queryWindow(dr daterange.DateRange) (from, to string) {
 // repoCommitCounts returns dr's per-repository commit counts from resp, GitHub's
 // answer for dr. A window that lists maxCommitRepositories repositories and
 // falls short of its commit total was cut off by the limit, so its two halves
-// are fetched instead, each splitting again until it lists all its commits or is
-// a single day. A window counts only its own days, so the windows' counts add up
-// to dr's, and a repository with commits in several windows is listed once for
-// each.
+// are fetched instead, each splitting again while it is cut off the same way,
+// down to single days. A window counts only its own days, so the windows'
+// counts add up to dr's, and a repository with commits in several windows is
+// listed once for each. A shortfall that is left, from a single day past the
+// limit or a shorter list, is fetchEvents' to report.
 func (c *Client) repoCommitCounts(username string, dr daterange.DateRange, resp contributionsResponse) ([]models.RepoCount, error) {
 	cc := resp.User.ContributionsCollection
 	counts := make([]models.RepoCount, 0, len(cc.CommitContributionsByRepository))
