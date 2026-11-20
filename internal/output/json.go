@@ -24,6 +24,11 @@ func FormatJSON(stats models.Statistics) ([]byte, error) {
 			"end":       stats.DateRange.End.Format(ghutil.DateFormat),
 			"time_zone": stats.DateRange.Location().String(),
 		},
+		// When the report was made, just after the fetch, in the report's zone.
+		// The rates count each PR and issue by its state as fetched, no later
+		// than this, so the same period fetched later can give other rates; this
+		// says which of two such files is newer.
+		"generated_at": stats.GeneratedAt.In(stats.DateRange.Location()).Format(time.RFC3339),
 		// The rates are unrounded percentages, like streaks.activity_rate; the
 		// other formats print them to one decimal.
 		"summary": map[string]any{

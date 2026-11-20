@@ -23,6 +23,7 @@ BROWSER=true gh history ivuorinen --from 2026-09-01 --to 2026-09-30 --format htm
 and no `--time-zone`, so their days and hours are in UTC, as each report records.
 GitHub's figures for a past month can change after the fact (September's commit
 count did), so a re-run will not necessarily match these files exactly.
+`generated_at` in `report.json` records when the reports were made.
 
 ## Private repositories are renamed
 

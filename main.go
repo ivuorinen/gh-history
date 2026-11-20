@@ -383,6 +383,7 @@ func handleMain(args []string) {
 		CalendarTotal: result.CalendarTotal,
 	}
 	stats := calc.Calculate(result.Events)
+	stats.GeneratedAt = time.Now()
 
 	writeOutput(cfg, stats)
 }
