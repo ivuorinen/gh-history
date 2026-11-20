@@ -47,8 +47,8 @@ Source lives in `internal/` with seven packages:
 `tools/jsondoc` writes `docs/json.md`, the JSON field reference, from
 `examples/report.json`. Each key's type and meaning live in its `fields` list, and
 the run fails without writing when the report and the list disagree. After a JSON
-key changes, regenerate `examples/report.json`, add the key to `fields`, then run
-`mise run docs`.
+key is added, renamed or removed, regenerate `examples/report.json`, make `fields`
+match it (add the new key, delete the old one), then run `mise run docs`.
 
 ## Code Conventions
 
