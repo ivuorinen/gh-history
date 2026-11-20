@@ -17,6 +17,7 @@ mise run vuln            # govulncheck
 mise run test-race       # Tests with race detector
 mise run test-cov        # Tests with coverage
 mise run build-all       # Cross-compile all platforms
+mise run docs            # Regenerate docs/json.md from examples/report.json
 mise run clean           # Remove build artifacts
 mise run update          # go get -u, go mod tidy, bump mise.toml tools
 mise run all             # lint + test-race + vuln + build (the CI gates)
@@ -42,6 +43,12 @@ Source lives in `internal/` with seven packages:
 - **models/** — Core data types: `Event`, `Statistics`, `Streaks`, `Category`, `ContributionDay`.
 - **output/** — Formatters (text via the in-tree `table`, JSON, Markdown, HTML) and Plotly chart generation. Terminal detection lives in `terminalOut`. HTML report embeds charts inline.
 - **testutil/** — Test helpers and sample data fixtures.
+
+`tools/jsondoc` writes `docs/json.md`, the JSON field reference, from
+`examples/report.json`. Each key's type and meaning live in its `fields` list, and
+the run fails without writing when the report and the list disagree. After a JSON
+key changes, regenerate `examples/report.json`, add the key to `fields`, then run
+`mise run docs`.
 
 ## Code Conventions
 

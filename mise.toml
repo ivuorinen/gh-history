@@ -36,6 +36,12 @@ run = "go test -race ./..."
 description = "Run tests with a coverage summary"
 run = "go test -cover ./..."
 
+# The reference is read off the example report, so regenerate
+# examples/report.json first when a JSON key changes.
+[tasks.docs]
+description = "Generate docs/json.md, the JSON field reference, from examples/report.json"
+run = "go run ./tools/jsondoc examples/report.json docs/json.md"
+
 # The gofmt check mirrors CI's, so a clean `mise run all` means a clean CI run.
 [tasks.lint]
 description = "gofmt check, go vet and staticcheck"

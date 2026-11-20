@@ -101,6 +101,8 @@ detail the human-readable formats deliberately omit.
 | The event list, with titles, numbers and review states   | —                      | `events`              |
 | When the report was made                                 | —                      | `generated_at`        |
 
+[`docs/json.md`](docs/json.md) lists every JSON key with its type and meaning.
+
 `contribution_totals` and `commits_by_repo` are GitHub's own counters, and
 `summary.commits` is the same commit total. The other figures under `summary`
 are counted from the contributions the token can list. Reporting on yourself
@@ -207,6 +209,7 @@ mise run vuln           # Run govulncheck
 mise run test-race      # Run tests with race detector
 mise run test-cov       # Run tests with coverage
 mise run build-all      # Cross-compile for all platforms
+mise run docs           # Regenerate docs/json.md from examples/report.json
 mise run clean          # Remove build artifacts
 mise run update         # Update Go modules and mise tools to their latest versions
 mise tasks              # List every task
