@@ -126,6 +126,10 @@ type Statistics struct {
 	Events        []Event            // The events the statistics were computed from
 	Totals        ContributionTotals // GitHub's own totals, private repos included
 	CommitsByRepo []RepoCount        // Commit counts per repository, private repos included
+	// GeneratedAt is when the report was made, just after its data was fetched.
+	// PROpenedMerged and IssuesOpenedClosed, and so the rates, count each item by
+	// its state then.
+	GeneratedAt time.Time
 }
 
 // TopRepos returns the top n repositories by event count. A non-positive n

@@ -99,6 +99,7 @@ detail the human-readable formats deliberately omit.
 | GitHub's own totals, private repos included              | —                      | `contribution_totals` |
 | Per-repository commit counts, private repos included     | —                      | `commits_by_repo`     |
 | The event list, with titles, numbers and review states   | —                      | `events`              |
+| When the report was made                                 | —                      | `generated_at`        |
 
 `contribution_totals` and `commits_by_repo` are GitHub's own counters, and
 `summary.commits` is the same commit total. The other figures under `summary`
@@ -125,6 +126,11 @@ only items opened in the period are collected: a PR or issue opened before the
 period and merged or closed during it is not counted, neither in the rates nor
 under "PRs Merged" and "Issues Closed". JSON carries each PR's and issue's state
 at that time as `subject_state` on its events.
+
+Every other summary figure counts what happened inside the period. The two rates
+also depend on what happened after it, so fetching the same period again later
+can change them. JSON records when the report was made as `generated_at`, an
+RFC 3339 timestamp in the report's time zone.
 
 `--format html` always writes to a file and opens it in your default browser. With
 no `--output` the file is `<username>-report.html` in the current directory; with

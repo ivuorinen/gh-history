@@ -78,3 +78,14 @@ func TestFormatJSON_ZonelessRangeIsUTC(t *testing.T) {
 		t.Errorf("date_range.time_zone = %v, want UTC", dateRange["time_zone"])
 	}
 }
+
+// The PR merge and issue close rates count each item by its state when the data
+// was fetched, so the same period fetched later can give other rates. JSON
+// records that moment as generated_at, in the report's zone.
+func TestFormatJSON_GeneratedAtInReportZone(t *testing.T) {
+	stats := zoneStats(t)
+	stats.GeneratedAt = time.Date(2026, 11, 20, 12, 30, 5, 0, time.UTC)
+	if got := decodeJSON(t, stats)["generated_at"]; got != "2026-11-20T14:30:05+02:00" {
+		t.Errorf("generated_at = %v, want 2026-11-20T14:30:05+02:00", got)
+	}
+}
