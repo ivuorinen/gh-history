@@ -27,6 +27,9 @@ import (
 	"github.com/ivuorinen/gh-history/internal/output"
 )
 
+// version is what --version prints. A release build sets it to the release's
+// tag through the -X main.version ldflag in .goreleaser.yaml; any other build,
+// such as `mise run build`, prints "dev".
 var version = "dev"
 
 // config holds all parsed CLI flags.
