@@ -13,8 +13,11 @@ builds:
       - CGO_ENABLED=0
     flags:
       - -trimpath
+    # Setting ldflags replaces GoReleaser's default, which is what stamps the
+    # version, so main.version is set here explicitly. Without it every release
+    # reported "gh-history dev".
     ldflags:
-      - -s -w
+      - -s -w -X main.version={{.Version}}
     goos:
       - linux
       - darwin
