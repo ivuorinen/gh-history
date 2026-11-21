@@ -164,12 +164,14 @@ func TestBuildHeatmapData_WeekLabelsUniqueAcrossYears(t *testing.T) {
 		"2024-01-01": 1,
 		"2029-01-01": 1,
 	}}
-	payload, _, _, err := buildHeatmapData(stats)
+	payload, _, _ := buildHeatmapData(stats)
+	// Round-trip through JSON: the labels are checked as the page receives them.
+	encoded, err := json.Marshal(payload)
 	if err != nil {
 		t.Fatal(err)
 	}
 	var got struct{ X []string }
-	if err := json.Unmarshal([]byte(payload), &got); err != nil {
+	if err := json.Unmarshal(encoded, &got); err != nil {
 		t.Fatal(err)
 	}
 	seen := map[string]bool{}

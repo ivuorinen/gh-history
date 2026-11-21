@@ -2,9 +2,17 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Role
+
+You are a Go engineer maintaining `gh-history`: keep each change small, and keep
+every reported figure traceable to the data GitHub returned.
+
 ## Project
 
-`gh-history` is a Go CLI tool (designed as a `gh` extension) that analyzes GitHub user activity and generates statistics and visualizations. It fetches data exclusively via the GitHub GraphQL API, computes statistics (streaks, distributions, top repos), and outputs results as text, JSON, Markdown, or interactive HTML reports with Plotly charts.
+`gh-history` is a Go CLI tool, designed as a `gh` extension, that analyzes a GitHub
+user's activity. It fetches data only through the GitHub GraphQL API and computes
+streaks, distributions and top repositories. It writes the results as text, JSON,
+Markdown, or an interactive HTML report with Plotly charts.
 
 ## Development Commands
 
@@ -32,14 +40,14 @@ Entry point: `main.go` (flag-based CLI via `flag.NewFlagSet`).
 `parseFlags` loops over `fs.Parse` rather than calling it once: Go's `flag` package
 stops at the first non-flag argument, so a single call silently drops every flag
 written after the positional username (`gh history octocat --format json`). Keep the
-loop, and keep `TestParseFlags`'s "flags AFTER the positional username" case.
+loop, and keep `TestParseFlags`'s case for flags written after the username.
 
 Source lives in `internal/` with seven packages:
 
 - **api/** — GitHub GraphQL client over `net/http` (`graphQLClient`). Host and token are resolved in `main` (`resolveHost`/`resolveToken`) via `--hostname`/`GH_HOST` and the token env vars or `gh auth token`. Pagination via cursor-based GraphQL.
-- **analysis/** — `Calculator` processes events into a `Statistics` struct. Streak calculation, event categorization (6 categories; see `models.Category`), activity rate computation.
+- **analysis/** — `Calculator` processes events into a `Statistics` struct. Streak calculation, event categorization into the six values of the `Category` type in `internal/models`, activity rate computation.
 - **daterange/** — Date range types and parsing. Supports `--year`, `--last-month`, `--last-90-days`, `--from`/`--to`. The current year and a `--to` after today are capped to today; a future `--year` and a start before 2008 are rejected.
-- **ghutil/** — Shared utilities: the date format constant, `TruncateToDay`, `SafeDiv`.
+- **ghutil/** — Shared utilities: the date format constant, `TruncateToDay`, `SafeDiv`, and `WriteOwnerOnly`, which every report file is written through.
 - **models/** — Core data types: `Event`, `Statistics`, `Streaks`, `Category`, `ContributionDay`.
 - **output/** — Formatters (text via the in-tree `table`, JSON, Markdown, HTML) and Plotly chart generation. Terminal detection lives in `terminalOut`. HTML report embeds charts inline.
 - **testutil/** — Test helpers and sample data fixtures.
@@ -58,48 +66,9 @@ match it (add the new key, delete the old one), then run `mise run docs`.
 - Standard `go vet` and `gofmt` formatting
 - All functions return errors explicitly — no panics in library code
 - `internal/` package layout — nothing exported outside the module
-- **No `cli/go-gh` dependency.** The only requirement is `golang.org/x/term` (plus its
-  `golang.org/x/sys`). Do not reintroduce go-gh; in-tree replacements are
-  `api.graphQLClient` (GraphQL over `net/http`), `main.resolveHost` / `resolveToken`
-  (auth), `output.table`, `output.terminalOut`, `output.padRight`, `output.pluralize`
-  and `main.browserCommand`. The binary went from 15.3 MB to 8.1 MB.
-- **The `Time-Zone` request header is load-bearing.** GitHub buckets
-  `contributionsCollection` by it, so omitting it changes every count in the report —
-  measured on a one-day query: 1 review without the header, 2 with the local zone.
-  `main.resolveTimeZone` picks the zone: `--time-zone`, then `TZ` when it names an IANA
-  zone, then UTC. It does not read the machine's local zone, so two machines given the
-  same flags and `TZ` produce the same report. Every request sends the zone, and the
-  `DateRange` carries it to every day boundary: GitHub's `from`/`to`, the close and
-  comment filters, the date, weekday and hour buckets, "today" and the streaks. Dates
-  themselves stay midnight-UTC values, so they compare and step by 24 hours with no
-  daylight-saving day; only `DateRange.StartTime`, `EndDateTime` and
-  `ghutil.TruncateToDay` turn instants into days and back. `time/tzdata` is embedded
-  for machines without a zone database (Windows without Go). Keep the `InRangeZone`,
-  `FollowsZone`, `ReportZone` and `TimeZone` tests.
-- **`contributionsCollection`'s `to` is inclusive by day.** GitHub counts the whole day
-  `to` falls on, so `FetchContributions` sends the last second of `End`
-  (`EndDateTime() - 1s`). Sending the next midnight added a day to every total —
-  measured: 41 commits reported for a one-day range whose day held 25. Keep
-  `TestFetchContributions_ToIsLastSecondOfEnd`.
-- **Pagination has no page limit.** `paginateGQL` follows `hasNextPage` to the last
-  page, as `gh api --paginate` does. `FetchIssueComments` does too, but also stops
-  early, with `hasNextPage` still true, at the first comment whose `updatedAt`
-  predates the range start: the walk is newest-updated first and `createdAt <=
-  updatedAt`, so nothing after it can be in range. A 10-page limit capped every
-  collection at 1,100 nodes (a year's reviews read 1,100 where GitHub returned 2,594
-  across 26 pages) and stopped the comment walk at 1,000 comments, so a range older
-  than the 1,000 most recently updated came back short or empty. With the limit gone,
-  a response that repeats a cursor would loop the walk, so both walks treat a cursor
-  that comes back a second time as an error. Keep the `FollowsEveryPage` and
-  `RepeatedCursorIsAnError` tests.
-- **`commitContributionsByRepository` lists at most 100 repositories** and has no
-  pagination. `repoCommitCounts` fetches a window that lists 100 and falls short of
-  `totalCommitContributions` again in halves, down to single days; a window counts
-  only its own days, so the halves add up. It splits only at the limit: a shorter
-  list that falls short has another cause, and splitting it would query every day of
-  the year. `fetchEvents` warns on stderr when the merged list still falls short.
-  Keep the `PastRepositoryLimit`, `ShortListUnderLimitIsNotSplit` and
-  `WarnsWhenCommitsByRepoFallShort` tests.
+- Two sets of constraints live in `.claude/rules/`, which Claude Code loads with this
+  file: `dependencies.md` (no go-gh) and `github-api.md` (the `Time-Zone` header, the
+  inclusive `to`, pagination, the 100-repository limit).
 - Markdown and JSON print verbatim, ending in exactly one newline whether they go to
   stdout or `--output`; only `text` adapts to the terminal.
 

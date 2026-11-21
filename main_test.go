@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"testing"
@@ -89,6 +90,26 @@ func TestConfiguredHosts_MissingFile(t *testing.T) {
 	t.Setenv("GH_CONFIG_DIR", t.TempDir())
 	if got := configuredHosts(); len(got) != 0 {
 		t.Errorf("expected none, got %v", got)
+	}
+}
+
+// With no config directory to be found, there are no configured hosts. Joining
+// an empty directory with "hosts.yml" read the file of that name in the working
+// directory instead.
+func TestConfiguredHosts_NoConfigDirReadsNothing(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "hosts.yml"), []byte("stray.example.com:\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	t.Chdir(dir)
+	t.Setenv("GH_CONFIG_DIR", "")
+	t.Setenv("XDG_CONFIG_HOME", "")
+	t.Setenv("HOME", "")
+	if ghConfigDir() != "" {
+		t.Skip("a home directory was found without HOME; the empty-directory case cannot be set up here")
+	}
+	if got := configuredHosts(); len(got) != 0 {
+		t.Errorf("read hosts.yml from the working directory: %v", got)
 	}
 }
 
@@ -723,6 +744,31 @@ func TestWriteOutput_TextHonoursOutputFile(t *testing.T) {
 	}
 	if !strings.Contains(string(data), "GitHub Activity Report: octocat") {
 		t.Errorf("unexpected file content:\n%s", data)
+	}
+}
+
+// A report can name private repositories and their pull request titles, so an
+// --output file is readable by its owner only, including one written over an
+// existing file at another mode (write-only here; see ghutil.TestWriteOwnerOnly).
+func TestWriteToFileOrStdout_WritesOwnerOnlyFile(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows has no Unix permission bits")
+	}
+	for _, existing := range []bool{false, true} {
+		path := filepath.Join(t.TempDir(), "report.json")
+		if existing {
+			if err := os.WriteFile(path, []byte("old report"), 0o200); err != nil {
+				t.Fatal(err)
+			}
+		}
+		writeToFileOrStdout([]byte("{}"), path)
+		info, err := os.Stat(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if perm := info.Mode().Perm(); perm != 0o600 {
+			t.Errorf("existing file %v: report mode = %o, want 600", existing, perm)
+		}
 	}
 }
 

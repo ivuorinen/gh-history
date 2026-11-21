@@ -2,11 +2,8 @@ package output
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"html/template"
-	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -17,6 +14,11 @@ import (
 )
 
 // htmlReportData holds all data needed by the HTML template.
+//
+// The *JSON fields are plain Go values, not strings. The template writes them
+// inside <script>, where html/template JSON-encodes a value itself, escaping
+// anything that could end the script. A pre-marshalled string would need a
+// template.JS cast, which tells the template to trust it unescaped.
 type htmlReportData struct {
 	Username  string
 	DateStart string
@@ -25,21 +27,21 @@ type htmlReportData struct {
 	Cards     []SummaryRow
 
 	HasCategories  bool
-	CategoriesJSON template.JS
+	CategoriesJSON any
 	CategoriesAlt  string
 
-	WeeklyJSON template.JS
+	WeeklyJSON any
 	WeeklyAlt  string
-	HourlyJSON template.JS
+	HourlyJSON any
 	HourlyAlt  string
 
 	HasHeatmap   bool
-	HeatmapJSON  template.JS
+	HeatmapJSON  any
 	HeatmapTitle string
 	HeatmapAlt   string
 
 	HasTopRepos  bool
-	TopReposJSON template.JS
+	TopReposJSON any
 	TopReposAlt  string
 	ReposTable   []htmlRepoRow
 }
@@ -63,16 +65,6 @@ type htmlRepoRow struct {
 	Repo       string
 	Visibility string // visibilityLabel, so the table words it as text and Markdown do
 	Count      int
-}
-
-// mustJSON marshals v to JSON for embedding in the template.
-// Returns an error instead of silently discarding marshal failures.
-func mustJSON(v any) (string, error) {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return "null", fmt.Errorf("json marshal: %w", err)
-	}
-	return string(b), nil
 }
 
 var reportTemplate = template.Must(template.New("report").Parse(`<!DOCTYPE html>
@@ -329,18 +321,15 @@ var reportTemplate = template.Must(template.New("report").Parse(`<!DOCTYPE html>
 </body>
 </html>`))
 
-// GenerateHTML creates an HTML report with embedded Plotly charts.
+// GenerateHTML creates an HTML report with embedded Plotly charts. It creates
+// no directory, as --output does for every other format, and the file is
+// readable by its owner only (see ghutil.WriteOwnerOnly).
 func GenerateHTML(stats models.Statistics, outputPath string) error {
-	dir := filepath.Dir(outputPath)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return err
-	}
-
 	html, err := buildHTML(stats)
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(outputPath, []byte(html), 0o644)
+	return ghutil.WriteOwnerOnly(outputPath, []byte(html))
 }
 
 func buildHTML(stats models.Statistics) (string, error) {
@@ -349,108 +338,13 @@ func buildHTML(stats models.Statistics) (string, error) {
 		DateStart: stats.DateRange.Start.Format(ghutil.DateFormat),
 		DateEnd:   stats.DateRange.End.Format(ghutil.DateFormat),
 		TimeZone:  stats.DateRange.Location().String(),
+		// Same source as every other format, so no statistic is format-specific.
+		Cards: BuildSummary(stats),
 	}
-
-	// Cards — same source as every other format, so no statistic is
-	// format-specific.
-	data.Cards = BuildSummary(stats)
-
-	// Categories chart
-	if len(stats.EventsByCategory) > 0 {
-		var labels []string
-		var values []int
-		for _, cat := range AllCategories {
-			if count, ok := stats.EventsByCategory[cat]; ok && count > 0 {
-				labels = append(labels, analysis.CategoryLabels[cat])
-				values = append(values, count)
-			}
-		}
-		catJSON, err := mustJSON(map[string]any{"labels": labels, "values": values})
-		if err != nil {
-			return "", err
-		}
-		data.HasCategories = true
-		data.CategoriesJSON = template.JS(catJSON)
-		data.CategoriesAlt = barsAlt("Activity distribution by category",
-			BuildCategoryBars(stats, 1, AllCategories))
-	}
-
-	// Weekly chart
-	days := []string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
-	weekCounts := make([]int, 7)
-	for i := range 7 {
-		weekCounts[i] = stats.EventsByWeekday[i]
-	}
-	weeklyJSON, err := mustJSON(map[string]any{"x": days, "y": weekCounts})
-	if err != nil {
-		return "", err
-	}
-	data.WeeklyJSON = template.JS(weeklyJSON)
-	data.WeeklyAlt = barsAlt("Activity by day of week", BuildWeekdayBars(stats, 1))
-
-	// Hourly chart
-	hours := make([]int, 24)
-	hourCounts := make([]int, 24)
-	for i := range 24 {
-		hours[i] = i
-		hourCounts[i] = stats.EventsByHour[i]
-	}
-	hourlyJSON, err := mustJSON(map[string]any{"x": hours, "y": hourCounts})
-	if err != nil {
-		return "", err
-	}
-	data.HourlyJSON = template.JS(hourlyJSON)
-	data.HourlyAlt = barsAlt("Activity by hour ("+data.TimeZone+")", BuildHourlyBars(stats, 1))
-
-	// Heatmap
-	heatmapData, summary, fromCalendar, err := buildHeatmapData(stats)
-	if err != nil {
-		return "", err
-	}
-	if heatmapData != "" {
-		data.HasHeatmap = true
-		data.HeatmapJSON = template.JS(heatmapData)
-		// Name the source: the calendar counts commits and contributions the
-		// token cannot list, event dates do not, and the two give visibly
-		// different pictures.
-		if fromCalendar {
-			data.HeatmapTitle = "Contribution Heatmap (all repositories)"
-		} else {
-			data.HeatmapTitle = "Contribution Heatmap (events)"
-		}
-		data.HeatmapAlt = summary
-	}
-
-	// Top repos
-	topRepos := stats.TopRepos(15)
-	if len(topRepos) > 0 {
-		var repoNames []string
-		var repoCounts []int
-		for i := len(topRepos) - 1; i >= 0; i-- {
-			repoNames = append(repoNames, topRepos[i].Repo)
-			repoCounts = append(repoCounts, topRepos[i].Count)
-		}
-		reposJSON, err := mustJSON(map[string]any{"y": repoNames, "x": repoCounts})
-		if err != nil {
-			return "", err
-		}
-		data.HasTopRepos = true
-		data.TopReposJSON = template.JS(reposJSON)
-		altParts := make([]string, 0, len(topRepos))
-		for _, rc := range topRepos {
-			altParts = append(altParts, fmt.Sprintf("%s %d", rc.Repo, rc.Count))
-		}
-		data.TopReposAlt = "Top repositories by events: " + strings.Join(altParts, ", ")
-
-		for i, rc := range topRepos {
-			data.ReposTable = append(data.ReposTable, htmlRepoRow{
-				Rank:       i + 1,
-				Repo:       rc.Repo,
-				Visibility: visibilityLabel(rc.Private),
-				Count:      rc.Count,
-			})
-		}
-	}
+	addCategoryChart(&data, stats)
+	addTimeCharts(&data, stats)
+	addHeatmap(&data, stats)
+	addTopRepos(&data, stats)
 
 	var buf bytes.Buffer
 	if err := reportTemplate.Execute(&buf, data); err != nil {
@@ -459,23 +353,120 @@ func buildHTML(stats models.Statistics) (string, error) {
 	return buf.String(), nil
 }
 
-// buildHeatmapData returns the heatmap JSON, a text alternative, and whether the
-// data came from the contribution calendar (rather than event dates).
-func buildHeatmapData(stats models.Statistics) (payload, alt string, fromCalendar bool, err error) {
-	// Prefer the contribution calendar (which also counts commits) over event
-	// dates. analysis.Calculate makes the same choice for streaks; a different
-	// source here would make the heatmap contradict the streak figures in the
-	// same report.
-	dateMap := stats.EventsByDate
-	fromCalendar = stats.Calendar != nil && len(stats.Calendar.Days) > 0
-	if fromCalendar {
-		dateMap = make(map[string]int, len(stats.Calendar.Days))
-		for _, d := range stats.Calendar.Days {
-			dateMap[d.Date.Format(ghutil.DateFormat)] = d.ContributionCount
+// addCategoryChart fills the category chart, in AllCategories order. The
+// template leaves the chart out when no event has a category.
+func addCategoryChart(data *htmlReportData, stats models.Statistics) {
+	if len(stats.EventsByCategory) == 0 {
+		return
+	}
+	var labels []string
+	var values []int
+	for _, cat := range AllCategories {
+		if count, ok := stats.EventsByCategory[cat]; ok && count > 0 {
+			labels = append(labels, analysis.CategoryLabels[cat])
+			values = append(values, count)
 		}
 	}
+	data.HasCategories = true
+	data.CategoriesJSON = map[string]any{"labels": labels, "values": values}
+	data.CategoriesAlt = barsAlt("Activity distribution by category",
+		BuildCategoryBars(stats, 1, AllCategories))
+}
+
+// addTimeCharts fills the weekday and hour charts. Every weekday and hour gets
+// a bar, a zero one included, so the axes are the same in every report.
+func addTimeCharts(data *htmlReportData, stats models.Statistics) {
+	days := []string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
+	weekCounts := make([]int, 7)
+	for i := range 7 {
+		weekCounts[i] = stats.EventsByWeekday[i]
+	}
+	data.WeeklyJSON = map[string]any{"x": days, "y": weekCounts}
+	data.WeeklyAlt = barsAlt("Activity by day of week", BuildWeekdayBars(stats, 1))
+
+	hours := make([]int, 24)
+	hourCounts := make([]int, 24)
+	for i := range 24 {
+		hours[i] = i
+		hourCounts[i] = stats.EventsByHour[i]
+	}
+	data.HourlyJSON = map[string]any{"x": hours, "y": hourCounts}
+	data.HourlyAlt = barsAlt("Activity by hour ("+data.TimeZone+")", BuildHourlyBars(stats, 1))
+}
+
+// addHeatmap fills the heatmap and names its source in the title: the calendar
+// counts commits and contributions the token cannot list, event dates do not,
+// and the two give visibly different pictures.
+func addHeatmap(data *htmlReportData, stats models.Statistics) {
+	payload, summary, fromCalendar := buildHeatmapData(stats)
+	if payload == nil {
+		return
+	}
+	data.HasHeatmap = true
+	data.HeatmapJSON = payload
+	if fromCalendar {
+		data.HeatmapTitle = "Contribution Heatmap (all repositories)"
+	} else {
+		data.HeatmapTitle = "Contribution Heatmap (events)"
+	}
+	data.HeatmapAlt = summary
+}
+
+// addTopRepos fills the top-15 chart and table. The chart's lists run from the
+// 15th repository to the first: a horizontal bar chart draws its first category
+// at the bottom, so the busiest repository ends up on top.
+func addTopRepos(data *htmlReportData, stats models.Statistics) {
+	topRepos := stats.TopRepos(15)
+	if len(topRepos) == 0 {
+		return
+	}
+	var repoNames []string
+	var repoCounts []int
+	for i := len(topRepos) - 1; i >= 0; i-- {
+		repoNames = append(repoNames, topRepos[i].Repo)
+		repoCounts = append(repoCounts, topRepos[i].Count)
+	}
+	data.HasTopRepos = true
+	data.TopReposJSON = map[string]any{"y": repoNames, "x": repoCounts}
+	altParts := make([]string, 0, len(topRepos))
+	for _, rc := range topRepos {
+		altParts = append(altParts, fmt.Sprintf("%s %d", rc.Repo, rc.Count))
+	}
+	data.TopReposAlt = "Top repositories by events: " + strings.Join(altParts, ", ")
+
+	for i, rc := range topRepos {
+		data.ReposTable = append(data.ReposTable, htmlRepoRow{
+			Rank:       i + 1,
+			Repo:       rc.Repo,
+			Visibility: visibilityLabel(rc.Private),
+			Count:      rc.Count,
+		})
+	}
+}
+
+// heatmapSource returns the per-day counts the heatmap draws and whether they
+// come from the contribution calendar. The calendar wins over event dates
+// because it also counts commits. analysis.Calculate makes the same choice for
+// streaks, and a different source here would make the heatmap contradict the
+// streak figures in the same report.
+func heatmapSource(stats models.Statistics) (map[string]int, bool) {
+	if stats.Calendar == nil || len(stats.Calendar.Days) == 0 {
+		return stats.EventsByDate, false
+	}
+	dateMap := make(map[string]int, len(stats.Calendar.Days))
+	for _, d := range stats.Calendar.Days {
+		dateMap[d.Date.Format(ghutil.DateFormat)] = d.ContributionCount
+	}
+	return dateMap, true
+}
+
+// buildHeatmapData returns the heatmap's chart data (nil when there is no day
+// to draw), a text alternative, and whether the data came from the
+// contribution calendar rather than event dates.
+func buildHeatmapData(stats models.Statistics) (payload any, alt string, fromCalendar bool) {
+	dateMap, fromCalendar := heatmapSource(stats)
 	if len(dateMap) == 0 {
-		return "", "", fromCalendar, nil
+		return nil, "", fromCalendar
 	}
 
 	type dateCount struct {
@@ -503,7 +494,7 @@ func buildHeatmapData(stats models.Statistics) (payload, alt string, fromCalenda
 	})
 
 	if len(dates) == 0 {
-		return "", "", fromCalendar, nil
+		return nil, "", fromCalendar
 	}
 
 	start := dates[0].date
@@ -534,10 +525,7 @@ func buildHeatmapData(stats models.Statistics) (payload, alt string, fromCalenda
 		current = current.AddDate(0, 0, 7)
 	}
 
-	payload, err = mustJSON(map[string]any{"y": dayNames, "x": weekLabels, "z": z})
-	if err != nil {
-		return "", "", fromCalendar, err
-	}
+	payload = map[string]any{"y": dayNames, "x": weekLabels, "z": z}
 	source := "events"
 	if fromCalendar {
 		source = "all repositories"
@@ -545,5 +533,5 @@ func buildHeatmapData(stats models.Statistics) (payload, alt string, fromCalenda
 	alt = fmt.Sprintf("Contribution heatmap from %s: %d contributions across %d active days, %s to %s",
 		source, total, activeDays,
 		start.Format(ghutil.DateFormat), end.Format(ghutil.DateFormat))
-	return payload, alt, fromCalendar, nil
+	return payload, alt, fromCalendar
 }

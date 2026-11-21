@@ -66,56 +66,58 @@ func FormatJSON(stats models.Statistics) ([]byte, error) {
 		// cannot tell a consumer whether a missing repository had no events or
 		// fell below the cut, and lists cut per period undercount when added up.
 		"top_repos": repoCounts(stats.TopRepos(len(stats.EventsByRepo))),
+		"calendar":  jsonCalendar(stats.Calendar),
+		"streaks":   jsonStreaks(stats.Streaks),
 	}
-
-	// The contribution calendar includes private-repository activity, so it is
-	// not derivable from events_by_date. Emit it rather than computing it and
-	// dropping it on the floor.
-	if stats.Calendar != nil {
-		days := make([]map[string]any, 0, len(stats.Calendar.Days))
-		for _, d := range stats.Calendar.Days {
-			days = append(days, map[string]any{
-				"date":    d.Date.Format(ghutil.DateFormat),
-				"count":   d.ContributionCount,
-				"weekday": d.Weekday(), // 0=Monday, matching events_by_weekday
-			})
-		}
-		data["calendar"] = map[string]any{
-			"total_contributions": stats.Calendar.TotalContributions,
-			"reported_total":      stats.Calendar.ReportedTotal,
-			"days":                days,
-		}
-	} else {
-		data["calendar"] = nil
-	}
-
-	if stats.Streaks != nil {
-		s := stats.Streaks
-		streaks := map[string]any{
-			"longest":       s.LongestStreak,
-			"longest_start": nil,
-			"longest_end":   nil,
-			"current":       s.CurrentStreak,
-			"current_start": nil,
-			"active_days":   s.ActiveDays,
-			"total_days":    s.TotalDays,
-			"activity_rate": s.ActivityRate(),
-		}
-		if s.LongestStreakStart != nil {
-			streaks["longest_start"] = s.LongestStreakStart.Format(ghutil.DateFormat)
-		}
-		if s.LongestStreakEnd != nil {
-			streaks["longest_end"] = s.LongestStreakEnd.Format(ghutil.DateFormat)
-		}
-		if s.CurrentStreakStart != nil {
-			streaks["current_start"] = s.CurrentStreakStart.Format(ghutil.DateFormat)
-		}
-		data["streaks"] = streaks
-	} else {
-		data["streaks"] = nil
-	}
-
 	return json.MarshalIndent(data, "", "  ")
+}
+
+// jsonCalendar renders the contribution calendar, or null when there is none.
+// The calendar includes private-repository activity, so it is not derivable
+// from events_by_date.
+func jsonCalendar(cal *models.ContributionCalendar) any {
+	if cal == nil {
+		return nil
+	}
+	days := make([]map[string]any, 0, len(cal.Days))
+	for _, d := range cal.Days {
+		days = append(days, map[string]any{
+			"date":    d.Date.Format(ghutil.DateFormat),
+			"count":   d.ContributionCount,
+			"weekday": d.Weekday(), // 0=Monday, matching events_by_weekday
+		})
+	}
+	return map[string]any{
+		"total_contributions": cal.TotalContributions,
+		"reported_total":      cal.ReportedTotal,
+		"days":                days,
+	}
+}
+
+// jsonStreaks renders the streaks, or null when there are none. A run's start
+// and end are null when no day was active, so the keys are always present.
+func jsonStreaks(s *models.StreakInfo) any {
+	if s == nil {
+		return nil
+	}
+	return map[string]any{
+		"longest":       s.LongestStreak,
+		"longest_start": dateOrNull(s.LongestStreakStart),
+		"longest_end":   dateOrNull(s.LongestStreakEnd),
+		"current":       s.CurrentStreak,
+		"current_start": dateOrNull(s.CurrentStreakStart),
+		"active_days":   s.ActiveDays,
+		"total_days":    s.TotalDays,
+		"activity_rate": s.ActivityRate(),
+	}
+}
+
+// dateOrNull formats a date, or returns null for a nil one.
+func dateOrNull(t *time.Time) any {
+	if t == nil {
+		return nil
+	}
+	return t.Format(ghutil.DateFormat)
 }
 
 // repoCounts renders a RepoCount slice with explicit keys rather than relying on

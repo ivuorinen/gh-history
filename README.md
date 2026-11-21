@@ -15,7 +15,9 @@ and the per-repository breakdown) covers every contribution your token can see.
 When you report on yourself with a token that has access, that includes private
 repositories: their names can appear in any format (text, Markdown and HTML list
 the top 15 repositories, JSON lists all of them), and their pull request and
-issue titles appear in JSON. Check a report before publishing it.
+issue titles appear in JSON. Check a report before publishing it. A report
+written to a file (`--output`, or any HTML report) is readable by its owner
+only, and its directory must already exist.
 
 ## Installation
 
